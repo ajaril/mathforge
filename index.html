@@ -20,13 +20,15 @@
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100vh; }
 .app { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
-.header { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.header { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .header h1 { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; letter-spacing: -0.5px; }
 .header h1 span { color: var(--text2); }
-.curso-selector { display: flex; gap: 6px; margin-left: auto; }
+.curso-selector { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; align-items: center; }
 .curso-btn { padding: 6px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border2); border-radius: 100px; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
 .curso-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .curso-btn:hover:not(.active) { background: var(--surface2); }
+.curso-btn-new { padding: 6px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: 1px dashed var(--border2); border-radius: 100px; cursor: pointer; background: transparent; color: var(--text3); transition: all 0.15s; }
+.curso-btn-new:hover { background: var(--surface2); color: var(--text2); }
 .tabs { display: flex; gap: 2px; margin-bottom: 1.5rem; background: var(--surface2); border-radius: 100px; padding: 4px; width: fit-content; flex-wrap: wrap; }
 .tab { padding: 7px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: none; border-radius: 100px; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
 .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -76,7 +78,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .paste-area textarea { font-family: 'Courier New', monospace; font-size: 12px; min-height: 160px; background: var(--surface2); }
 .empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
-.modal { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; width: 100%; max-width: 580px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+.modal { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; width: 100%; max-width: 620px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
 .modal h3 { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 8px; }
 .modal p { font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.5; }
 .modal textarea { font-family: 'Courier New', monospace; font-size: 11px; min-height: 180px; margin-bottom: 12px; background: var(--surface2); }
@@ -90,6 +92,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .config-section h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 .add-unit-form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .add-unit-form input { flex: 1; min-width: 180px; }
+.preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.6; max-height: 200px; overflow-y: auto; margin-top: 8px; color: var(--text2); white-space: pre-wrap; }
+.examen-slot { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); }
+.examen-slot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.slot-num { font-size: 13px; font-weight: 500; min-width: 24px; }
+.importar-masivo-area textarea { font-family: 'Courier New', monospace; font-size: 12px; min-height: 200px; background: var(--surface2); }
+.item-preview { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 6px; font-size: 12px; font-family: 'Courier New', monospace; line-height: 1.5; color: var(--text2); max-height: 80px; overflow: hidden; cursor: pointer; transition: all 0.15s; }
+.item-preview:hover { background: var(--surface2); }
+.item-preview.selected { border-color: var(--accent); background: var(--info-bg); color: var(--info-text); }
 #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 100px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
 #toast.show { opacity: 1; }
 @media (max-width: 600px) {
@@ -105,9 +115,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 <div class="app">
   <div class="header">
     <h1>Math<span>Forge</span></h1>
-    <div class="curso-selector">
-      <button class="curso-btn" onclick="setCurso('1bach', this)">1º Bach CCSS</button>
-      <button class="curso-btn active" onclick="setCurso('2bach', this)">2º Bach CCSS</button>
+    <div class="curso-selector" id="curso-selector">
+      <!-- cursos se renderizan dinámicamente -->
     </div>
   </div>
 
@@ -120,7 +129,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- GENERAR -->
   <div id="tab-generar" class="panel active">
-    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude en una pestaña nueva. Pégalo, espera la respuesta y pega el LaTeX abajo.</div>
+    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude. Pega el prompt, espera la respuesta y pega el LaTeX abajo.</div>
     <div class="card">
       <div class="field">
         <label>Modo de generación</label>
@@ -139,6 +148,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
       </div>
+
       <div id="modo-detallista">
         <div class="row">
           <div><label>Unidad didáctica</label><select id="unidad"></select></div>
@@ -170,9 +180,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </select>
         </div>
       </div>
+
       <div id="modo-similar" style="display:none">
-        <div class="field"><label>Problema de referencia del banco</label>
-          <select id="ref-problema"><option value="">Cargando...</option></select>
+        <div class="field">
+          <label>Problema de referencia del banco</label>
+          <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
+          <div id="preview-ref" class="preview-box" style="display:none;"></div>
         </div>
         <div class="row">
           <div><label>Nº de apartados (opcional)</label>
@@ -183,11 +196,13 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
       </div>
+
       <div id="modo-libre" style="display:none">
         <div class="field"><label>Cuéntale a Claude qué quieres</label>
           <textarea id="libre-prompt" placeholder="Ej: problema contextualizado de probabilidad con Bayes, temática deportiva..."></textarea>
         </div>
       </div>
+
       <button class="btn btn-primary" onclick="generarProblema()">Generar → copiar prompt y abrir Claude</button>
     </div>
 
@@ -208,8 +223,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   <!-- BANCO -->
   <div id="tab-banco" class="panel">
     <div class="sync-bar">
-      💾 <strong id="sync-status-text">Guardado local.</strong>&nbsp; Exporta JSON como backup en Drive.
-      <div style="display:flex; gap:6px; margin-left:auto;">
+      💾 <strong id="sync-status-text">Conectando...</strong>
+      <div style="display:flex; gap:6px; margin-left:auto; flex-wrap:wrap;">
+        <button class="btn btn-sm" onclick="mostrarImportarMasivo()">Importar LaTeX masivo</button>
         <button class="btn btn-sm" onclick="exportarJSON()">Exportar JSON</button>
         <button class="btn btn-sm" onclick="mostrarImportar()">Importar JSON</button>
       </div>
@@ -236,7 +252,6 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- EXÁMENES -->
   <div id="tab-examenes" class="panel">
-    <div class="info-box">Describe el examen y Claude generará el LaTeX completo listo para Overleaf.</div>
     <div class="card">
       <div class="card-title">Nuevo examen</div>
       <div class="row">
@@ -247,11 +262,23 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div><label>Profesor</label><input type="text" id="exam-profesor" placeholder="Nombre"></div>
         <div><label>Convocatoria</label><select id="exam-conv"><option>Ordinaria</option><option>Extraordinaria</option><option>Recuperación</option></select></div>
       </div>
-      <div class="field"><label>Descripción para Claude</label>
-        <textarea id="exam-desc" placeholder="Ej: 5 problemas de probabilidad, mezcla de tipos, temática sevillana..."></textarea>
+
+      <div class="field">
+        <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Estructura del examen</label>
+        <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Define cada pregunta. Puedes elegir un problema del banco como referencia para cada slot, o dejarlo libre para que Claude decida.</p>
+        <div id="exam-slots-container"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn btn-sm" onclick="añadirSlot()">+ Añadir pregunta</button>
+          <button class="btn btn-sm btn-danger" onclick="quitarSlot()">− Quitar última</button>
+        </div>
+      </div>
+
+      <div class="field"><label>Instrucciones adicionales para Claude (opcional)</label>
+        <textarea id="exam-desc" placeholder="Ej: temática sevillana, mezcla de tipos..."></textarea>
       </div>
       <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
     </div>
+
     <div class="card" style="border-style:dashed;">
       <div class="card-title">Pega aquí el LaTeX del examen</div>
       <div class="paste-area"><textarea id="examen-latex-pegado" placeholder="Pega aquí el LaTeX del examen completo..."></textarea></div>
@@ -260,6 +287,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
       </div>
     </div>
+
     <div style="margin-top:1.5rem;">
       <div style="font-size:13px; font-weight:500; margin-bottom:10px; color:var(--text2);">Exámenes guardados</div>
       <div id="examenes-container" class="empty">Todavía no hay exámenes guardados.</div>
@@ -270,7 +298,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   <div id="tab-config" class="panel">
     <div class="config-section">
       <h3>Unidades didácticas — <span id="config-curso-label">2º Bach CCSS</span></h3>
-      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Define las unidades del curso. Si dejas los saberes vacíos, Claude los deduce por el nombre.</p>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Define las unidades del curso actual. Si dejas los saberes vacíos, Claude los deduce por el nombre.</p>
       <div id="unidades-list"></div>
       <div class="add-unit-form">
         <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
@@ -278,27 +306,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
       </div>
     </div>
-
-    <div class="config-section">
-      <h3>Conexión Supabase</h3>
-      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Conecta con Supabase para sincronizar el banco entre vosotros en tiempo real.</p>
-      <div class="row">
-        <div><label>URL del proyecto</label><input type="text" id="sb-url" placeholder="https://xxx.supabase.co"></div>
-        <div><label>Anon key (empieza por eyJ...)</label><input type="text" id="sb-key" placeholder="eyJ..."></div>
-      </div>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn btn-primary" onclick="guardarSupabase()">Guardar y conectar</button>
-        <span id="sb-status" style="font-size:12px; color:var(--text2);"></span>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- Modal exportar -->
+<!-- Modal exportar JSON -->
 <div id="modal-exportar" style="display:none;" class="modal-overlay">
   <div class="modal">
     <h3>Exportar banco completo</h3>
-    <p>Abre en pestaña y pulsa Ctrl+S (o Cmd+S) para guardar el archivo. También puedes copiar el JSON.</p>
+    <p>Abre en pestaña y pulsa Ctrl+S (Cmd+S en Mac) para guardar.</p>
     <textarea id="json-export-text" readonly></textarea>
     <div class="modal-actions">
       <button class="btn" onclick="copiarJsonExport()">Copiar JSON</button>
@@ -308,17 +323,49 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 </div>
 
-<!-- Modal importar -->
+<!-- Modal importar JSON -->
 <div id="modal-importar" style="display:none;" class="modal-overlay">
   <div class="modal">
-    <h3>Importar banco</h3>
-    <p>Pega el JSON de tu compañero o selecciona el archivo .json.</p>
+    <h3>Importar banco (JSON)</h3>
+    <p>Pega el JSON o selecciona el archivo.</p>
     <textarea id="json-import-text" placeholder="Pega aquí el JSON..."></textarea>
     <div class="modal-actions">
       <button class="btn" onclick="document.getElementById('file-import').click()">Seleccionar archivo</button>
       <input type="file" id="file-import" accept=".json" style="display:none" onchange="importarDesdeArchivo(event)">
       <button class="btn btn-primary" onclick="importarDesdeTexto()">Importar</button>
       <button class="btn" onclick="cerrarModal('modal-importar')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal importar LaTeX masivo -->
+<div id="modal-importar-masivo" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Importar LaTeX masivo</h3>
+    <p>Pega aquí el LaTeX de un examen o colección de problemas. La app detectará cada <code>\item</code> principal y te mostrará los problemas para que los revises antes de guardarlos.</p>
+    <div class="field"><label>Unidad a la que pertenecen</label><select id="masivo-unidad"></select></div>
+    <div class="field"><label>Tipo</label>
+      <select id="masivo-tipo">
+        <option value="contextualizado">Contextualizado</option>
+        <option value="teorico">Teórico</option>
+        <option value="mixto">Mixto</option>
+      </select>
+    </div>
+    <div class="importar-masivo-area field">
+      <label>LaTeX</label>
+      <textarea id="masivo-latex" placeholder="Pega aquí el LaTeX completo..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="parsearMasivo()">Detectar problemas</button>
+      <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
+    </div>
+    <div id="masivo-preview" style="display:none; margin-top:1rem;">
+      <p style="font-weight:500; color:var(--text); margin-bottom:8px;">Problemas detectados — haz clic para seleccionar/deseleccionar:</p>
+      <div id="masivo-items"></div>
+      <div class="modal-actions" style="margin-top:12px;">
+        <button class="btn" onclick="seleccionarTodosMasivo()">Seleccionar todos</button>
+        <button class="btn btn-primary" onclick="guardarMasivo()">Guardar seleccionados en banco</button>
+      </div>
     </div>
   </div>
 </div>
@@ -352,19 +399,44 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 </div>
 
+<!-- Modal nuevo curso -->
+<div id="modal-nuevo-curso" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Nuevo curso</h3>
+    <p>Añade un nuevo curso al sistema. Podrás definir sus unidades desde Configuración.</p>
+    <div class="field"><label>Nombre del curso</label>
+      <input type="text" id="nuevo-curso-nombre" placeholder="Ej: 4º ESO, 1º Bach Ciencias...">
+    </div>
+    <div class="field"><label>Identificador corto</label>
+      <input type="text" id="nuevo-curso-id" placeholder="Ej: 4eso, 1bach-cien (sin espacios)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="crearCurso()">Crear curso</button>
+      <button class="btn" onclick="cerrarModal('modal-nuevo-curso')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-let SUPABASE_URL = localStorage.getItem('sb_url') || '';
-let SUPABASE_KEY = localStorage.getItem('sb_key') || '';
+// ── SUPABASE (hardcoded) ─────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fgopvmzryyckxjnyyxjk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnb3B2bXpyeXlja3hqbnl5eGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzY3MTksImV4cCI6MjA5MTk1MjcxOX0.daoKaeFA6mdizU-mChSBpzgkn_rQej-ZoE15utU1qac';
 let supabaseOK = false;
 
-const CURSOS_META = {
-  '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
-  '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
-};
+async function sbFetch(path, opts = {}) {
+  try {
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    if (opts.method === 'POST') headers['Prefer'] = 'return=representation';
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
+    const text = await res.text();
+    if (!res.ok) { console.error('SB:', res.status, text); return null; }
+    return text ? JSON.parse(text) : [];
+  } catch(e) { console.error('SB error:', e); return null; }
+}
 
+// ── NORMATIVA ────────────────────────────────────────────────────────────────
 const NORMATIVA = {
   '2bach': `Saberes y criterios de 2º Bach CCSS:
 - A (Matrices): A.1.1→1.1, A.1.2→1.2, A.1.3→1.2/2.1, A.1.4→4.1, A.2→1.1/4.1
@@ -421,87 +493,83 @@ const UNIDADES_DEFAULT = {
   '1bach': []
 };
 
-// ── STATE ───────────────────────────────────────────────────────────────────
+// ── STATE ────────────────────────────────────────────────────────────────────
 let cursoActual = '2bach';
 let currentMode = 'detallista';
 let banco = [];
 let examenes = [];
 let unidades = {};
+let cursos = {};
 let pendienteGuardar = null;
+let examSlots = 4;
+let masivoItems = [];
+let masivoSeleccionados = new Set();
 
-// ── SUPABASE ────────────────────────────────────────────────────────────────
-async function sbFetch(path, opts = {}) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
-  try {
-    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' };
-    if (opts.method === 'POST') headers['Prefer'] = 'return=representation';
-    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
-    const text = await res.text();
-    if (!res.ok) { console.error('SB:', res.status, text); return null; }
-    return text ? JSON.parse(text) : [];
-  } catch(e) { console.error('SB error:', e); return null; }
-}
-
-async function testSupabase() {
-  const el = document.getElementById('sb-status');
-  const syncEl = document.getElementById('sync-status-text');
-  el.textContent = 'Conectando...';
-  const r = await sbFetch('problemas?limit=1&select=id');
-  supabaseOK = r !== null;
-  if (supabaseOK) {
-    el.textContent = '✓ Conectado'; el.style.color = 'green';
-    syncEl.textContent = 'Sincronizado con Supabase.';
-  } else {
-    el.textContent = '✗ Sin conexión — usando almacenamiento local'; el.style.color = 'red';
-    syncEl.textContent = 'Guardado local (Supabase no conectado).';
-  }
-}
-
-function guardarSupabase() {
-  SUPABASE_URL = document.getElementById('sb-url').value.trim();
-  SUPABASE_KEY = document.getElementById('sb-key').value.trim();
-  localStorage.setItem('sb_url', SUPABASE_URL);
-  localStorage.setItem('sb_key', SUPABASE_KEY);
-  testSupabase().then(() => { cargarBanco(); cargarExamenes(); });
-  toast('Configuración guardada');
-}
-
-// ── INIT ────────────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
-  const savedU = localStorage.getItem('mathforge_unidades');
+  const savedU = localStorage.getItem('mf_unidades');
   unidades = savedU ? JSON.parse(savedU) : JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
   if (!unidades['1bach']) unidades['1bach'] = [];
   if (!unidades['2bach'] || !unidades['2bach'].length) unidades['2bach'] = JSON.parse(JSON.stringify(UNIDADES_DEFAULT['2bach']));
 
-  const sbUrl = localStorage.getItem('sb_url');
-  const sbKey = localStorage.getItem('sb_key');
-  if (sbUrl) document.getElementById('sb-url').value = sbUrl;
-  if (sbKey) document.getElementById('sb-key').value = sbKey;
+  const savedC = localStorage.getItem('mf_cursos');
+  cursos = savedC ? JSON.parse(savedC) : {
+    '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
+    '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
+  };
 
+  renderCursoSelector();
   actualizarUnidadesUI();
   renderApartados();
+  renderExamSlots();
 
-  if (sbUrl && sbKey) {
-    testSupabase().then(() => { cargarBanco(); cargarExamenes(); });
-  } else {
-    cargarBanco(); cargarExamenes();
-  }
+  sbFetch('problemas?limit=1&select=id').then(r => {
+    supabaseOK = r !== null;
+    const el = document.getElementById('sync-status-text');
+    el.textContent = supabaseOK ? '✓ Sincronizado con Supabase' : 'Guardado local (Supabase no disponible)';
+  });
+
+  cargarBanco();
+  cargarExamenes();
 }
 
-// ── DATOS ────────────────────────────────────────────────────────────────────
+function renderCursoSelector() {
+  const sel = document.getElementById('curso-selector');
+  sel.innerHTML = Object.entries(cursos).map(([key, c]) =>
+    `<button class="curso-btn${key === cursoActual ? ' active' : ''}" onclick="setCurso('${key}', this)">${c.label}</button>`
+  ).join('') + `<button class="curso-btn-new" onclick="document.getElementById('modal-nuevo-curso').style.display='flex'">+ Nuevo</button>`;
+}
+
+function crearCurso() {
+  const nombre = document.getElementById('nuevo-curso-nombre').value.trim();
+  const id = document.getElementById('nuevo-curso-id').value.trim().replace(/\s+/g, '-');
+  if (!nombre || !id) { toast('Rellena nombre e identificador'); return; }
+  if (cursos[id]) { toast('Ya existe un curso con ese identificador'); return; }
+  cursos[id] = { label: nombre, curso_db: nombre };
+  unidades[id] = [];
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  guardarUnidades();
+  cerrarModal('modal-nuevo-curso');
+  document.getElementById('nuevo-curso-nombre').value = '';
+  document.getElementById('nuevo-curso-id').value = '';
+  renderCursoSelector();
+  toast('Curso creado ✓');
+}
+
+// ── DATOS ─────────────────────────────────────────────────────────────────────
 async function cargarBanco() {
   document.getElementById('banco-container').innerHTML = '<div class="empty">Cargando...</div>';
-  const cursoDB = encodeURIComponent(CURSOS_META[cursoActual].curso_db);
+  const cursoDB = encodeURIComponent((cursos[cursoActual]||{}).curso_db || cursoActual);
   const data = await sbFetch(`problemas?curso=eq.${cursoDB}&order=created_at.desc&select=*`);
-  if (data !== null) { banco = data; }
+  if (data !== null) banco = data;
   else { const local = localStorage.getItem('mf_banco_'+cursoActual); banco = local ? JSON.parse(local) : []; }
-  renderBanco(); actualizarStats(); actualizarRefSelect();
+  renderBanco(); actualizarStats(); actualizarRefSelect(); actualizarSelectsExamen();
 }
 
 async function cargarExamenes() {
-  const cursoDB = encodeURIComponent(CURSOS_META[cursoActual].curso_db);
+  const cursoDB = encodeURIComponent((cursos[cursoActual]||{}).curso_db || cursoActual);
   const data = await sbFetch(`examenes?curso=eq.${cursoDB}&order=created_at.desc&select=*`);
-  if (data !== null) { examenes = data; }
+  if (data !== null) examenes = data;
   else { const local = localStorage.getItem('mf_examenes_'+cursoActual); examenes = local ? JSON.parse(local) : []; }
   renderExamenes();
 }
@@ -511,7 +579,7 @@ function guardarLocal() {
   localStorage.setItem('mf_examenes_'+cursoActual, JSON.stringify(examenes));
 }
 
-function guardarUnidades() { localStorage.setItem('mathforge_unidades', JSON.stringify(unidades)); }
+function guardarUnidades() { localStorage.setItem('mf_unidades', JSON.stringify(unidades)); }
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 function setCurso(key, el) {
@@ -525,19 +593,20 @@ function setCurso(key, el) {
 function actualizarUnidadesUI() {
   const units = unidades[cursoActual] || [];
   const el = document.getElementById('config-curso-label');
-  if (el) el.textContent = CURSOS_META[cursoActual].label;
+  if (el) el.textContent = (cursos[cursoActual]||{}).label || cursoActual;
 
   const opts = units.length
     ? units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('')
     : '<option value="">Sin unidades — ve a Configuración</option>';
 
-  ['unidad','unidad-modal-select'].forEach(id => {
+  ['unidad','unidad-modal-select','masivo-unidad'].forEach(id => {
     const s = document.getElementById(id);
     if (s) s.innerHTML = opts;
   });
 
   const filtro = document.getElementById('filtro-unidad');
-  if (filtro) filtro.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+  if (filtro) filtro.innerHTML = '<option value="">Todas las unidades</option>' +
+    units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
 
   renderUnidadesList();
 }
@@ -601,12 +670,24 @@ function actualizarStats() {
 
 function actualizarRefSelect() {
   const sel = document.getElementById('ref-problema');
+  if (!sel) return;
   if (!banco.length) { sel.innerHTML = '<option>No hay problemas en el banco aún</option>'; return; }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     banco.map(p => {
       const u = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
       return `<option value="${p.id}">[${u ? u.nombre : '?'}] ${p.tematica||'Sin temática'} — ${p.num_apartados||'?'} apt.</option>`;
     }).join('');
+  document.getElementById('preview-ref').style.display = 'none';
+}
+
+function mostrarPreviewRef() {
+  const id = document.getElementById('ref-problema').value;
+  const previewEl = document.getElementById('preview-ref');
+  if (!id) { previewEl.style.display = 'none'; return; }
+  const p = banco.find(x => x.id === id);
+  if (!p) { previewEl.style.display = 'none'; return; }
+  previewEl.textContent = p.latex_enunciado || '';
+  previewEl.style.display = 'block';
 }
 
 function renderBanco() {
@@ -624,7 +705,7 @@ function renderBanco() {
   if (!filtrados.length) { container.innerHTML = '<div class="empty">No hay problemas con estos filtros.</div>'; return; }
   container.innerHTML = filtrados.map(p => {
     const usado = p.usado_por && p.usado_por.length > 0;
-    const preview = (p.latex_enunciado || '').substring(0, 140) + '...';
+    const preview = (p.latex_enunciado || '').substring(0, 160) + '...';
     const ces = (p.criterios||[]).map(c => `<span class="badge badge-info">CE ${c}</span>`).join('');
     const usadoPor = usado ? p.usado_por.map(u => `<span class="badge badge-warn">${u.profesor} (${u.curso||'25-26'})</span>`).join(' ') : '';
     const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
@@ -668,6 +749,73 @@ function renderExamenes() {
     </div>`).join('');
 }
 
+// ── EXAM SLOTS ────────────────────────────────────────────────────────────────
+function renderExamSlots() {
+  const c = document.getElementById('exam-slots-container');
+  if (!c) return;
+  c.innerHTML = Array.from({length: examSlots}, (_, i) => `
+    <div class="examen-slot">
+      <div class="examen-slot-header">
+        <div class="slot-num">Pregunta ${i+1}</div>
+        <select id="slot-tipo-${i}" style="width:auto; font-size:13px;">
+          <option value="libre">Claude decide libremente</option>
+          <option value="similar">Similar a uno del banco</option>
+          <option value="detallista">Especificar contenido</option>
+        </select>
+        <select id="slot-unidad-${i}" style="width:auto; font-size:13px;"></select>
+      </div>
+      <div id="slot-similar-${i}" style="display:none; margin-top:6px;">
+        <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" style="font-size:13px; margin-bottom:4px;"></select>
+        <div id="slot-preview-${i}" class="preview-box" style="display:none;"></div>
+      </div>
+      <div id="slot-detalle-${i}" style="display:none; margin-top:6px;">
+        <input type="text" id="slot-detalle-txt-${i}" placeholder="Qué quieres preguntar (ej: Bayes, integral por partes...)">
+      </div>
+      <input type="text" id="slot-tematica-${i}" placeholder="Temática opcional (Claude elige si lo dejas vacío)" style="margin-top:6px; font-size:13px;">
+    </div>`).join('');
+
+  // Rellenar selects de unidad y referencia
+  actualizarSelectsExamen();
+
+  // Listeners para tipo de slot
+  for (let i = 0; i < examSlots; i++) {
+    document.getElementById(`slot-tipo-${i}`).addEventListener('change', function() {
+      document.getElementById(`slot-similar-${i}`).style.display = this.value === 'similar' ? 'block' : 'none';
+      document.getElementById(`slot-detalle-${i}`).style.display = this.value === 'detallista' ? 'block' : 'none';
+    });
+  }
+}
+
+function actualizarSelectsExamen() {
+  const units = unidades[cursoActual] || [];
+  const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+  const refOpts = '<option value="">Sin referencia</option>' + banco.map(p => {
+    const u = units.find(x => x.id === p.unidad_id);
+    return `<option value="${p.id}">[${u ? u.nombre.substring(0,20) : '?'}] ${p.tematica||'Sin temática'}</option>`;
+  }).join('');
+
+  for (let i = 0; i < examSlots; i++) {
+    const su = document.getElementById(`slot-unidad-${i}`);
+    if (su) su.innerHTML = '<option value="">Cualquier unidad</option>' + unitOpts;
+    const sr = document.getElementById(`slot-ref-${i}`);
+    if (sr) sr.innerHTML = refOpts;
+  }
+}
+
+function mostrarPreviewSlot(i) {
+  const id = document.getElementById(`slot-ref-${i}`).value;
+  const previewEl = document.getElementById(`slot-preview-${i}`);
+  if (!id) { previewEl.style.display = 'none'; return; }
+  const p = banco.find(x => x.id === id);
+  if (!p) { previewEl.style.display = 'none'; return; }
+  previewEl.textContent = p.latex_enunciado || '';
+  previewEl.style.display = 'block';
+}
+
+function añadirSlot() { examSlots++; renderExamSlots(); }
+function quitarSlot() { if (examSlots > 1) { examSlots--; renderExamSlots(); } }
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
 function showTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -697,8 +845,8 @@ function renderApartados() {
 
 // ── PROMPTS ──────────────────────────────────────────────────────────────────
 function buildPrompt() {
-  const cursoLabel = CURSOS_META[cursoActual].label;
-  const normativa = NORMATIVA[cursoActual];
+  const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
+  const normativa = NORMATIVA[cursoActual] || '';
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
   const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
 
@@ -744,7 +892,7 @@ ${normativa}${formato}`;
   }).join('\n');
 
   const unidadInfo = unidad
-    ? `Unidad: "${unidad.nombre}"${unidad.saberes ? ` — saberes asociados: ${unidad.saberes}` : ' — deduce los saberes por el nombre de la unidad'}`
+    ? `Unidad: "${unidad.nombre}"${unidad.saberes ? ` — saberes: ${unidad.saberes}` : ' — deduce saberes por el nombre'}`
     : 'Unidad: no especificada';
 
   return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
@@ -763,27 +911,46 @@ function generarProblema() {
   const prompt = 'MATHFORGE_GENERAR_PROBLEMA\n\n' + buildPrompt();
   navigator.clipboard.writeText(prompt)
     .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
-    .catch(() => toast('No se pudo copiar — cópialo manualmente'));
+    .catch(() => toast('No se pudo copiar automáticamente'));
 }
 
 function generarExamen() {
-  const cursoLabel = CURSOS_META[cursoActual].label;
+  const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const titulo = document.getElementById('exam-titulo').value || 'Examen';
   const fecha = document.getElementById('exam-fecha').value || new Date().toLocaleDateString('es-ES');
   const profesor = document.getElementById('exam-profesor').value || '';
   const conv = document.getElementById('exam-conv').value;
   const desc = document.getElementById('exam-desc').value;
-  const bancoPrev = banco.slice(0,3).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
+
+  // Construir instrucciones por slot
+  const slotsInfo = Array.from({length: examSlots}, (_, i) => {
+    const tipo = document.getElementById(`slot-tipo-${i}`)?.value || 'libre';
+    const unidadId = document.getElementById(`slot-unidad-${i}`)?.value || '';
+    const unidad = (unidades[cursoActual]||[]).find(x => x.id === unidadId);
+    const tematica = document.getElementById(`slot-tematica-${i}`)?.value || '';
+
+    if (tipo === 'similar') {
+      const refId = document.getElementById(`slot-ref-${i}`)?.value || '';
+      const ref = banco.find(p => p.id === refId);
+      return `Pregunta ${i+1}: SIMILAR al siguiente problema del banco${tematica ? ` (temática: ${tematica})` : ''}:\n${ref ? ref.latex_enunciado : 'Genera uno típico del nivel'}`;
+    } else if (tipo === 'detallista') {
+      const detalle = document.getElementById(`slot-detalle-txt-${i}`)?.value || '';
+      return `Pregunta ${i+1}: ${unidad ? `Unidad "${unidad.nombre}"` : 'Cualquier unidad'} — Contenido: ${detalle || 'libre'}${tematica ? ` — Temática: ${tematica}` : ''}`;
+    } else {
+      return `Pregunta ${i+1}: Libre${unidad ? ` — Unidad preferida: ${unidad.nombre}` : ''}${tematica ? ` — Temática: ${tematica}` : ''}`;
+    }
+  }).join('\n\n');
 
   const prompt = `MATHFORGE_GENERAR_EXAMEN
 
 Genera un examen COMPLETO en LaTeX para ${cursoLabel}.
-Datos: Título: ${titulo} | Fecha: ${fecha} | Profesor: ${profesor} | Convocatoria: ${conv}
-Instrucciones: ${desc || 'Examen estándar'}
+Título: ${titulo} | Fecha: ${fecha} | Profesor: ${profesor} | Convocatoria: ${conv}
+${desc ? 'Instrucciones adicionales: '+desc : ''}
 
-${bancoPrev ? 'Nivel de referencia del banco:\n'+bancoPrev+'\n\n' : ''}
+ESTRUCTURA DEL EXAMEN (${examSlots} preguntas):
+${slotsInfo}
 
-Usa EXACTAMENTE esta plantilla y rellena con 4-5 problemas:
+Usa EXACTAMENTE esta plantilla y rellena con los ${examSlots} problemas indicados:
 
 \`\`\`latex
 ${PLANTILLA_LATEX}
@@ -808,21 +975,100 @@ ${PLANTILLA_LATEX}
 \\end{center}
 
 \\begin{enumerate}
-% PROBLEMAS — sigue el estilo del ejemplo real:
-% ${EJEMPLO_PROBLEMA.split('\n').join('\n% ')}
+% PROBLEMAS AQUÍ — sigue exactamente este estilo:
+% ${EJEMPLO_PROBLEMA.split('\n').slice(0,3).join('\n% ')}
 \\end{enumerate}
 
 \\end{document}
 \`\`\`
 
-Toda expresión matemática en $...$ o $$...$$. Devuelve el documento LaTeX COMPLETO.`;
+Toda expresión matemática en $...$ o $$...$$. Criterios en \\textbf{[CE X.X]}. Devuelve el documento LaTeX COMPLETO.`;
 
   navigator.clipboard.writeText(prompt)
     .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
-    .catch(() => toast('No se pudo copiar — cópialo manualmente'));
+    .catch(() => toast('No se pudo copiar automáticamente'));
 }
 
-// ── GUARDAR ──────────────────────────────────────────────────────────────────
+// ── IMPORTAR MASIVO ───────────────────────────────────────────────────────────
+function mostrarImportarMasivo() {
+  actualizarUnidadesUI();
+  document.getElementById('masivo-latex').value = '';
+  document.getElementById('masivo-preview').style.display = 'none';
+  document.getElementById('modal-importar-masivo').style.display = 'flex';
+}
+
+function parsearMasivo() {
+  const latex = document.getElementById('masivo-latex').value.trim();
+  if (!latex) { toast('Pega primero el LaTeX'); return; }
+
+  // Separar por \item de nivel 1 (no dentro de enumerate de apartados)
+  // Estrategia: buscar \item que NO están precedidos por espacios/tabs profundos
+  const items = [];
+  const lines = latex.split('\n');
+  let current = '';
+  let depth = 0;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('\\begin{enumerate}') || trimmed.startsWith('\\begin{itemize}')) depth++;
+    if (trimmed.startsWith('\\end{enumerate}') || trimmed.startsWith('\\end{itemize}')) depth--;
+
+    if (trimmed.startsWith('\\item') && depth === 0 && current.trim()) {
+      items.push(current.trim());
+      current = line + '\n';
+    } else {
+      current += line + '\n';
+    }
+  }
+  if (current.trim()) items.push(current.trim());
+
+  // Filtrar items que parecen problemas (contienen \textbf o tienen algo de contenido)
+  masivoItems = items.filter(it => it.length > 20);
+  masivoSeleccionados = new Set(masivoItems.map((_, i) => i));
+
+  if (!masivoItems.length) { toast('No se detectaron problemas. Comprueba el formato.'); return; }
+
+  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) =>
+    `<div class="item-preview selected" id="masivo-item-${i}" onclick="toggleMasivoItem(${i})">
+      <strong>Problema ${i+1}</strong><br>${item.substring(0, 200)}...
+    </div>`).join('');
+
+  document.getElementById('masivo-preview').style.display = 'block';
+  toast(`${masivoItems.length} problemas detectados`);
+}
+
+function toggleMasivoItem(i) {
+  if (masivoSeleccionados.has(i)) masivoSeleccionados.delete(i);
+  else masivoSeleccionados.add(i);
+  const el = document.getElementById(`masivo-item-${i}`);
+  el.classList.toggle('selected', masivoSeleccionados.has(i));
+}
+
+function seleccionarTodosMasivo() {
+  masivoItems.forEach((_, i) => { masivoSeleccionados.add(i); document.getElementById(`masivo-item-${i}`)?.classList.add('selected'); });
+}
+
+async function guardarMasivo() {
+  const unidad_id = document.getElementById('masivo-unidad').value;
+  const tipo = document.getElementById('masivo-tipo').value;
+  const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
+  let guardados = 0;
+
+  for (const i of masivoSeleccionados) {
+    const latex = masivoItems[i];
+    const problema = { unidad_id, tipo, tematica: '', num_apartados: null, latex_enunciado: latex, criterios: [], usado_por: [], curso: cursoDB, created_at: new Date().toISOString() };
+    const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
+    if (saved && saved.length) banco.unshift(saved[0]);
+    else banco.unshift({...problema, id: Date.now().toString() + Math.random()});
+    guardados++;
+  }
+
+  guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
+  cerrarModal('modal-importar-masivo');
+  toast(`${guardados} problemas guardados en el banco ✓`);
+}
+
+// ── GUARDAR ───────────────────────────────────────────────────────────────────
 async function guardarProblema() {
   const latex = document.getElementById('latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del problema'); return; }
@@ -857,13 +1103,13 @@ async function completarGuardar({ latex, criterios, unidad_id, tipo, tematica, n
   const problema = {
     unidad_id, tipo, tematica, num_apartados,
     latex_enunciado: latex, criterios, usado_por: [],
-    curso: CURSOS_META[cursoActual].curso_db,
+    curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
     created_at: new Date().toISOString()
   };
   const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
   if (saved && saved.length) banco.unshift(saved[0]);
-  else { banco.unshift(problema); guardarLocal(); }
-  actualizarStats(); actualizarRefSelect(); renderBanco();
+  else { banco.unshift({...problema, id: Date.now().toString()}); guardarLocal(); }
+  actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
   document.getElementById('latex-pegado').value = '';
   document.getElementById('criterios-manual').value = '';
   toast('Problema guardado ✓');
@@ -873,16 +1119,16 @@ async function guardarExamen() {
   const latex = document.getElementById('examen-latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del examen'); return; }
   const examen = {
-  titulo: document.getElementById('exam-titulo').value || 'Examen',
-  fecha: document.getElementById('exam-fecha').value || '',
-  profesor: document.getElementById('exam-profesor').value || '',
-  convocatoria: document.getElementById('exam-conv').value,
-  curso: CURSOS_META[cursoActual].curso_db, latex,
-  created_at: new Date().toISOString()
-};
+    titulo: document.getElementById('exam-titulo').value || 'Examen',
+    fecha: document.getElementById('exam-fecha').value || '',
+    profesor: document.getElementById('exam-profesor').value || '',
+    convocatoria: document.getElementById('exam-conv').value,
+    curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
+    latex, created_at: new Date().toISOString()
+  };
   const saved = await sbFetch('examenes', { method:'POST', body: JSON.stringify(examen) });
   if (saved && saved.length) examenes.unshift(saved[0]);
-  else { examenes.unshift(examen); guardarLocal(); }
+  else { examenes.unshift({...examen, id: Date.now().toString()}); guardarLocal(); }
   renderExamenes();
   document.getElementById('examen-latex-pegado').value = '';
   toast('Examen guardado ✓');
@@ -904,7 +1150,7 @@ async function borrarProblema(id) {
   if (!confirm('¿Borrar este problema?')) return;
   await sbFetch(`problemas?id=eq.${id}`, { method:'DELETE' });
   banco = banco.filter(p => p.id !== id);
-  guardarLocal(); renderBanco(); actualizarStats(); actualizarRefSelect();
+  guardarLocal(); renderBanco(); actualizarStats(); actualizarRefSelect(); actualizarSelectsExamen();
   toast('Problema borrado');
 }
 
@@ -940,7 +1186,7 @@ function copiarExamen() {
 
 // ── EXPORT/IMPORT ─────────────────────────────────────────────────────────────
 function exportarJSON() {
-  const data = { banco, examenes, unidades, exportado: new Date().toISOString(), version: '2.0' };
+  const data = { banco, examenes, unidades, cursos, exportado: new Date().toISOString(), version: '3.0' };
   const jsonStr = JSON.stringify(data, null, 2);
   document.getElementById('json-export-text').value = jsonStr;
   document.getElementById('modal-exportar').style.display = 'flex';
@@ -988,7 +1234,14 @@ function procesarImport(txt) {
       }
       guardarUnidades();
     }
-    guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); renderExamenes(); actualizarUnidadesUI();
+    if (data.cursos) {
+      for (const [key, c] of Object.entries(data.cursos)) {
+        if (!cursos[key]) cursos[key] = c;
+      }
+      localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+      renderCursoSelector();
+    }
+    guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); renderExamenes(); actualizarUnidadesUI(); actualizarSelectsExamen();
     toast(`Importados: ${ap} problemas, ${ae} exámenes ✓`);
   } catch { toast('Error al leer el JSON'); }
 }
