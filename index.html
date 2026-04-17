@@ -8,32 +8,18 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #f9f8f6;
-  --surface: #ffffff;
-  --surface2: #f3f2ef;
-  --border: #e4e2dc;
-  --border2: #ccc9c0;
-  --text: #1a1916;
-  --text2: #6b6860;
-  --text3: #9e9b94;
-  --accent: #1a1916;
-  --accent-text: #ffffff;
-  --info-bg: #eef4ff;
-  --info-text: #1d4ed8;
-  --info-border: #bfdbfe;
-  --success-bg: #f0fdf4;
-  --success-text: #166534;
-  --success-border: #bbf7d0;
-  --warn-bg: #fffbeb;
-  --warn-text: #92400e;
+  --bg: #f9f8f6; --surface: #ffffff; --surface2: #f3f2ef;
+  --border: #e4e2dc; --border2: #ccc9c0;
+  --text: #1a1916; --text2: #6b6860; --text3: #9e9b94;
+  --accent: #1a1916; --accent-text: #ffffff;
+  --info-bg: #eef4ff; --info-text: #1d4ed8; --info-border: #bfdbfe;
+  --success-bg: #f0fdf4; --success-text: #166534; --success-border: #bbf7d0;
+  --warn-bg: #fffbeb; --warn-text: #92400e;
   --danger-text: #dc2626;
-  --radius: 10px;
-  --radius-sm: 6px;
+  --radius: 10px; --radius-sm: 6px;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; min-height: 100vh; }
 .app { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
-
-/* HEADER */
 .header { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .header h1 { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; letter-spacing: -0.5px; }
 .header h1 span { color: var(--text2); }
@@ -41,32 +27,18 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .curso-btn { padding: 6px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border2); border-radius: 100px; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
 .curso-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .curso-btn:hover:not(.active) { background: var(--surface2); }
-
-/* TABS */
-.tabs { display: flex; gap: 2px; margin-bottom: 1.5rem; background: var(--surface2); border-radius: 100px; padding: 4px; width: fit-content; }
-.tab { padding: 7px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: none; border-radius: 100px; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
+.tabs { display: flex; gap: 2px; margin-bottom: 1.5rem; background: var(--surface2); border-radius: 100px; padding: 4px; width: fit-content; flex-wrap: wrap; }
+.tab { padding: 7px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: none; border-radius: 100px; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; }
 .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.tab:hover:not(.active) { color: var(--text); }
 .panel { display: none; } .panel.active { display: block; }
-
-/* CARDS */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
-.card-title { font-size: 14px; font-weight: 500; margin-bottom: 1rem; color: var(--text); }
-
-/* FORMS */
+.card-title { font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
 label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 5px; }
-select, input[type="text"], input[type="date"], textarea {
-  width: 100%; font-size: 14px; font-family: 'DM Sans', sans-serif;
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 8px 12px; background: var(--surface); color: var(--text);
-  transition: border 0.15s; outline: none;
-}
+select, input[type="text"], input[type="date"], textarea { width: 100%; font-size: 14px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; background: var(--surface); color: var(--text); transition: border 0.15s; outline: none; }
 select:focus, input:focus, textarea:focus { border-color: var(--border2); }
 textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .field { margin-bottom: 12px; }
-
-/* BUTTONS */
 .btn { padding: 8px 20px; font-size: 13px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border2); border-radius: 100px; cursor: pointer; background: transparent; color: var(--text); transition: all 0.15s; }
 .btn:hover { background: var(--surface2); }
 .btn:active { transform: scale(0.98); }
@@ -74,26 +46,18 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .btn-primary:hover { opacity: 0.85; background: var(--accent); }
 .btn-sm { font-size: 11px; padding: 4px 12px; }
 .btn-danger { color: var(--danger-text); }
-
-/* MODE CARDS */
 .mode-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
 .mode-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: all 0.15s; }
 .mode-card:hover { background: var(--surface2); }
 .mode-card.selected { border-color: var(--accent); background: var(--surface2); }
 .mode-title { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
 .mode-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
-
-/* APARTADOS */
 .apartado-row { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start; margin-bottom: 8px; }
 .apartado-letter { font-size: 13px; color: var(--text2); padding-top: 9px; font-weight: 500; }
-
-/* BADGES */
 .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; margin: 2px; }
 .badge-info { background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
 .badge-success { background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
 .badge-warn { background: var(--warn-bg); color: var(--warn-text); }
-
-/* PROBLEM CARDS */
 .problem-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 10px; transition: border 0.15s; }
 .problem-card:hover { border-color: var(--border2); }
 .problem-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
@@ -101,46 +65,39 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .problem-meta { font-size: 12px; color: var(--text2); }
 .problem-actions { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; }
 .problem-preview { font-size: 11px; color: var(--text3); line-height: 1.5; font-family: 'Courier New', monospace; margin-top: 8px; }
-
-/* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
 .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
 .stat-num { font-size: 28px; font-weight: 500; font-family: 'DM Serif Display', serif; }
 .stat-label { font-size: 12px; color: var(--text2); }
-
-/* FILTER BAR */
 .filter-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
 .filter-bar select { width: auto; font-size: 13px; }
-
-/* SYNC BAR */
 .sync-bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border-radius: var(--radius); margin-bottom: 1rem; font-size: 13px; color: var(--text2); flex-wrap: wrap; border: 1px solid var(--border); }
-
-/* INFO BOX */
 .info-box { background: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--info-text); margin-bottom: 1rem; line-height: 1.5; }
-
-/* PASTE AREA */
 .paste-area textarea { font-family: 'Courier New', monospace; font-size: 12px; min-height: 160px; background: var(--surface2); }
-
-/* EMPTY */
 .empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
-
-/* MODAL */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
-.modal { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; width: 100%; max-width: 580px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.modal { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; width: 100%; max-width: 580px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
 .modal h3 { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 8px; }
 .modal p { font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.5; }
 .modal textarea { font-family: 'Courier New', monospace; font-size: 11px; min-height: 180px; margin-bottom: 12px; background: var(--surface2); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-
-/* TOAST */
+.unit-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--surface); }
+.unit-num { font-size: 12px; color: var(--text3); min-width: 20px; padding-top: 2px; }
+.unit-name { font-size: 14px; font-weight: 500; }
+.unit-saberes { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.unit-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.config-section { margin-bottom: 2rem; }
+.config-section h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.add-unit-form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.add-unit-form input { flex: 1; min-width: 180px; }
 #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 100px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
 #toast.show { opacity: 1; }
-
 @media (max-width: 600px) {
   .row { grid-template-columns: 1fr; }
   .mode-cards { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .header h1 { font-size: 22px; }
+  .tabs { width: 100%; }
 }
 </style>
 </head>
@@ -155,21 +112,22 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('generar',this)">Generar problema</button>
-    <button class="tab" onclick="showTab('banco',this)">Banco de problemas</button>
+    <button class="tab active" onclick="showTab('generar',this)">Generar</button>
+    <button class="tab" onclick="showTab('banco',this)">Banco</button>
     <button class="tab" onclick="showTab('examenes',this)">Exámenes</button>
+    <button class="tab" onclick="showTab('config',this)">Configuración</button>
   </div>
 
   <!-- GENERAR -->
   <div id="tab-generar" class="panel active">
-    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. Claude responderá con el LaTeX. Pégalo abajo y guárdalo en el banco.</div>
+    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude en una pestaña nueva. Pégalo, espera la respuesta y pega el LaTeX abajo.</div>
     <div class="card">
       <div class="field">
         <label>Modo de generación</label>
         <div class="mode-cards">
           <div class="mode-card selected" onclick="selectMode('detallista',this)">
             <div class="mode-title">Detallista</div>
-            <div class="mode-desc">Controlas bloque, apartados y contenido</div>
+            <div class="mode-desc">Controlas unidad, apartados y contenido</div>
           </div>
           <div class="mode-card" onclick="selectMode('similar',this)">
             <div class="mode-title">Similar a uno</div>
@@ -181,10 +139,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
       </div>
-
       <div id="modo-detallista">
         <div class="row">
-          <div><label>Bloque temático</label><select id="bloque"></select></div>
+          <div><label>Unidad didáctica</label><select id="unidad"></select></div>
           <div><label>Tipo</label>
             <select id="tipo">
               <option value="contextualizado">Problema contextualizado</option>
@@ -213,7 +170,6 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </select>
         </div>
       </div>
-
       <div id="modo-similar" style="display:none">
         <div class="field"><label>Problema de referencia del banco</label>
           <select id="ref-problema"><option value="">Cargando...</option></select>
@@ -227,14 +183,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
       </div>
-
       <div id="modo-libre" style="display:none">
         <div class="field"><label>Cuéntale a Claude qué quieres</label>
-          <textarea id="libre-prompt" placeholder="Ej: problema contextualizado de análisis con monotonía y extremos..."></textarea>
+          <textarea id="libre-prompt" placeholder="Ej: problema contextualizado de probabilidad con Bayes, temática deportiva..."></textarea>
         </div>
       </div>
-
-      <button class="btn btn-primary" onclick="generarProblema()">Generar problema →</button>
+      <button class="btn btn-primary" onclick="generarProblema()">Generar → copiar prompt y abrir Claude</button>
     </div>
 
     <div class="card" style="border-style: dashed;">
@@ -254,19 +208,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   <!-- BANCO -->
   <div id="tab-banco" class="panel">
     <div class="sync-bar">
-      💾 <strong>Guardado local.</strong> &nbsp;Exporta el JSON para compartir o cambiar de ordenador.
-      <div style="display:flex; gap:6px; margin-left:auto; flex-wrap:wrap;">
+      💾 <strong id="sync-status-text">Guardado local.</strong>&nbsp; Exporta JSON como backup en Drive.
+      <div style="display:flex; gap:6px; margin-left:auto;">
         <button class="btn btn-sm" onclick="exportarJSON()">Exportar JSON</button>
         <button class="btn btn-sm" onclick="mostrarImportar()">Importar JSON</button>
       </div>
     </div>
     <div class="stats-grid">
       <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">En el banco</div></div>
-      <div class="stat"><div class="stat-num" id="stat-usados">0</div><div class="stat-label">Usados en exámenes</div></div>
+      <div class="stat"><div class="stat-num" id="stat-usados">0</div><div class="stat-label">Usados</div></div>
       <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
     </div>
     <div class="filter-bar">
-      <select id="filtro-bloque" onchange="renderBanco()"><option value="">Todos los bloques</option></select>
+      <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
       <select id="filtro-tipo" onchange="renderBanco()">
         <option value="">Todos los tipos</option>
         <option value="contextualizado">Contextualizado</option>
@@ -277,7 +231,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <option value="">Todos</option><option value="no">Disponibles</option><option value="si">Ya usados</option>
       </select>
     </div>
-    <div id="banco-container"><div class="empty">El banco está vacío. Genera y guarda tu primer problema.</div></div>
+    <div id="banco-container"><div class="empty">Cargando banco...</div></div>
   </div>
 
   <!-- EXÁMENES -->
@@ -296,7 +250,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div class="field"><label>Descripción para Claude</label>
         <textarea id="exam-desc" placeholder="Ej: 5 problemas de probabilidad, mezcla de tipos, temática sevillana..."></textarea>
       </div>
-      <button class="btn btn-primary" onclick="generarExamen()">Generar examen completo →</button>
+      <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
     </div>
     <div class="card" style="border-style:dashed;">
       <div class="card-title">Pega aquí el LaTeX del examen</div>
@@ -311,19 +265,45 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div id="examenes-container" class="empty">Todavía no hay exámenes guardados.</div>
     </div>
   </div>
+
+  <!-- CONFIGURACIÓN -->
+  <div id="tab-config" class="panel">
+    <div class="config-section">
+      <h3>Unidades didácticas — <span id="config-curso-label">2º Bach CCSS</span></h3>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Define las unidades del curso. Si dejas los saberes vacíos, Claude los deduce por el nombre.</p>
+      <div id="unidades-list"></div>
+      <div class="add-unit-form">
+        <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
+        <input type="text" id="nueva-unidad-saberes" placeholder="Saberes opcionales (ej: D.1.1., D.1.2.)">
+        <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3>Conexión Supabase</h3>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Conecta con Supabase para sincronizar el banco entre vosotros en tiempo real.</p>
+      <div class="row">
+        <div><label>URL del proyecto</label><input type="text" id="sb-url" placeholder="https://xxx.supabase.co"></div>
+        <div><label>Anon key (empieza por eyJ...)</label><input type="text" id="sb-key" placeholder="eyJ..."></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="btn btn-primary" onclick="guardarSupabase()">Guardar y conectar</button>
+        <span id="sb-status" style="font-size:12px; color:var(--text2);"></span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal exportar -->
 <div id="modal-exportar" style="display:none;" class="modal-overlay">
   <div class="modal">
     <h3>Exportar banco completo</h3>
-    <p>Elige cómo guardar el JSON. <strong>Abrir en pestaña</strong> es la opción más fiable — desde ahí pulsa Ctrl+S (o Cmd+S) para guardar el archivo donde quieras.</p>
+    <p>Abre en pestaña y pulsa Ctrl+S (o Cmd+S) para guardar el archivo. También puedes copiar el JSON.</p>
     <textarea id="json-export-text" readonly></textarea>
     <div class="modal-actions">
       <button class="btn" onclick="copiarJsonExport()">Copiar JSON</button>
-      <button class="btn" onclick="descargarJson()">Descargar</button>
-      <button class="btn btn-primary" onclick="abrirEnPestana()">Abrir en pestaña → Ctrl+S</button>
-      <button class="btn" onclick="cerrarModal('modal-exportar')">Cerrar</button>
+      <button class="btn" onclick="abrirEnPestana()">Abrir en pestaña → Ctrl+S</button>
+      <button class="btn btn-primary" onclick="cerrarModal('modal-exportar')">Cerrar</button>
     </div>
   </div>
 </div>
@@ -332,7 +312,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 <div id="modal-importar" style="display:none;" class="modal-overlay">
   <div class="modal">
     <h3>Importar banco</h3>
-    <p>Pega el JSON de tu compañero o selecciona el archivo .json guardado.</p>
+    <p>Pega el JSON de tu compañero o selecciona el archivo .json.</p>
     <textarea id="json-import-text" placeholder="Pega aquí el JSON..."></textarea>
     <div class="modal-actions">
       <button class="btn" onclick="document.getElementById('file-import').click()">Seleccionar archivo</button>
@@ -343,12 +323,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 </div>
 
-<!-- Modal bloque obligatorio -->
+<!-- Modal unidad obligatoria al guardar -->
 <div id="modal-bloque" style="display:none;" class="modal-overlay">
   <div class="modal">
-    <h3>¿A qué bloque pertenece?</h3>
-    <p>Selecciona el bloque para que quede bien organizado en el banco.</p>
-    <div class="field"><label>Bloque</label><select id="bloque-modal-select"></select></div>
+    <h3>¿A qué unidad pertenece?</h3>
+    <p>Selecciona la unidad para organizar bien el banco.</p>
+    <div class="field"><label>Unidad</label><select id="unidad-modal-select"></select></div>
     <div class="field"><label>Tipo</label>
       <select id="tipo-modal-select">
         <option value="contextualizado">Contextualizado</option>
@@ -375,84 +355,244 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 <div id="toast"></div>
 
 <script>
-const CURSOS = {
-  '2bach': {
-    label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS',
-    bloques: [
-      { value:'A', label:'A — Sentido numérico (Matrices)' },
-      { value:'B', label:'B — Sentido de la medida (Cálculo / Probabilidad)' },
-      { value:'C', label:'C — Sentido algebraico (Álgebra / Prog. Lineal)' },
-      { value:'D', label:'D — Sentido estocástico (Estadística)' },
-    ],
-    normativa: `Saberes y criterios de 2º Bach CCSS:
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+let SUPABASE_URL = localStorage.getItem('sb_url') || '';
+let SUPABASE_KEY = localStorage.getItem('sb_key') || '';
+let supabaseOK = false;
+
+const CURSOS_META = {
+  '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
+  '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
+};
+
+const NORMATIVA = {
+  '2bach': `Saberes y criterios de 2º Bach CCSS:
 - A (Matrices): A.1.1→1.1, A.1.2→1.2, A.1.3→1.2/2.1, A.1.4→4.1, A.2→1.1/4.1
 - B (Cálculo/Prob): B.1.1→3.1/5.1/7.1, B.1.2→1.1/2.1, B.1.3→2.2/7.1/8.1, B.2.1→6.2, B.2.2→5.1/7.2
 - C (Álgebra): C.2.1→5.1/6.1, C.2.2→1.1, C.2.3→1.2/5.1/6.1, C.2.4→6.1, C.3.1→3.2, C.3.2→1.2/2.1, C.4.2→5.1/7.1
-- D (Estadística): D.1.1→6.1/8.1/8.2, D.1.2→6.1/8.2, D.2.1→6.1/8.2, D.2.2→1.1/6.2/8.2, D.3.1→6.1/8.2, D.3.2→6.1/8.2, D.3.3→6.1/8.2`
-  },
-  '1bach': {
-    label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS',
-    bloques: [
-      { value:'A', label:'A — Sentido numérico (Números, combinatoria, finanzas)' },
-      { value:'B', label:'B — Sentido de la medida (Límites, continuidad, derivadas)' },
-      { value:'C', label:'C — Sentido algebraico (Funciones, ecuaciones, sistemas)' },
-      { value:'D', label:'D — Sentido estocástico (Estadística, probabilidad)' },
-    ],
-    normativa: `Saberes y criterios de 1º Bach CCSS:
+- D (Estadística): D.1.1→6.1/8.1/8.2, D.1.2→6.1/8.2, D.2.1→6.1/8.2, D.2.2→1.1/6.2/8.2, D.3.1→6.1/8.2, D.3.2→6.1/8.2, D.3.3→6.1/8.2`,
+  '1bach': `Saberes y criterios de 1º Bach CCSS:
 - A: A.1→1.1/1.2/2.1, A.2→1.2/2.1, A.3→1.2/2.1, A.4→1.1/6.1
 - B: B.1→1.1/5.1/6.2, B.2.1→7.1, B.2.2→7.1, B.2.3→7.1
 - C: C.1→3.1/3.2/4.1, C.2.1→5.2/6.1, C.2.2→1.1/5.2, C.3→1.2/2.1, C.4.1→3.2/7.2, C.4.2→5.1/7.1, C.4.3→7.2/8.1/8.2
 - D: D.1.1→7.2/8.1, D.1.2→7.2/8.1, D.1.3→7.2/8.1, D.2.1→6.1/8.2, D.2.2→6.1/8.2, D.3.1→6.1/8.2, D.3.2→1.1/6.2/8.2`
-  }
 };
 
-// IMPORTANTE: Reemplaza esta URL con tu URL de Claude.ai donde está el chat de MathForge
-const CLAUDE_URL = 'https://claude.ai/chat';
+const PLANTILLA_LATEX = String.raw`\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb,dsfont,amsthm,yhmath}
+\usepackage{graphicx}
+\usepackage[a4paper,lmargin=1.5cm,rmargin=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage[none]{hyphenat}
+\usepackage[T1]{fontenc}
+\usepackage{mathpazo}
+\usepackage{tabularx}
+\usepackage{enumerate}
+\usepackage{setspace}
+\usepackage{multicol}
+\usepackage{eurosym}
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyfoot[C]{P\'agina \thepage \ de \pageref{LastPage}}
+\sloppy
+\setlength{\parindent}{0pt}`;
 
+const EJEMPLO_PROBLEMA = String.raw`\item \textbf{Julia y Dani están encargados de comprar los disfraces para su grupo de amigos para el Carnaval de Cádiz. Tienen tres opciones de temática: Piratas, Superhéroes y Bomberos. El 35\% de los disfraces son de Piratas, el 45\% son de Superhéroes y el resto son de Bomberos. Se sabe que el 80\% de los disfraces de Piratas son Low Cost, mientras que de los de Bomberos solo un 5\% son Low Cost.}
+
+\begin{enumerate}[a)]
+  \item \textbf{[CE 6.1, 8.2]} Julia afirma que el 53\% de todos los disfraces son Low Cost. Calcula la probabilidad de que un disfraz sea Low Cost sabiendo que es de Superhéroes.
+  \item \textbf{[CE 6.1, 8.2]} Dani quiere saber la probabilidad de que un disfraz elegido al azar sea Low Cost o de Bomberos.
+  \item \textbf{[CE 6.1, 8.2]} Si Julia coge un disfraz al azar y resulta que es Low Cost, calcula la probabilidad de que sea de Bomberos.
+\end{enumerate}`;
+
+const UNIDADES_DEFAULT = {
+  '2bach': [
+    { id:'2b-u1', nombre:'Continuidad y derivabilidad', saberes:'B.2.1., B.2.2.' },
+    { id:'2b-u2', nombre:'Aplicaciones de las derivadas', saberes:'B.2.1., B.2.2.' },
+    { id:'2b-u3', nombre:'Integrales. Áreas', saberes:'B.1.1., B.1.2.' },
+    { id:'2b-u4', nombre:'Probabilidad', saberes:'B.1.3., D.1.1., D.1.2.' },
+    { id:'2b-u5', nombre:'Estadística. Intervalos de confianza', saberes:'D.2.1., D.2.2., D.3.1., D.3.2., D.3.3.' },
+    { id:'2b-u6', nombre:'Matrices. Determinantes', saberes:'A.1.1., A.1.2., A.1.3., A.1.4., A.2.' },
+    { id:'2b-u7', nombre:'Programación lineal', saberes:'C.2.4.' },
+    { id:'2b-u8', nombre:'Sistemas de Ecuaciones Lineales', saberes:'C.2.2., C.2.3., C.3.1., C.3.2.' },
+  ],
+  '1bach': []
+};
+
+// ── STATE ───────────────────────────────────────────────────────────────────
 let cursoActual = '2bach';
 let currentMode = 'detallista';
-let db = { problemas: [], examenes: [] };
+let banco = [];
+let examenes = [];
+let unidades = {};
 let pendienteGuardar = null;
 
-function cargarDatos() {
+// ── SUPABASE ────────────────────────────────────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  if (!SUPABASE_URL || !SUPABASE_KEY) return null;
   try {
-    const r = localStorage.getItem('mathforge_db');
-    db = r ? JSON.parse(r) : { problemas: [], examenes: [] };
-    if (!db.problemas) db.problemas = [];
-    if (!db.examenes) db.examenes = [];
-  } catch { db = { problemas: [], examenes: [] }; }
-  actualizarVista();
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    if (opts.method === 'POST') headers['Prefer'] = 'return=representation';
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
+    const text = await res.text();
+    if (!res.ok) { console.error('SB:', res.status, text); return null; }
+    return text ? JSON.parse(text) : [];
+  } catch(e) { console.error('SB error:', e); return null; }
 }
 
-function guardarDatos() {
-  try { localStorage.setItem('mathforge_db', JSON.stringify(db)); }
-  catch(e) { console.error('Error guardando:', e); }
+async function testSupabase() {
+  const el = document.getElementById('sb-status');
+  const syncEl = document.getElementById('sync-status-text');
+  el.textContent = 'Conectando...';
+  const r = await sbFetch('problemas?limit=1&select=id');
+  supabaseOK = r !== null;
+  if (supabaseOK) {
+    el.textContent = '✓ Conectado'; el.style.color = 'green';
+    syncEl.textContent = 'Sincronizado con Supabase.';
+  } else {
+    el.textContent = '✗ Sin conexión — usando almacenamiento local'; el.style.color = 'red';
+    syncEl.textContent = 'Guardado local (Supabase no conectado).';
+  }
 }
 
-function bancoCurso() { return db.problemas.filter(p => p.curso === CURSOS[cursoActual].curso_db); }
-function examenesCurso() { return db.examenes.filter(e => e.curso === CURSOS[cursoActual].curso_db); }
-function actualizarVista() { renderBanco(); actualizarStats(); actualizarRefSelect(); renderExamenes(); }
+function guardarSupabase() {
+  SUPABASE_URL = document.getElementById('sb-url').value.trim();
+  SUPABASE_KEY = document.getElementById('sb-key').value.trim();
+  localStorage.setItem('sb_url', SUPABASE_URL);
+  localStorage.setItem('sb_key', SUPABASE_KEY);
+  testSupabase().then(() => { cargarBanco(); cargarExamenes(); });
+  toast('Configuración guardada');
+}
 
+// ── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  const savedU = localStorage.getItem('mathforge_unidades');
+  unidades = savedU ? JSON.parse(savedU) : JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
+  if (!unidades['1bach']) unidades['1bach'] = [];
+  if (!unidades['2bach'] || !unidades['2bach'].length) unidades['2bach'] = JSON.parse(JSON.stringify(UNIDADES_DEFAULT['2bach']));
+
+  const sbUrl = localStorage.getItem('sb_url');
+  const sbKey = localStorage.getItem('sb_key');
+  if (sbUrl) document.getElementById('sb-url').value = sbUrl;
+  if (sbKey) document.getElementById('sb-key').value = sbKey;
+
+  actualizarUnidadesUI();
+  renderApartados();
+
+  if (sbUrl && sbKey) {
+    testSupabase().then(() => { cargarBanco(); cargarExamenes(); });
+  } else {
+    cargarBanco(); cargarExamenes();
+  }
+}
+
+// ── DATOS ────────────────────────────────────────────────────────────────────
+async function cargarBanco() {
+  document.getElementById('banco-container').innerHTML = '<div class="empty">Cargando...</div>';
+  const cursoDB = encodeURIComponent(CURSOS_META[cursoActual].curso_db);
+  const data = await sbFetch(`problemas?curso=eq.${cursoDB}&order=created_at.desc&select=*`);
+  if (data !== null) { banco = data; }
+  else { const local = localStorage.getItem('mf_banco_'+cursoActual); banco = local ? JSON.parse(local) : []; }
+  renderBanco(); actualizarStats(); actualizarRefSelect();
+}
+
+async function cargarExamenes() {
+  const cursoDB = encodeURIComponent(CURSOS_META[cursoActual].curso_db);
+  const data = await sbFetch(`examenes?curso=eq.${cursoDB}&order=created_at.desc&select=*`);
+  if (data !== null) { examenes = data; }
+  else { const local = localStorage.getItem('mf_examenes_'+cursoActual); examenes = local ? JSON.parse(local) : []; }
+  renderExamenes();
+}
+
+function guardarLocal() {
+  localStorage.setItem('mf_banco_'+cursoActual, JSON.stringify(banco));
+  localStorage.setItem('mf_examenes_'+cursoActual, JSON.stringify(examenes));
+}
+
+function guardarUnidades() { localStorage.setItem('mathforge_unidades', JSON.stringify(unidades)); }
+
+// ── UI ────────────────────────────────────────────────────────────────────────
 function setCurso(key, el) {
   cursoActual = key;
   document.querySelectorAll('.curso-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  actualizarBloques();
-  actualizarVista();
+  actualizarUnidadesUI();
+  cargarBanco(); cargarExamenes();
 }
 
-function actualizarBloques() {
-  const bloques = CURSOS[cursoActual].bloques;
-  document.getElementById('bloque').innerHTML = '<option value="">Selecciona bloque...</option>' +
-    bloques.map(b => `<option value="${b.value}">${b.label}</option>`).join('');
-  document.getElementById('filtro-bloque').innerHTML = '<option value="">Todos los bloques</option>' +
-    bloques.map(b => `<option value="${b.value}">${b.label}</option>`).join('');
-  document.getElementById('bloque-modal-select').innerHTML =
-    bloques.map(b => `<option value="${b.value}">${b.label}</option>`).join('');
+function actualizarUnidadesUI() {
+  const units = unidades[cursoActual] || [];
+  const el = document.getElementById('config-curso-label');
+  if (el) el.textContent = CURSOS_META[cursoActual].label;
+
+  const opts = units.length
+    ? units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('')
+    : '<option value="">Sin unidades — ve a Configuración</option>';
+
+  ['unidad','unidad-modal-select'].forEach(id => {
+    const s = document.getElementById(id);
+    if (s) s.innerHTML = opts;
+  });
+
+  const filtro = document.getElementById('filtro-unidad');
+  if (filtro) filtro.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+
+  renderUnidadesList();
+}
+
+function renderUnidadesList() {
+  const container = document.getElementById('unidades-list');
+  if (!container) return;
+  const units = unidades[cursoActual] || [];
+  if (!units.length) { container.innerHTML = '<div class="empty" style="padding:1rem 0;">No hay unidades. Añade la primera abajo.</div>'; return; }
+  container.innerHTML = units.map((u, i) => `
+    <div class="unit-item">
+      <div class="unit-num">${i+1}</div>
+      <div style="flex:1;">
+        <div class="unit-name">${u.nombre}</div>
+        <div class="unit-saberes">${u.saberes ? 'Saberes: '+u.saberes : 'Claude deduce los saberes por el nombre'}</div>
+      </div>
+      <div class="unit-actions">
+        <button class="btn btn-sm" onclick="editarUnidad('${u.id}')">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="borrarUnidad('${u.id}')">Borrar</button>
+      </div>
+    </div>`).join('');
+}
+
+function añadirUnidad() {
+  const nombre = document.getElementById('nueva-unidad-nombre').value.trim();
+  if (!nombre) { toast('Escribe el nombre de la unidad'); return; }
+  const saberes = document.getElementById('nueva-unidad-saberes').value.trim();
+  if (!unidades[cursoActual]) unidades[cursoActual] = [];
+  unidades[cursoActual].push({ id: Date.now().toString(), nombre, saberes });
+  guardarUnidades(); actualizarUnidadesUI();
+  document.getElementById('nueva-unidad-nombre').value = '';
+  document.getElementById('nueva-unidad-saberes').value = '';
+  toast('Unidad añadida ✓');
+}
+
+function editarUnidad(id) {
+  const u = (unidades[cursoActual]||[]).find(x => x.id === id);
+  if (!u) return;
+  const nombre = prompt('Nombre de la unidad:', u.nombre);
+  if (nombre === null) return;
+  const saberes = prompt('Saberes asociados (vacío = Claude los deduce):', u.saberes || '');
+  if (saberes === null) return;
+  u.nombre = nombre.trim(); u.saberes = saberes.trim();
+  guardarUnidades(); actualizarUnidadesUI();
+  toast('Unidad actualizada ✓');
+}
+
+function borrarUnidad(id) {
+  if (!confirm('¿Borrar esta unidad?')) return;
+  unidades[cursoActual] = (unidades[cursoActual]||[]).filter(x => x.id !== id);
+  guardarUnidades(); actualizarUnidadesUI();
+  toast('Unidad borrada');
 }
 
 function actualizarStats() {
-  const banco = bancoCurso();
   const usados = banco.filter(p => p.usado_por && p.usado_por.length > 0).length;
   document.getElementById('stat-total').textContent = banco.length;
   document.getElementById('stat-usados').textContent = usados;
@@ -460,35 +600,41 @@ function actualizarStats() {
 }
 
 function actualizarRefSelect() {
-  const banco = bancoCurso();
   const sel = document.getElementById('ref-problema');
   if (!banco.length) { sel.innerHTML = '<option>No hay problemas en el banco aún</option>'; return; }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
-    banco.map(p => `<option value="${p.id}">[${p.bloque||'?'}] ${p.tematica||'Sin temática'} — ${p.num_apartados||'?'} apt.</option>`).join('');
+    banco.map(p => {
+      const u = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+      return `<option value="${p.id}">[${u ? u.nombre : '?'}] ${p.tematica||'Sin temática'} — ${p.num_apartados||'?'} apt.</option>`;
+    }).join('');
 }
 
 function renderBanco() {
   const container = document.getElementById('banco-container');
-  const fb = document.getElementById('filtro-bloque').value;
+  const fu = document.getElementById('filtro-unidad').value;
   const ft = document.getElementById('filtro-tipo').value;
-  const fu = document.getElementById('filtro-usado').value;
-  let filtrados = bancoCurso().filter(p => {
-    if (fb && p.bloque !== fb) return false;
+  const fus = document.getElementById('filtro-usado').value;
+  let filtrados = banco.filter(p => {
+    if (fu && p.unidad_id !== fu) return false;
     if (ft && p.tipo !== ft) return false;
-    if (fu === 'no' && p.usado_por && p.usado_por.length > 0) return false;
-    if (fu === 'si' && (!p.usado_por || !p.usado_por.length)) return false;
+    if (fus === 'no' && p.usado_por && p.usado_por.length > 0) return false;
+    if (fus === 'si' && (!p.usado_por || !p.usado_por.length)) return false;
     return true;
   });
   if (!filtrados.length) { container.innerHTML = '<div class="empty">No hay problemas con estos filtros.</div>'; return; }
   container.innerHTML = filtrados.map(p => {
     const usado = p.usado_por && p.usado_por.length > 0;
     const preview = (p.latex_enunciado || '').substring(0, 140) + '...';
-    const ces = (p.criterios || []).map(c => `<span class="badge badge-info">CE ${c}</span>`).join('');
+    const ces = (p.criterios||[]).map(c => `<span class="badge badge-info">CE ${c}</span>`).join('');
     const usadoPor = usado ? p.usado_por.map(u => `<span class="badge badge-warn">${u.profesor} (${u.curso||'25-26'})</span>`).join(' ') : '';
+    const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
     return `<div class="problem-card">
       <div class="problem-header">
         <div>
-          <div class="problem-title"><span class="badge badge-success">${p.curso||''}</span> [${p.bloque||'?'}] ${p.tematica||'Sin temática'} — ${p.num_apartados||'?'} apt.</div>
+          <div class="problem-title">
+            <span class="badge badge-success">${p.curso||''}</span>
+            ${unidad ? unidad.nombre : '[Sin unidad]'} · ${p.tematica||'Sin temática'} · ${p.num_apartados||'?'} apt.
+          </div>
           <div class="problem-meta">${p.tipo||''} ${usado ? '· '+usadoPor : ''}</div>
         </div>
         <div class="problem-actions">
@@ -505,10 +651,9 @@ function renderBanco() {
 
 function renderExamenes() {
   const c = document.getElementById('examenes-container');
-  const exams = examenesCurso();
-  if (!exams.length) { c.className='empty'; c.innerHTML='Todavía no hay exámenes guardados.'; return; }
+  if (!examenes.length) { c.className='empty'; c.innerHTML='Todavía no hay exámenes guardados.'; return; }
   c.className='';
-  c.innerHTML = exams.map(e => `
+  c.innerHTML = examenes.map(e => `
     <div class="problem-card">
       <div class="problem-header">
         <div>
@@ -528,6 +673,7 @@ function showTab(name, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'config') actualizarUnidadesUI();
 }
 
 function selectMode(mode, el) {
@@ -549,32 +695,44 @@ function renderApartados() {
       </div>`).join('');
 }
 
+// ── PROMPTS ──────────────────────────────────────────────────────────────────
 function buildPrompt() {
-  const curso = CURSOS[cursoActual];
-  const banco = bancoCurso();
+  const cursoLabel = CURSOS_META[cursoActual].label;
+  const normativa = NORMATIVA[cursoActual];
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
-  const nivelRef = bancoPrev ? `Calibra el nivel según estos problemas del banco:\n${bancoPrev}\n\n` : '';
+  const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
+
+  const formato = `
+FORMATO OBLIGATORIO — devuelve SOLO el bloque LaTeX dentro de \`\`\`latex ... \`\`\`:
+- Toda expresión matemática en $...$ o $$...$$
+- Sigue EXACTAMENTE este estilo de los exámenes del centro:
+${EJEMPLO_PROBLEMA}
+- Estructura: \\item \\textbf{enunciado} seguido de \\begin{enumerate}[a)] con \\item \\textbf{[CE X.X, Y.Y]} por apartado
+- Apartados narrativamente conectados (misma función/datos a lo largo de todos)
+- Al final del bloque: %CRITERIOS: X.X,Y.Y y %SABERES: X.X.,Y.Y.`;
+
   if (currentMode === 'libre') {
-    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${curso.label}. ${nivelRef}
-Genera un problema en LaTeX: ${document.getElementById('libre-prompt').value}
-${curso.normativa}
-FORMATO — devuelve SOLO el bloque LaTeX en \`\`\`latex ... \`\`\`. Toda expresión matemática en $...$ o $$...$$. Al final: %CRITERIOS: y %SABERES:`;
+    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
+Genera un problema: ${document.getElementById('libre-prompt').value}
+${normativa}${formato}`;
   }
+
   if (currentMode === 'similar') {
     const refId = document.getElementById('ref-problema').value;
     const ref = banco.find(p => p.id === refId);
     const refLatex = ref ? ref.latex_enunciado : 'Genera uno típico del nivel';
     const tematica = document.getElementById('similar-tematica').value;
     const napts = document.getElementById('similar-apartados').value;
-    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${curso.label}.
-Genera un problema SIMILAR en estructura y dificultad a este:
+    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}.
+Genera un problema SIMILAR en estructura, tipo y dificultad al siguiente:
 ${refLatex}
-${tematica ? 'Temática: '+tematica : 'Elige una temática original.'}
+${tematica ? 'Temática: '+tematica : 'Elige una temática original y cercana a jóvenes de 17-18 años.'}
 ${napts ? 'Número de apartados: '+napts : 'Mismo número de apartados.'}
-${curso.normativa}
-FORMATO — devuelve SOLO el bloque LaTeX en \`\`\`latex ... \`\`\`. Toda expresión matemática en $...$ o $$...$$. Al final: %CRITERIOS: y %SABERES:`;
+${normativa}${formato}`;
   }
-  const bloque = document.getElementById('bloque').value;
+
+  const unidadId = document.getElementById('unidad').value;
+  const unidad = (unidades[cursoActual]||[]).find(u => u.id === unidadId);
   const tipo = document.getElementById('tipo').value;
   const tematica = document.getElementById('tematica').value;
   const numApt = parseInt(document.getElementById('num-apartados').value);
@@ -584,90 +742,134 @@ FORMATO — devuelve SOLO el bloque LaTeX en \`\`\`latex ... \`\`\`. Toda expres
     const v = document.getElementById('apt-'+i);
     return `${letters[i]}) ${v?.value || 'libre'}`;
   }).join('\n');
-  return `Eres profesor de Matemáticas Aplicadas a CCSS de ${curso.label}. ${nivelRef}
-Genera un problema:
-- Bloque: ${bloque}
+
+  const unidadInfo = unidad
+    ? `Unidad: "${unidad.nombre}"${unidad.saberes ? ` — saberes asociados: ${unidad.saberes}` : ' — deduce los saberes por el nombre de la unidad'}`
+    : 'Unidad: no especificada';
+
+  return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
+Genera un problema con estas características:
+- ${unidadInfo}
 - Tipo: ${tipo}
-- Temática: ${tematica || 'Elige una temática original cercana a jóvenes de 17-18 años'}
-- Apartados (${numApt}):
+- Temática: ${tematica || 'Elige una temática original y cercana a jóvenes de 17-18 años'}
+- Número de apartados: ${numApt}
+- Contenido por apartado:
 ${apts}
-- Dificultad: ${dificultad === 'igual' ? 'similar al banco' : dificultad === 'mas' ? 'un poco más difícil' : 'un poco más fácil'}
-${curso.normativa}
-FORMATO OBLIGATORIO — devuelve SOLO el bloque LaTeX en \`\`\`latex ... \`\`\`. Toda expresión matemática en $...$ o $$...$$. Apartados narrativamente conectados. Al final: %CRITERIOS: X.X,Y.Y y %SABERES: X.X.,Y.Y.`;
+- Dificultad: ${dificultad === 'igual' ? 'similar al banco' : dificultad === 'mas' ? 'un poco más difícil' : 'un poco más fácil (recuperación)'}
+${normativa}${formato}`;
 }
 
 function generarProblema() {
   const prompt = 'MATHFORGE_GENERAR_PROBLEMA\n\n' + buildPrompt();
-  copiarAlPortapapeles(prompt, 'Prompt copiado — pégalo en Claude ↗');
-  window.open(CLAUDE_URL, '_blank');
+  navigator.clipboard.writeText(prompt)
+    .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
+    .catch(() => toast('No se pudo copiar — cópialo manualmente'));
 }
 
 function generarExamen() {
-  const curso = CURSOS[cursoActual];
+  const cursoLabel = CURSOS_META[cursoActual].label;
   const titulo = document.getElementById('exam-titulo').value || 'Examen';
   const fecha = document.getElementById('exam-fecha').value || new Date().toLocaleDateString('es-ES');
   const profesor = document.getElementById('exam-profesor').value || '';
   const conv = document.getElementById('exam-conv').value;
   const desc = document.getElementById('exam-desc').value;
-  const bancoPrev = bancoCurso().slice(0,3).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
+  const bancoPrev = banco.slice(0,3).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
+
   const prompt = `MATHFORGE_GENERAR_EXAMEN
-Genera examen completo en LaTeX para ${curso.label}.
-Título: ${titulo} | Fecha: ${fecha} | Profesor: ${profesor} | Convocatoria: ${conv}
+
+Genera un examen COMPLETO en LaTeX para ${cursoLabel}.
+Datos: Título: ${titulo} | Fecha: ${fecha} | Profesor: ${profesor} | Convocatoria: ${conv}
 Instrucciones: ${desc || 'Examen estándar'}
-${bancoPrev ? 'Nivel de referencia:\n'+bancoPrev : ''}
-4-5 problemas. Todo en \`\`\`latex\`\`\`. Expresiones en $...$ o $$...$$. Criterios en \\textbf{[CE X.X]}.`;
-  copiarAlPortapapeles(prompt, 'Prompt copiado — pégalo en Claude ↗');
-  window.open(CLAUDE_URL, '_blank');
+
+${bancoPrev ? 'Nivel de referencia del banco:\n'+bancoPrev+'\n\n' : ''}
+
+Usa EXACTAMENTE esta plantilla y rellena con 4-5 problemas:
+
+\`\`\`latex
+${PLANTILLA_LATEX}
+
+\\begin{document}
+\\renewcommand*{\\headrulewidth}{0pt}
+\\renewcommand*{\\footrulewidth}{0.1pt}
+
+\\begin{center}
+\\begin{minipage}[c]{13.5cm}
+\\begin{small}
+\\begin{tabularx}{13.5cm}{lXr}
+  \\multicolumn{3}{c}{\\textbf{${cursoLabel.toUpperCase()} \\hspace{3cm} MATEMÁTICAS APL CCSS}}\\\\
+  \\cline{1-3}\\\\
+  ${titulo} & & CURSO 2025-2026\\\\
+  \\cline{1-3}\\\\
+  APELLIDOS, NOMBRE: & & ${fecha}\\\\
+  \\cline{1-3}
+\\end{tabularx}
+\\end{small}
+\\end{minipage}
+\\end{center}
+
+\\begin{enumerate}
+% PROBLEMAS — sigue el estilo del ejemplo real:
+% ${EJEMPLO_PROBLEMA.split('\n').join('\n% ')}
+\\end{enumerate}
+
+\\end{document}
+\`\`\`
+
+Toda expresión matemática en $...$ o $$...$$. Devuelve el documento LaTeX COMPLETO.`;
+
+  navigator.clipboard.writeText(prompt)
+    .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
+    .catch(() => toast('No se pudo copiar — cópialo manualmente'));
 }
 
-function copiarAlPortapapeles(txt, msg) {
-  navigator.clipboard.writeText(txt).then(() => toast(msg)).catch(() => toast('Copia el prompt manualmente'));
-}
-
-function guardarProblema() {
+// ── GUARDAR ──────────────────────────────────────────────────────────────────
+async function guardarProblema() {
   const latex = document.getElementById('latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del problema'); return; }
   const criteriosRaw = document.getElementById('criterios-manual').value;
   const criterios = criteriosRaw ? criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
-  const bloqueVal = currentMode === 'detallista' ? document.getElementById('bloque').value : '';
+  const unidadId = currentMode === 'detallista' ? document.getElementById('unidad').value : '';
   const tipoVal = currentMode === 'detallista' ? document.getElementById('tipo').value : '';
   const tematicaVal = currentMode === 'detallista' ? document.getElementById('tematica').value : '';
   const naptVal = currentMode === 'detallista' ? parseInt(document.getElementById('num-apartados').value) : 3;
-  if (!bloqueVal) {
+
+  if (!unidadId) {
     pendienteGuardar = { latex, criterios };
     document.getElementById('tematica-modal-input').value = tematicaVal || '';
+    actualizarUnidadesUI();
     document.getElementById('modal-bloque').style.display = 'flex';
     return;
   }
-  completarGuardar({ latex, criterios, bloque: bloqueVal, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
+  await completarGuardar({ latex, criterios, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
 }
 
-function confirmarGuardar() {
-  const bloque = document.getElementById('bloque-modal-select').value;
+async function confirmarGuardar() {
+  const unidad_id = document.getElementById('unidad-modal-select').value;
   const tipo = document.getElementById('tipo-modal-select').value;
   const tematica = document.getElementById('tematica-modal-input').value;
   const num_apartados = parseInt(document.getElementById('napt-modal-select').value);
   cerrarModal('modal-bloque');
-  completarGuardar({ ...pendienteGuardar, bloque, tipo, tematica, num_apartados });
+  await completarGuardar({ ...pendienteGuardar, unidad_id, tipo, tematica, num_apartados });
   pendienteGuardar = null;
 }
 
-function completarGuardar({ latex, criterios, bloque, tipo, tematica, num_apartados }) {
+async function completarGuardar({ latex, criterios, unidad_id, tipo, tematica, num_apartados }) {
   const problema = {
-    id: Date.now().toString(), bloque, tipo, tematica, num_apartados,
+    id: Date.now().toString(), unidad_id, tipo, tematica, num_apartados,
     latex_enunciado: latex, criterios, usado_por: [],
-    curso: CURSOS[cursoActual].curso_db,
+    curso: CURSOS_META[cursoActual].curso_db,
     created_at: new Date().toISOString()
   };
-  db.problemas.unshift(problema);
-  guardarDatos();
-  actualizarVista();
+  const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
+  if (saved && saved.length) banco.unshift(saved[0]);
+  else { banco.unshift(problema); guardarLocal(); }
+  actualizarStats(); actualizarRefSelect(); renderBanco();
   document.getElementById('latex-pegado').value = '';
   document.getElementById('criterios-manual').value = '';
   toast('Problema guardado ✓');
 }
 
-function guardarExamen() {
+async function guardarExamen() {
   const latex = document.getElementById('examen-latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del examen'); return; }
   const examen = {
@@ -676,51 +878,52 @@ function guardarExamen() {
     fecha: document.getElementById('exam-fecha').value || '',
     profesor: document.getElementById('exam-profesor').value || '',
     convocatoria: document.getElementById('exam-conv').value,
-    curso: CURSOS[cursoActual].curso_db, latex,
+    curso: CURSOS_META[cursoActual].curso_db, latex,
     created_at: new Date().toISOString()
   };
-  db.examenes.unshift(examen);
-  guardarDatos();
+  const saved = await sbFetch('examenes', { method:'POST', body: JSON.stringify(examen) });
+  if (saved && saved.length) examenes.unshift(saved[0]);
+  else { examenes.unshift(examen); guardarLocal(); }
   renderExamenes();
   document.getElementById('examen-latex-pegado').value = '';
   toast('Examen guardado ✓');
 }
 
-function marcarUsado(id) {
-  const p = db.problemas.find(x => x.id === id);
+async function marcarUsado(id) {
+  const p = banco.find(x => x.id === id);
   if (!p) return;
   const profesor = prompt('Nombre del profesor:');
   if (!profesor) return;
   const cursoAc = prompt('Curso académico (ej: 2025-26):') || '2025-26';
   p.usado_por = [...(p.usado_por||[]), { profesor, curso: cursoAc, fecha: new Date().toLocaleDateString('es-ES') }];
-  guardarDatos();
-  actualizarVista();
+  await sbFetch(`problemas?id=eq.${id}`, { method:'PATCH', body: JSON.stringify({ usado_por: p.usado_por }) });
+  guardarLocal(); renderBanco(); actualizarStats();
   toast('Marcado como usado ✓');
 }
 
-function borrarProblema(id) {
-  if (!confirm('¿Borrar este problema del banco?')) return;
-  db.problemas = db.problemas.filter(p => p.id !== id);
-  guardarDatos();
-  actualizarVista();
+async function borrarProblema(id) {
+  if (!confirm('¿Borrar este problema?')) return;
+  await sbFetch(`problemas?id=eq.${id}`, { method:'DELETE' });
+  banco = banco.filter(p => p.id !== id);
+  guardarLocal(); renderBanco(); actualizarStats(); actualizarRefSelect();
   toast('Problema borrado');
 }
 
-function borrarExamen(id) {
+async function borrarExamen(id) {
   if (!confirm('¿Borrar este examen?')) return;
-  db.examenes = db.examenes.filter(e => e.id !== id);
-  guardarDatos();
-  renderExamenes();
+  await sbFetch(`examenes?id=eq.${id}`, { method:'DELETE' });
+  examenes = examenes.filter(e => e.id !== id);
+  guardarLocal(); renderExamenes();
   toast('Examen borrado');
 }
 
 function verLatex(id) {
-  const p = db.problemas.find(x => x.id === id);
+  const p = banco.find(x => x.id === id);
   if (p) { document.getElementById('latex-pegado').value = p.latex_enunciado || ''; showTab('generar', document.querySelectorAll('.tab')[0]); toast('LaTeX cargado'); }
 }
 
 function verLatexExamen(id) {
-  const e = db.examenes.find(x => x.id === id);
+  const e = examenes.find(x => x.id === id);
   if (e) { document.getElementById('examen-latex-pegado').value = e.latex || ''; showTab('examenes', document.querySelectorAll('.tab')[2]); toast('LaTeX cargado'); }
 }
 
@@ -736,8 +939,10 @@ function copiarExamen() {
   navigator.clipboard.writeText(txt).then(() => toast('Copiado — pégalo en Overleaf ✓'));
 }
 
+// ── EXPORT/IMPORT ─────────────────────────────────────────────────────────────
 function exportarJSON() {
-  const jsonStr = JSON.stringify({ ...db, exportado: new Date().toISOString(), version: '1.0' }, null, 2);
+  const data = { banco, examenes, unidades, exportado: new Date().toISOString(), version: '2.0' };
+  const jsonStr = JSON.stringify(data, null, 2);
   document.getElementById('json-export-text').value = jsonStr;
   document.getElementById('modal-exportar').style.display = 'flex';
 }
@@ -745,22 +950,8 @@ function exportarJSON() {
 function abrirEnPestana() {
   const jsonStr = document.getElementById('json-export-text').value;
   const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  toast('Pestaña abierta — pulsa Ctrl+S para guardar');
-}
-
-function descargarJson() {
-  const jsonStr = document.getElementById('json-export-text').value;
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'mathforge_banco_' + new Date().toISOString().slice(0,10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
-  toast('Descargando...');
+  window.open(URL.createObjectURL(blob), '_blank');
+  toast('Pestaña abierta — Ctrl+S para guardar');
 }
 
 function copiarJsonExport() {
@@ -773,37 +964,33 @@ function mostrarImportar() {
   document.getElementById('modal-importar').style.display = 'flex';
 }
 
-async function importarDesdeTexto() {
-  const txt = document.getElementById('json-import-text').value.trim();
-  if (!txt) { toast('Pega primero el JSON'); return; }
-  await procesarImport(txt);
+function importarDesdeTexto() {
+  procesarImport(document.getElementById('json-import-text').value.trim());
   cerrarModal('modal-importar');
 }
 
 async function importarDesdeArchivo(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const txt = await file.text();
-  await procesarImport(txt);
-  cerrarModal('modal-importar');
-  e.target.value = '';
+  const file = e.target.files[0]; if (!file) return;
+  procesarImport(await file.text());
+  cerrarModal('modal-importar'); e.target.value = '';
 }
 
 function procesarImport(txt) {
   try {
     const data = JSON.parse(txt);
-    const nuevosP = data.problemas || (Array.isArray(data) ? data : []);
-    const nuevosE = data.examenes || [];
-    let addedP = 0, addedE = 0;
-    for (const p of nuevosP) {
-      if (!db.problemas.find(x => x.id === p.id)) { db.problemas.unshift(p); addedP++; }
+    const nuevosP = data.banco || []; const nuevosE = data.examenes || [];
+    let ap = 0, ae = 0;
+    for (const p of nuevosP) if (!banco.find(x=>x.id===p.id)) { banco.unshift(p); ap++; }
+    for (const e of nuevosE) if (!examenes.find(x=>x.id===e.id)) { examenes.unshift(e); ae++; }
+    if (data.unidades) {
+      for (const [curso, units] of Object.entries(data.unidades)) {
+        if (!unidades[curso]) unidades[curso] = [];
+        for (const u of units) if (!unidades[curso].find(x=>x.id===u.id)) unidades[curso].push(u);
+      }
+      guardarUnidades();
     }
-    for (const e of nuevosE) {
-      if (!db.examenes.find(x => x.id === e.id)) { db.examenes.unshift(e); addedE++; }
-    }
-    guardarDatos();
-    actualizarVista();
-    toast(`Importados: ${addedP} problemas, ${addedE} exámenes ✓`);
+    guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); renderExamenes(); actualizarUnidadesUI();
+    toast(`Importados: ${ap} problemas, ${ae} exámenes ✓`);
   } catch { toast('Error al leer el JSON'); }
 }
 
@@ -811,14 +998,11 @@ function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function toast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-actualizarBloques();
-renderApartados();
-cargarDatos();
+init();
 </script>
 </body>
 </html>
