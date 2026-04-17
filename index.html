@@ -101,6 +101,15 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .examen-slot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .slot-num { font-size: 13px; font-weight: 500; min-width: 24px; }
 .importar-masivo-area textarea { font-family: 'Courier New', monospace; font-size: 12px; min-height: 200px; background: var(--surface2); }
+.masivo-item-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 12px; background: var(--surface); transition: border 0.15s; }
+.masivo-item-card.descartado { opacity: 0.45; background: var(--surface2); }
+.masivo-item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.masivo-item-num { font-size: 13px; font-weight: 500; color: var(--text2); min-width: 80px; }
+.masivo-item-toggle { margin-left: auto; }
+.masivo-enunciado { font-family: 'Courier New', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; max-height: 140px; overflow-y: auto; margin-bottom: 10px; line-height: 1.5; color: var(--text2); white-space: pre-wrap; cursor: pointer; }
+.masivo-enunciado.expandido { max-height: none; }
+.masivo-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.masivo-campos-full { margin-top: 8px; }
 .item-preview { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 6px; font-size: 12px; font-family: 'Courier New', monospace; line-height: 1.5; color: var(--text2); max-height: 80px; overflow: hidden; cursor: pointer; transition: all 0.15s; }
 .item-preview:hover { background: var(--surface2); }
 .item-preview.selected { border-color: var(--accent); background: var(--info-bg); color: var(--info-text); }
@@ -378,30 +387,28 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
 <!-- Modal importar LaTeX masivo -->
 <div id="modal-importar-masivo" style="display:none;" class="modal-overlay">
-  <div class="modal">
+  <div class="modal" style="max-width:720px;">
     <h3>Importar LaTeX masivo</h3>
-    <p>Pega aquí el LaTeX de un examen o colección de problemas. La app detectará cada <code>\item</code> principal y te mostrará los problemas para que los revises antes de guardarlos.</p>
-    <div class="field"><label>Unidad a la que pertenecen</label><select id="masivo-unidad"></select></div>
-    <div class="field"><label>Tipo</label>
-      <select id="masivo-tipo">
-        <option value="contextualizado">Contextualizado</option>
-        <option value="teorico">Teórico</option>
-        <option value="mixto">Mixto</option>
-      </select>
+
+    <!-- PASO 1: pegar LaTeX -->
+    <div id="masivo-paso1">
+      <p>Pega el LaTeX de un examen o colección de problemas. La app detectará cada <code>\item</code> principal.</p>
+      <div class="importar-masivo-area field">
+        <label>LaTeX</label>
+        <textarea id="masivo-latex" placeholder="Pega aquí el LaTeX completo..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="parsearMasivo()">Detectar problemas →</button>
+        <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
+      </div>
     </div>
-    <div class="importar-masivo-area field">
-      <label>LaTeX</label>
-      <textarea id="masivo-latex" placeholder="Pega aquí el LaTeX completo..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="parsearMasivo()">Detectar problemas</button>
-      <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
-    </div>
-    <div id="masivo-preview" style="display:none; margin-top:1rem;">
-      <p style="font-weight:500; color:var(--text); margin-bottom:8px;">Problemas detectados — haz clic para seleccionar/deseleccionar:</p>
+
+    <!-- PASO 2: catalogar cada problema -->
+    <div id="masivo-paso2" style="display:none;">
+      <p style="margin-bottom:12px;">Revisa y cataloga cada problema. Desmarca los que no quieras guardar.</p>
       <div id="masivo-items"></div>
-      <div class="modal-actions" style="margin-top:12px;">
-        <button class="btn" onclick="seleccionarTodosMasivo()">Seleccionar todos</button>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn" onclick="document.getElementById('masivo-paso1').style.display='block'; document.getElementById('masivo-paso2').style.display='none';">← Volver</button>
         <button class="btn btn-primary" onclick="guardarMasivo()">Guardar seleccionados en banco</button>
       </div>
     </div>
@@ -1089,9 +1096,9 @@ Toda expresión matemática en $...$ o $$...$$. Criterios en \\textbf{[CE X.X]}.
 
 // ── IMPORTAR MASIVO ───────────────────────────────────────────────────────────
 function mostrarImportarMasivo() {
-  actualizarUnidadesUI();
   document.getElementById('masivo-latex').value = '';
-  document.getElementById('masivo-preview').style.display = 'none';
+  document.getElementById('masivo-paso1').style.display = 'block';
+  document.getElementById('masivo-paso2').style.display = 'none';
   document.getElementById('modal-importar-masivo').style.display = 'flex';
 }
 
@@ -1099,8 +1106,6 @@ function parsearMasivo() {
   const latex = document.getElementById('masivo-latex').value.trim();
   if (!latex) { toast('Pega primero el LaTeX'); return; }
 
-  // Separar por \item de nivel 1 (no dentro de enumerate de apartados)
-  // Estrategia: buscar \item que NO están precedidos por espacios/tabs profundos
   const items = [];
   const lines = latex.split('\n');
   let current = '';
@@ -1110,7 +1115,6 @@ function parsearMasivo() {
     const trimmed = line.trim();
     if (trimmed.startsWith('\\begin{enumerate}') || trimmed.startsWith('\\begin{itemize}')) depth++;
     if (trimmed.startsWith('\\end{enumerate}') || trimmed.startsWith('\\end{itemize}')) depth--;
-
     if (trimmed.startsWith('\\item') && depth === 0 && current.trim()) {
       items.push(current.trim());
       current = line + '\n';
@@ -1119,42 +1123,120 @@ function parsearMasivo() {
     }
   }
   if (current.trim()) items.push(current.trim());
-
-  // Filtrar items que parecen problemas (contienen \textbf o tienen algo de contenido)
   masivoItems = items.filter(it => it.length > 20);
-  masivoSeleccionados = new Set(masivoItems.map((_, i) => i));
 
   if (!masivoItems.length) { toast('No se detectaron problemas. Comprueba el formato.'); return; }
 
-  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) =>
-    `<div class="item-preview selected" id="masivo-item-${i}" onclick="toggleMasivoItem(${i})">
-      <strong>Problema ${i+1}</strong><br>${item.substring(0, 200)}...
+  const units = unidades[cursoActual] || [];
+  const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+  const procOpts = `<option value="IA">Generado por IA</option>
+    <option value="PAU">PAU</option>
+    <option value="Examen propio">Examen propio</option>
+    <option value="Libro de texto">Libro de texto</option>
+    <option value="otro">Otro...</option>`;
+
+  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) => `
+    <div class="masivo-item-card" id="masivo-card-${i}">
+      <div class="masivo-item-header">
+        <span class="masivo-item-num">Problema ${i+1}</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">
+          <input type="checkbox" id="masivo-check-${i}" checked onchange="toggleMasivoCard(${i})"> Incluir
+        </label>
+      </div>
+      <div class="masivo-enunciado" id="masivo-enunciado-${i}" onclick="toggleExpandirEnunciado(${i})" title="Clic para expandir/contraer">
+${item}
+      </div>
+      <small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>
+      <div class="masivo-campos">
+        <div>
+          <label style="font-size:12px;">Unidad</label>
+          <select id="masivo-unidad-${i}" style="font-size:13px;">
+            ${unitOpts || '<option value="">Sin unidades</option>'}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Tipo</label>
+          <select id="masivo-tipo-${i}" style="font-size:13px;">
+            <option value="contextualizado">Contextualizado</option>
+            <option value="teorico">Teórico</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Criterios (coma)</label>
+          <input type="text" id="masivo-criterios-${i}" placeholder="6.1, 8.2" style="font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;">Saberes (coma)</label>
+          <input type="text" id="masivo-saberes-${i}" placeholder="D.1.1., D.1.2." style="font-size:13px;">
+        </div>
+      </div>
+      <div class="masivo-campos-full">
+        <div class="row" style="margin-bottom:0;">
+          <div>
+            <label style="font-size:12px;">Procedencia</label>
+            <select id="masivo-proc-${i}" onchange="toggleMasivoProc(${i})" style="font-size:13px;">${procOpts}</select>
+          </div>
+          <div>
+            <label style="font-size:12px;" id="masivo-proc-label-${i}" style="display:none;">Año / detalle</label>
+            <input type="text" id="masivo-proc-extra-${i}" placeholder="Año o detalle" style="font-size:13px; display:none;">
+          </div>
+        </div>
+      </div>
     </div>`).join('');
 
-  document.getElementById('masivo-preview').style.display = 'block';
+  document.getElementById('masivo-paso1').style.display = 'none';
+  document.getElementById('masivo-paso2').style.display = 'block';
   toast(`${masivoItems.length} problemas detectados`);
 }
 
-function toggleMasivoItem(i) {
-  if (masivoSeleccionados.has(i)) masivoSeleccionados.delete(i);
-  else masivoSeleccionados.add(i);
-  const el = document.getElementById(`masivo-item-${i}`);
-  el.classList.toggle('selected', masivoSeleccionados.has(i));
+function toggleMasivoCard(i) {
+  const checked = document.getElementById(`masivo-check-${i}`).checked;
+  document.getElementById(`masivo-card-${i}`).classList.toggle('descartado', !checked);
 }
 
-function seleccionarTodosMasivo() {
-  masivoItems.forEach((_, i) => { masivoSeleccionados.add(i); document.getElementById(`masivo-item-${i}`)?.classList.add('selected'); });
+function toggleExpandirEnunciado(i) {
+  document.getElementById(`masivo-enunciado-${i}`).classList.toggle('expandido');
+}
+
+function toggleMasivoProc(i) {
+  const sel = document.getElementById(`masivo-proc-${i}`).value;
+  const extra = document.getElementById(`masivo-proc-extra-${i}`);
+  const label = document.getElementById(`masivo-proc-label-${i}`);
+  const mostrar = sel === 'PAU' || sel === 'Examen propio' || sel === 'otro';
+  extra.style.display = mostrar ? 'block' : 'none';
+  if (label) label.style.display = mostrar ? 'block' : 'none';
+  extra.placeholder = sel === 'otro' ? 'Especifica la procedencia' : 'Año (ej: 2023)';
 }
 
 async function guardarMasivo() {
-  const unidad_id = document.getElementById('masivo-unidad').value;
-  const tipo = document.getElementById('masivo-tipo').value;
   const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
   let guardados = 0;
 
-  for (const i of masivoSeleccionados) {
-    const latex = masivoItems[i];
-    const problema = { unidad_id, tipo, tematica: '', num_apartados: null, latex_enunciado: latex, criterios: [], usado_por: [], curso: cursoDB, created_at: new Date().toISOString() };
+  for (let i = 0; i < masivoItems.length; i++) {
+    const checked = document.getElementById(`masivo-check-${i}`)?.checked;
+    if (!checked) continue;
+
+    const unidad_id = document.getElementById(`masivo-unidad-${i}`)?.value || '';
+    const tipo = document.getElementById(`masivo-tipo-${i}`)?.value || 'contextualizado';
+    const criteriosRaw = document.getElementById(`masivo-criterios-${i}`)?.value || '';
+    const saberesRaw = document.getElementById(`masivo-saberes-${i}`)?.value || '';
+    const criterios = criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean);
+    const saberes = saberesRaw.split(',').map(s=>s.trim()).filter(Boolean);
+
+    const procSel = document.getElementById(`masivo-proc-${i}`)?.value || 'IA';
+    const procExtra = document.getElementById(`masivo-proc-extra-${i}`)?.value.trim() || '';
+    let procedencia = procSel;
+    if ((procSel === 'PAU' || procSel === 'Examen propio') && procExtra) procedencia = `${procSel} ${procExtra}`;
+    else if (procSel === 'otro') procedencia = procExtra || 'Otro';
+
+    const problema = {
+      unidad_id, tipo, tematica: '', num_apartados: null,
+      latex_enunciado: masivoItems[i],
+      criterios, saberes, procedencia,
+      usado_por: [], curso: cursoDB,
+      created_at: new Date().toISOString()
+    };
     const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
     if (saved && saved.length) banco.unshift(saved[0]);
     else banco.unshift({...problema, id: Date.now().toString() + Math.random()});
