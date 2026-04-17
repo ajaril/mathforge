@@ -183,6 +183,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <option value="menos">Un poco más fácil (recuperación)</option>
           </select>
         </div>
+        <div class="field"><label>Observaciones adicionales (opcional)</label>
+          <textarea id="observaciones-detallista" style="min-height:60px;" placeholder="Ej: que la función sea exponencial, que aparezca un parámetro a determinar, que el contexto sea económico..."></textarea>
+        </div>
       </div>
 
       <div id="modo-similar" style="display:none">
@@ -198,6 +201,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <div><label>Temática (opcional)</label>
             <input type="text" id="similar-tematica" placeholder="Claude elige si lo dejas vacío">
           </div>
+        </div>
+        <div class="field"><label>Observaciones adicionales (opcional)</label>
+          <textarea id="observaciones-similar" style="min-height:60px;" placeholder="Ej: que la función sea polinómica de grado 3, que incluya un apartado teórico, que los números sean más sencillos..."></textarea>
         </div>
       </div>
 
@@ -911,11 +917,13 @@ ${normativa}${formato}`;
     const refLatex = ref ? ref.latex_enunciado : 'Genera uno típico del nivel';
     const tematica = document.getElementById('similar-tematica').value;
     const napts = document.getElementById('similar-apartados').value;
+    const obs = document.getElementById('observaciones-similar').value.trim();
     return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}.
 Genera un problema SIMILAR en estructura, tipo y dificultad al siguiente:
 ${refLatex}
 ${tematica ? 'Temática: '+tematica : 'Elige una temática original y cercana a jóvenes de 17-18 años.'}
 ${napts ? 'Número de apartados: '+napts : 'Mismo número de apartados.'}
+${obs ? 'Observaciones importantes a tener en cuenta: '+obs : ''}
 ${normativa}${formato}`;
   }
 
@@ -925,6 +933,7 @@ ${normativa}${formato}`;
   const tematica = document.getElementById('tematica').value;
   const numApt = parseInt(document.getElementById('num-apartados').value);
   const dificultad = document.getElementById('dificultad').value;
+  const obs = document.getElementById('observaciones-detallista').value.trim();
   const letters = ['a','b','c','d','e'];
   const apts = Array.from({length:numApt}, (_,i) => {
     const v = document.getElementById('apt-'+i);
@@ -944,6 +953,7 @@ Genera un problema con estas características:
 - Contenido por apartado:
 ${apts}
 - Dificultad: ${dificultad === 'igual' ? 'similar al banco' : dificultad === 'mas' ? 'un poco más difícil' : 'un poco más fácil (recuperación)'}
+${obs ? '- Observaciones importantes: '+obs : ''}
 ${normativa}${formato}`;
 }
 
