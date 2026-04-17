@@ -1147,7 +1147,7 @@ function parsearMasivo() {
 ${item}
       </div>
       <small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>
-      <div class="masivo-campos">
+      <div class="masivo-campos" style="grid-template-columns:1fr 1fr 1fr auto;">
         <div>
           <label style="font-size:12px;">Unidad</label>
           <select id="masivo-unidad-${i}" style="font-size:13px;">
@@ -1169,6 +1169,14 @@ ${item}
         <div>
           <label style="font-size:12px;">Saberes (coma)</label>
           <input type="text" id="masivo-saberes-${i}" placeholder="D.1.1., D.1.2." style="font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;">Nº de apartados</label>
+          <select id="masivo-napt-${i}" style="font-size:13px;">
+            <option value="">—</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
         </div>
       </div>
       <div class="masivo-campos-full">
@@ -1219,6 +1227,8 @@ async function guardarMasivo() {
 
     const unidad_id = document.getElementById(`masivo-unidad-${i}`)?.value || '';
     const tipo = document.getElementById(`masivo-tipo-${i}`)?.value || 'contextualizado';
+    const naptRaw = document.getElementById(`masivo-napt-${i}`)?.value;
+    const num_apartados = naptRaw ? parseInt(naptRaw) : null;
     const criteriosRaw = document.getElementById(`masivo-criterios-${i}`)?.value || '';
     const saberesRaw = document.getElementById(`masivo-saberes-${i}`)?.value || '';
     const criterios = criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean);
@@ -1231,7 +1241,7 @@ async function guardarMasivo() {
     else if (procSel === 'otro') procedencia = procExtra || 'Otro';
 
     const problema = {
-      unidad_id, tipo, tematica: '', num_apartados: null,
+      unidad_id, tipo, tematica: '', num_apartados,
       latex_enunciado: masivoItems[i],
       criterios, saberes, procedencia,
       usado_por: [], curso: cursoDB,
