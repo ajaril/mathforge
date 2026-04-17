@@ -234,14 +234,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <select id="procedencia-select" onchange="toggleProcedenciaOtro()" style="flex:1; min-width:160px;">
             <option value="IA">Generado por IA</option>
-            <option value="PAU 2025">PAU 2025</option>
-            <option value="PAU 2024">PAU 2024</option>
-            <option value="PAU 2023">PAU 2023</option>
-            <option value="Examen propio 2025">Examen propio 2025</option>
-            <option value="Examen propio 2024">Examen propio 2024</option>
+            <option value="PAU">PAU</option>
+            <option value="Examen propio">Examen propio</option>
             <option value="Libro de texto">Libro de texto</option>
             <option value="otro">Otro...</option>
           </select>
+          <input type="number" id="procedencia-anyo" placeholder="Año (ej: 2023)" min="1990" max="2099" style="flex:0 0 130px; display:none;">
           <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
         </div>
       </div>
@@ -277,6 +275,13 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       </select>
       <select id="filtro-usado" onchange="renderBanco()">
         <option value="">Todos</option><option value="no">Disponibles</option><option value="si">Ya usados</option>
+      </select>
+      <select id="filtro-procedencia" onchange="renderBanco()">
+        <option value="">Todas las procedencias</option>
+        <option value="IA">Generado por IA</option>
+        <option value="PAU">PAU</option>
+        <option value="Examen propio">Examen propio</option>
+        <option value="Libro de texto">Libro de texto</option>
       </select>
     </div>
     <div id="banco-container"><div class="empty">Cargando banco...</div></div>
@@ -349,6 +354,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <textarea id="json-export-text" readonly></textarea>
     <div class="modal-actions">
       <button class="btn" onclick="copiarJsonExport()">Copiar JSON</button>
+      <button class="btn" onclick="descargarJsonDirecto()">Descargar archivo</button>
       <button class="btn" onclick="abrirEnPestana()">Abrir en pestaña → Ctrl+S</button>
       <button class="btn btn-primary" onclick="cerrarModal('modal-exportar')">Cerrar</button>
     </div>
@@ -423,6 +429,22 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <option value="1">1</option><option value="2">2</option>
         <option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
       </select>
+    </div>
+    <div class="field"><label>Saberes (opcional, separados por coma)</label>
+      <input type="text" id="saberes-modal-input" placeholder="Ej: D.1.1., D.1.2.">
+    </div>
+    <div class="field"><label>Procedencia</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="procedencia-modal-select" onchange="toggleProcedenciaModalOtro()" style="flex:1;">
+          <option value="IA">Generado por IA</option>
+          <option value="PAU">PAU</option>
+          <option value="Examen propio">Examen propio</option>
+          <option value="Libro de texto">Libro de texto</option>
+          <option value="otro">Otro...</option>
+        </select>
+        <input type="number" id="procedencia-modal-anyo" placeholder="Año (ej: 2023)" min="1990" max="2099" style="flex:0 0 130px; display:none;">
+        <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" style="flex:1; display:none;">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="confirmarGuardar()">Guardar en banco</button>
@@ -765,11 +787,13 @@ function renderBanco() {
   const fu = document.getElementById('filtro-unidad').value;
   const ft = document.getElementById('filtro-tipo').value;
   const fus = document.getElementById('filtro-usado').value;
+  const fp = document.getElementById('filtro-procedencia').value;
   let filtrados = banco.filter(p => {
     if (fu && p.unidad_id !== fu) return false;
     if (ft && p.tipo !== ft) return false;
     if (fus === 'no' && p.usado_por && p.usado_por.length > 0) return false;
     if (fus === 'si' && (!p.usado_por || !p.usado_por.length)) return false;
+    if (fp && !(p.procedencia||'').includes(fp)) return false;
     return true;
   });
   if (!filtrados.length) { container.innerHTML = '<div class="empty">No hay problemas con estos filtros.</div>'; return; }
@@ -777,8 +801,10 @@ function renderBanco() {
     const usado = p.usado_por && p.usado_por.length > 0;
     const preview = (p.latex_enunciado || '').substring(0, 160) + '...';
     const ces = (p.criterios||[]).map(c => `<span class="badge badge-info">CE ${c}</span>`).join('');
+    const sabs = (p.saberes||[]).map(s => `<span class="badge" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);">${s}</span>`).join('');
     const usadoPor = usado ? p.usado_por.map(u => `<span class="badge badge-warn">${u.profesor} (${u.curso||'25-26'})</span>`).join(' ') : '';
     const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+    const procBadge = p.procedencia ? `<span class="badge" style="background:var(--warn-bg);color:var(--warn-text);">${p.procedencia}</span>` : '';
     return `<div class="problem-card">
       <div class="problem-header">
         <div>
@@ -794,7 +820,7 @@ function renderBanco() {
           <button class="btn btn-sm btn-danger" onclick="borrarProblema('${p.id}')">Borrar</button>
         </div>
       </div>
-      <div style="margin-bottom:6px;">${ces}</div>
+      <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge}</div>
       <div class="problem-preview">${preview}</div>
     </div>`;
   }).join('');
@@ -1140,25 +1166,53 @@ async function guardarMasivo() {
   toast(`${guardados} problemas guardados en el banco ✓`);
 }
 
+function toggleProcedenciaOtro() {
+  const sel = document.getElementById('procedencia-select').value;
+  const conAnyo = ['PAU', 'Examen propio'];
+  document.getElementById('procedencia-anyo').style.display = conAnyo.includes(sel) ? 'block' : 'none';
+  document.getElementById('procedencia-otro').style.display = sel === 'otro' ? 'block' : 'none';
+}
+
+function toggleProcedenciaModalOtro() {
+  const sel = document.getElementById('procedencia-modal-select').value;
+  const conAnyo = ['PAU', 'Examen propio'];
+  document.getElementById('procedencia-modal-anyo').style.display = conAnyo.includes(sel) ? 'block' : 'none';
+  document.getElementById('procedencia-modal-otro').style.display = sel === 'otro' ? 'block' : 'none';
+}
+
+function getProcedencia(selectId, otroId, anyoId) {
+  const sel = document.getElementById(selectId).value;
+  if (sel === 'otro') return document.getElementById(otroId).value.trim() || 'Otro';
+  const conAnyo = ['PAU', 'Examen propio'];
+  if (conAnyo.includes(sel)) {
+    const anyo = document.getElementById(anyoId).value.trim();
+    return anyo ? `${sel} ${anyo}` : sel;
+  }
+  return sel;
+}
+
 // ── GUARDAR ───────────────────────────────────────────────────────────────────
 async function guardarProblema() {
   const latex = document.getElementById('latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del problema'); return; }
   const criteriosRaw = document.getElementById('criterios-manual').value;
   const criterios = criteriosRaw ? criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const saberesRaw = document.getElementById('saberes-manual').value;
+  const saberes = saberesRaw ? saberesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  const procedencia = getProcedencia('procedencia-select', 'procedencia-otro', 'procedencia-anyo');
   const unidadId = currentMode === 'detallista' ? document.getElementById('unidad').value : '';
   const tipoVal = currentMode === 'detallista' ? document.getElementById('tipo').value : '';
   const tematicaVal = currentMode === 'detallista' ? document.getElementById('tematica').value : '';
   const naptVal = currentMode === 'detallista' ? parseInt(document.getElementById('num-apartados').value) : 3;
 
   if (!unidadId) {
-    pendienteGuardar = { latex, criterios };
+    pendienteGuardar = { latex, criterios, saberes, procedencia };
     document.getElementById('tematica-modal-input').value = tematicaVal || '';
     actualizarUnidadesUI();
     document.getElementById('modal-bloque').style.display = 'flex';
     return;
   }
-  await completarGuardar({ latex, criterios, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
+  await completarGuardar({ latex, criterios, saberes, procedencia, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
 }
 
 async function confirmarGuardar() {
@@ -1166,15 +1220,18 @@ async function confirmarGuardar() {
   const tipo = document.getElementById('tipo-modal-select').value;
   const tematica = document.getElementById('tematica-modal-input').value;
   const num_apartados = parseInt(document.getElementById('napt-modal-select').value);
+  const saberes = (document.getElementById('saberes-modal-input').value || '').split(',').map(s=>s.trim()).filter(Boolean);
+  const procedencia = getProcedencia('procedencia-modal-select', 'procedencia-modal-otro', 'procedencia-modal-anyo');
   cerrarModal('modal-bloque');
-  await completarGuardar({ ...pendienteGuardar, unidad_id, tipo, tematica, num_apartados });
+  await completarGuardar({ ...pendienteGuardar, unidad_id, tipo, tematica, num_apartados, saberes, procedencia });
   pendienteGuardar = null;
 }
 
-async function completarGuardar({ latex, criterios, unidad_id, tipo, tematica, num_apartados }) {
+async function completarGuardar({ latex, criterios, saberes, procedencia, unidad_id, tipo, tematica, num_apartados }) {
   const problema = {
     unidad_id, tipo, tematica, num_apartados,
-    latex_enunciado: latex, criterios, usado_por: [],
+    latex_enunciado: latex, criterios, saberes: saberes || [], procedencia: procedencia || 'IA',
+    usado_por: [],
     curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
     created_at: new Date().toISOString()
   };
@@ -1184,6 +1241,11 @@ async function completarGuardar({ latex, criterios, unidad_id, tipo, tematica, n
   actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
   document.getElementById('latex-pegado').value = '';
   document.getElementById('criterios-manual').value = '';
+  document.getElementById('saberes-manual').value = '';
+  document.getElementById('procedencia-select').value = 'IA';
+  document.getElementById('procedencia-otro').style.display = 'none';
+  document.getElementById('procedencia-anyo').style.display = 'none';
+  document.getElementById('procedencia-anyo').value = '';
   toast('Problema guardado ✓');
 }
 
@@ -1258,10 +1320,28 @@ function copiarExamen() {
 
 // ── EXPORT/IMPORT ─────────────────────────────────────────────────────────────
 function exportarJSON() {
-  const data = { banco, examenes, unidades, cursos, exportado: new Date().toISOString(), version: '3.0' };
+  const data = { banco, examenes, unidades, cursos, exportado: new Date().toISOString(), version: '3.1' };
   const jsonStr = JSON.stringify(data, null, 2);
   document.getElementById('json-export-text').value = jsonStr;
   document.getElementById('modal-exportar').style.display = 'flex';
+  // Intentar descarga directa
+  descargarJsonDirecto(jsonStr);
+}
+
+function descargarJsonDirecto(jsonStr) {
+  try {
+    const blob = new Blob([jsonStr || document.getElementById('json-export-text').value], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mathforge_banco_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 1500);
+    toast('Descargando JSON...');
+  } catch(e) {
+    console.log('Descarga directa no disponible');
+  }
 }
 
 function abrirEnPestana() {
