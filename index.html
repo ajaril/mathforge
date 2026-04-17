@@ -219,11 +219,33 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="card" style="border-style: dashed;">
       <div class="card-title">Pega aquí el LaTeX que te ha dado Claude</div>
       <div class="paste-area"><textarea id="latex-pegado" placeholder="Pega aquí el código LaTeX del problema..."></textarea></div>
-      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; align-items:flex-end;">
-        <div style="flex:1; min-width:180px;">
-          <label style="margin-bottom:4px;">Criterios (separados por coma)</label>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <label>Criterios (separados por coma)</label>
           <input type="text" id="criterios-manual" placeholder="Ej: 6.1, 8.2, 1.1">
         </div>
+        <div>
+          <label>Saberes (opcional, separados por coma)</label>
+          <input type="text" id="saberes-manual" placeholder="Ej: D.1.1., D.1.2., B.2.1.">
+        </div>
+      </div>
+      <div class="field">
+        <label>Procedencia</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select id="procedencia-select" onchange="toggleProcedenciaOtro()" style="flex:1; min-width:160px;">
+            <option value="IA">Generado por IA</option>
+            <option value="PAU 2025">PAU 2025</option>
+            <option value="PAU 2024">PAU 2024</option>
+            <option value="PAU 2023">PAU 2023</option>
+            <option value="Examen propio 2025">Examen propio 2025</option>
+            <option value="Examen propio 2024">Examen propio 2024</option>
+            <option value="Libro de texto">Libro de texto</option>
+            <option value="otro">Otro...</option>
+          </select>
+          <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:4px;">
         <button class="btn btn-primary" onclick="guardarProblema()">Guardar en banco</button>
         <button class="btn" onclick="copiarLatex()">Copiar LaTeX</button>
       </div>
