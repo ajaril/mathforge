@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MathForge — Generador de problemas</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -92,7 +95,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .config-section h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 .add-unit-form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .add-unit-form input { flex: 1; min-width: 180px; }
-.preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.6; max-height: 200px; overflow-y: auto; margin-top: 8px; color: var(--text2); white-space: pre-wrap; }
+.preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.8; max-height: 260px; overflow-y: auto; margin-top: 8px; color: var(--text); }
+.preview-box .katex { font-size: 1em; }
 .examen-slot { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); }
 .examen-slot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .slot-num { font-size: 13px; font-weight: 500; min-width: 24px; }
@@ -680,14 +684,52 @@ function actualizarRefSelect() {
   document.getElementById('preview-ref').style.display = 'none';
 }
 
+function latexAHtml(latex) {
+  if (!latex) return '';
+  // Limpiar comandos LaTeX de estructura que no renderiza KaTeX
+  let txt = latex
+    .replace(/\\item\s*/g, '')
+    .replace(/\\begin\{enumerate\}\[a\)\]/g, '<ol type="a" style="padding-left:1.5rem;">')
+    .replace(/\\begin\{enumerate\}/g, '<ol style="padding-left:1.5rem;">')
+    .replace(/\\end\{enumerate\}/g, '</ol>')
+    .replace(/\\begin\{itemize\}/g, '<ul style="padding-left:1.5rem;">')
+    .replace(/\\end\{itemize\}/g, '</ul>')
+    .replace(/\\textbf\{([^}]*)\}/g, '<strong>$1</strong>')
+    .replace(/\\textit\{([^}]*)\}/g, '<em>$1</em>')
+    .replace(/\\underline\{([^}]*)\}/g, '<u>$1</u>')
+    .replace(/\\newpage/g, '<hr style="margin:8px 0;">')
+    .replace(/\\vspace\{[^}]*\}/g, '')
+    .replace(/\\hspace\{[^}]*\}/g, ' ')
+    .replace(/\\noindent\s*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return txt;
+}
+
+function renderPreview(el, latex) {
+  if (!latex) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = latexAHtml(latex);
+  // Renderizar matemáticas con KaTeX auto-render si está disponible
+  if (window.renderMathInElement) {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false
+    });
+  }
+}
+
 function mostrarPreviewRef() {
   const id = document.getElementById('ref-problema').value;
   const previewEl = document.getElementById('preview-ref');
   if (!id) { previewEl.style.display = 'none'; return; }
   const p = banco.find(x => x.id === id);
-  if (!p) { previewEl.style.display = 'none'; return; }
-  previewEl.textContent = p.latex_enunciado || '';
-  previewEl.style.display = 'block';
+  renderPreview(previewEl, p ? p.latex_enunciado : null);
 }
 
 function renderBanco() {
@@ -807,9 +849,7 @@ function mostrarPreviewSlot(i) {
   const previewEl = document.getElementById(`slot-preview-${i}`);
   if (!id) { previewEl.style.display = 'none'; return; }
   const p = banco.find(x => x.id === id);
-  if (!p) { previewEl.style.display = 'none'; return; }
-  previewEl.textContent = p.latex_enunciado || '';
-  previewEl.style.display = 'block';
+  renderPreview(previewEl, p ? p.latex_enunciado : null);
 }
 
 function añadirSlot() { examSlots++; renderExamSlots(); }
