@@ -1230,12 +1230,17 @@ async function confirmarGuardar() {
 async function completarGuardar({ latex, criterios, saberes, procedencia, unidad_id, tipo, tematica, num_apartados }) {
   const problema = {
     unidad_id, tipo, tematica, num_apartados,
-    latex_enunciado: latex, criterios, saberes: saberes || [], procedencia: procedencia || 'IA',
+    latex_enunciado: latex,
+    criterios: criterios && criterios.length ? criterios : [],
+    saberes: saberes && saberes.length ? saberes : [],
+    procedencia: procedencia || 'IA',
     usado_por: [],
     curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
     created_at: new Date().toISOString()
   };
+  console.log('Guardando problema:', JSON.stringify(problema));
   const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
+  console.log('Respuesta Supabase:', saved);
   if (saved && saved.length) banco.unshift(saved[0]);
   else { banco.unshift({...problema, id: Date.now().toString()}); guardarLocal(); }
   actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
