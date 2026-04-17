@@ -736,7 +736,11 @@ function actualizarRefSelect() {
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     banco.map(p => {
       const u = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
-      return `<option value="${p.id}">[${u ? u.nombre : '?'}] ${p.tematica||'Sin temática'} — ${p.num_apartados||'?'} apt.</option>`;
+      const unidadNombre = u ? u.nombre.substring(0,20) : '?';
+      const tematica = p.tematica || 'Sin temática';
+      const proc = p.procedencia ? ` · ${p.procedencia}` : '';
+      const napt = p.num_apartados ? ` · ${p.num_apartados} apt.` : '';
+      return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}</option>`;
     }).join('');
   document.getElementById('preview-ref').style.display = 'none';
 }
@@ -894,7 +898,11 @@ function actualizarSelectsExamen() {
   const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
   const refOpts = '<option value="">Sin referencia</option>' + banco.map(p => {
     const u = units.find(x => x.id === p.unidad_id);
-    return `<option value="${p.id}">[${u ? u.nombre.substring(0,20) : '?'}] ${p.tematica||'Sin temática'}</option>`;
+    const unidadNombre = u ? u.nombre.substring(0,20) : '?';
+    const tematica = p.tematica || 'Sin temática';
+    const proc = p.procedencia ? ` · ${p.procedencia}` : '';
+    const napt = p.num_apartados ? ` · ${p.num_apartados} apt.` : '';
+    return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}</option>`;
   }).join('');
 
   for (let i = 0; i < examSlots; i++) {
