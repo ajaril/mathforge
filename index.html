@@ -855,7 +855,7 @@ async function confirmarGuardar() {
 
 async function completarGuardar({ latex, criterios, unidad_id, tipo, tematica, num_apartados }) {
   const problema = {
-    id: Date.now().toString(), unidad_id, tipo, tematica, num_apartados,
+    unidad_id, tipo, tematica, num_apartados,
     latex_enunciado: latex, criterios, usado_por: [],
     curso: CURSOS_META[cursoActual].curso_db,
     created_at: new Date().toISOString()
@@ -873,14 +873,13 @@ async function guardarExamen() {
   const latex = document.getElementById('examen-latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del examen'); return; }
   const examen = {
-    id: Date.now().toString(),
-    titulo: document.getElementById('exam-titulo').value || 'Examen',
-    fecha: document.getElementById('exam-fecha').value || '',
-    profesor: document.getElementById('exam-profesor').value || '',
-    convocatoria: document.getElementById('exam-conv').value,
-    curso: CURSOS_META[cursoActual].curso_db, latex,
-    created_at: new Date().toISOString()
-  };
+  titulo: document.getElementById('exam-titulo').value || 'Examen',
+  fecha: document.getElementById('exam-fecha').value || '',
+  profesor: document.getElementById('exam-profesor').value || '',
+  convocatoria: document.getElementById('exam-conv').value,
+  curso: CURSOS_META[cursoActual].curso_db, latex,
+  created_at: new Date().toISOString()
+};
   const saved = await sbFetch('examenes', { method:'POST', body: JSON.stringify(examen) });
   if (saved && saved.length) examenes.unshift(saved[0]);
   else { examenes.unshift(examen); guardarLocal(); }
