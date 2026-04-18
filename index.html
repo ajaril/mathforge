@@ -1406,63 +1406,43 @@ function parsearMasivo() {
     <option value="Libro de texto">Libro de texto</option>
     <option value="otro">Otro...</option>`;
 
-  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) => `
-    <div class="masivo-item-card" id="masivo-card-${i}">
-      <div class="masivo-item-header">
-        <span class="masivo-item-num">Problema ${i+1}</span>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="masivo-check-${i}" checked onchange="toggleMasivoCard(${i})"> Incluir
-        </label>
-      </div>
-      <div class="masivo-enunciado" id="masivo-enunciado-${i}" onclick="toggleExpandirEnunciado(${i})" title="Clic para expandir/contraer">
-${item}
-      </div>
-      <small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>
-      <div class="masivo-campos" style="grid-template-columns:1fr 1fr 1fr auto;">
-        <div>
-          <label style="font-size:12px;">Unidad</label>
-          <select id="masivo-unidad-${i}" style="font-size:13px;">
-            ${unitOpts || '<option value="">Sin unidades</option>'}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;">Tipo</label>
-          <select id="masivo-tipo-${i}" style="font-size:13px;">
-            <option value="contextualizado">Contextualizado</option>
-            <option value="teorico">Teórico</option>
-            <option value="mixto">Mixto</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;">Criterios (coma)</label>
-          <input type="text" id="masivo-criterios-${i}" placeholder="6.1, 8.2" style="font-size:13px;">
-        </div>
-        <div>
-          <label style="font-size:12px;">Saberes (coma)</label>
-          <input type="text" id="masivo-saberes-${i}" placeholder="D.1.1., D.1.2." style="font-size:13px;">
-        </div>
-        <div>
-          <label style="font-size:12px;">Nº de apartados</label>
-          <select id="masivo-napt-${i}" style="font-size:13px;">
-            <option value="">—</option>
-            <option value="1">1</option><option value="2">2</option>
-            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
-          </select>
-        </div>
-      </div>
-      <div class="masivo-campos-full">
-        <div class="row" style="margin-bottom:0;">
-          <div>
-            <label style="font-size:12px;">Procedencia</label>
-            <select id="masivo-proc-${i}" onchange="toggleMasivoProc(${i})" style="font-size:13px;">${procOpts}</select>
-          </div>
-          <div>
-            <label style="font-size:12px;" id="masivo-proc-label-${i}" style="display:none;">Año / detalle</label>
-            <input type="text" id="masivo-proc-extra-${i}" placeholder="Año o detalle" style="font-size:13px; display:none;">
-          </div>
-        </div>
-      </div>
-    </div>`).join('');
+  document.getElementById('masivo-items').innerHTML = masivoItems.map(function(item, i) {
+    const unitOpts2 = units.map(function(u) { return '<option value="' + u.id + '">' + u.nombre + '</option>'; }).join('');
+    return '<div class="masivo-item-card" id="masivo-card-' + i + '">' +
+      '<div class="masivo-item-header">' +
+        '<span class="masivo-item-num">Problema ' + (i+1) + '</span>' +
+        '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">' +
+          '<input type="checkbox" id="masivo-check-' + i + '" checked onchange="toggleMasivoCard(' + i + ')"> Incluir' +
+        '</label>' +
+      '</div>' +
+      '<div class="masivo-enunciado" id="masivo-enunciado-' + i + '" onclick="toggleExpandirEnunciado(' + i + ')" title="Clic para expandir/contraer">' +
+        item +
+      '</div>' +
+      '<small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>' +
+      '<div class="masivo-campos" style="grid-template-columns:1fr 1fr;">' +
+        '<div><label style="font-size:12px;">Unidad</label>' +
+          '<select id="masivo-unidad-' + i + '" style="font-size:13px;">' +
+            (unitOpts2 || '<option value="">Sin unidades</option>') +
+          '</select></div>' +
+        '<div><label style="font-size:12px;">Tipo</label>' +
+          '<select id="masivo-tipo-' + i + '" style="font-size:13px;">' +
+            '<option value="contextualizado">Contextualizado</option>' +
+            '<option value="teorico">Teórico</option>' +
+            '<option value="mixto">Mixto</option>' +
+          '</select></div>' +
+        '<div><label style="font-size:12px;">Criterios (coma)</label>' +
+          '<input type="text" id="masivo-criterios-' + i + '" placeholder="6.1, 8.2" style="font-size:13px;"></div>' +
+        '<div><label style="font-size:12px;">Saberes (coma)</label>' +
+          '<input type="text" id="masivo-saberes-' + i + '" placeholder="D.1.1., D.1.2." style="font-size:13px;"></div>' +
+        '<div><label style="font-size:12px;">Nº de apartados</label>' +
+          '<select id="masivo-napt-' + i + '" style="font-size:13px;">' +
+            '<option value="">—</option><option value="1">1</option><option value="2">2</option>' +
+            '<option value="3">3</option><option value="4">4</option><option value="5">5</option>' +
+          '</select></div>' +
+      '</div>' +
+      buildProcHtml(i) +
+    '</div>';
+  }).join('');
 
   document.getElementById('masivo-paso1').style.display = 'none';
   document.getElementById('masivo-paso2').style.display = 'block';
@@ -1478,14 +1458,163 @@ function toggleExpandirEnunciado(i) {
   document.getElementById(`masivo-enunciado-${i}`).classList.toggle('expandido');
 }
 
+function buildProcHtml(i) {
+  const anyos = [];
+  for (let y = 2026; y >= 2000; y--) anyos.push(y);
+  const anyoOpts = anyos.map(y => '<option value="' + y + '">' + y + '</option>').join('') + '<option value="otro">Otro</option>';
+
+  const cursos = [];
+  for (let y = 2025; y >= 2016; y--) {
+    const s = String(y+1).slice(2);
+    cursos.push('<option value="' + y + '/' + s + '">' + y + '/' + s + '</option>');
+  }
+  const cursoOpts = cursos.join('') + '<option value="otro">Otro</option>';
+
+  const grupos = ['A','B','C','D','K','L','M'].map(g => '<option value="' + g + '">' + g + '</option>').join('');
+  const ejercPAU = [1,2,3,4,5].map(n => '<option value="' + n + '">' + n + '</option>').join('');
+  const ejercPropio = Array.from({length:12},(_,k) => '<option value="' + (k+1) + '">' + (k+1) + '</option>').join('');
+
+  return '<div class="masivo-campos-full" style="margin-top:8px;">' +
+    '<div class="field" style="margin-bottom:6px;">' +
+      '<label style="font-size:12px;">Procedencia</label>' +
+      '<select id="masivo-proc-' + i + '" onchange="toggleMasivoProc(' + i + ')" style="font-size:13px;width:100%;">' +
+        '<option value="IA">Generado por IA</option>' +
+        '<option value="PAU">PAU</option>' +
+        '<option value="Examen propio">Examen propio</option>' +
+        '<option value="Libro de texto">Libro de texto</option>' +
+        '<option value="otro">Otro...</option>' +
+      '</select>' +
+    '</div>' +
+    '<input type="text" id="masivo-proc-otro-' + i + '" placeholder="Especifica la procedencia" style="font-size:13px;display:none;margin-bottom:6px;">' +
+    // PAU fields
+    '<div id="masivo-pau-' + i + '" style="display:none;">' +
+      '<div class="row" style="margin-bottom:6px;">' +
+        '<div><label style="font-size:12px;">Comunidad Autónoma</label>' +
+          '<select id="masivo-pau-ca-' + i + '" style="font-size:13px;">' +
+            '<option value="Andalucía">Andalucía</option><option value="Madrid">Madrid</option>' +
+            '<option value="Cataluña">Cataluña</option><option value="Valencia">Valencia</option>' +
+            '<option value="País Vasco">País Vasco</option><option value="Galicia">Galicia</option>' +
+            '<option value="Otra">Otra CA</option>' +
+          '</select></div>' +
+        '<div><label style="font-size:12px;">Año</label>' +
+          '<select id="masivo-pau-anyo-' + i + '" style="font-size:13px;">' + anyoOpts + '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div id="masivo-pau-anyo-otro-' + i + '" style="display:none;margin-bottom:6px;">' +
+        '<input type="text" id="masivo-pau-anyo-txt-' + i + '" placeholder="Año (ej: 1999)" style="font-size:13px;">' +
+      '</div>' +
+      '<div class="row" style="margin-bottom:6px;">' +
+        '<div><label style="font-size:12px;">Examen</label>' +
+          '<select id="masivo-pau-examen-' + i + '" style="font-size:13px;">' +
+            '<option>Ordinaria</option><option>Extraordinaria</option>' +
+            '<option>Reserva 1</option><option>Reserva 2</option><option>Reserva 3</option>' +
+            '<option>Reserva 4</option><option>Reserva 5</option><option>Reserva 6</option>' +
+          '</select></div>' +
+        '<div><label style="font-size:12px;">Ejercicio nº</label>' +
+          '<select id="masivo-pau-ejercicio-' + i + '" style="font-size:13px;">' + ejercPAU + '</select>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    // Examen propio fields
+    '<div id="masivo-propio-' + i + '" style="display:none;">' +
+      '<div class="row" style="margin-bottom:6px;">' +
+        '<div><label style="font-size:12px;">Curso académico</label>' +
+          '<select id="masivo-propio-curso-' + i + '" style="font-size:13px;">' + cursoOpts + '</select></div>' +
+        '<div id="masivo-propio-curso-otro-' + i + '" style="display:none;">' +
+          '<label style="font-size:12px;">Curso (escribe)</label>' +
+          '<input type="text" id="masivo-propio-curso-txt-' + i + '" placeholder="Ej: 2015/16" style="font-size:13px;">' +
+        '</div>' +
+        '<div><label style="font-size:12px;">Nivel</label>' +
+          '<select id="masivo-propio-nivel-' + i + '" style="font-size:13px;">' +
+            '<option>1º ESO</option><option>2º ESO</option><option>3º ESO</option><option>4º ESO</option>' +
+            '<option>1º Bachillerato</option><option selected>2º Bachillerato</option>' +
+          '</select></div>' +
+      '</div>' +
+      '<div class="row" style="margin-bottom:6px;">' +
+        '<div><label style="font-size:12px;">Grupo</label>' +
+          '<select id="masivo-propio-grupo-' + i + '" style="font-size:13px;">' +
+            grupos +
+            '<option value="otro">Otro</option>' +
+          '</select></div>' +
+        '<div id="masivo-propio-grupo-otro-' + i + '" style="display:none;">' +
+          '<label style="font-size:12px;">Grupo (escribe)</label>' +
+          '<input type="text" id="masivo-propio-grupo-txt-' + i + '" placeholder="Ej: N" style="font-size:13px;">' +
+        '</div>' +
+        '<div><label style="font-size:12px;">Ejercicio nº</label>' +
+          '<select id="masivo-propio-ejercicio-' + i + '" style="font-size:13px;">' +
+            ejercPropio +
+            '<option value="otro">Otro</option>' +
+          '</select></div>' +
+        '<div id="masivo-propio-ejercicio-otro-' + i + '" style="display:none;">' +
+          '<label style="font-size:12px;">Ejercicio (escribe)</label>' +
+          '<input type="text" id="masivo-propio-ejercicio-txt-' + i + '" placeholder="Ej: 13" style="font-size:13px;">' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="field" style="margin-bottom:0;">' +
+      '<label style="font-size:12px;">Descripción del problema (opcional)</label>' +
+      '<input type="text" id="masivo-desc-' + i + '" placeholder="Ej: Probabilidad total + Bayes, Área con integrales..." style="font-size:13px;">' +
+    '</div>' +
+  '</div>';
+}
+
 function toggleMasivoProc(i) {
-  const sel = document.getElementById(`masivo-proc-${i}`).value;
-  const extra = document.getElementById(`masivo-proc-extra-${i}`);
-  const label = document.getElementById(`masivo-proc-label-${i}`);
-  const mostrar = sel === 'PAU' || sel === 'Examen propio' || sel === 'otro';
-  extra.style.display = mostrar ? 'block' : 'none';
-  if (label) label.style.display = mostrar ? 'block' : 'none';
-  extra.placeholder = sel === 'otro' ? 'Especifica la procedencia' : 'Año (ej: 2023)';
+  const sel = document.getElementById('masivo-proc-' + i).value;
+  document.getElementById('masivo-proc-otro-' + i).style.display = sel === 'otro' ? 'block' : 'none';
+  document.getElementById('masivo-pau-' + i).style.display = sel === 'PAU' ? 'block' : 'none';
+  document.getElementById('masivo-propio-' + i).style.display = sel === 'Examen propio' ? 'block' : 'none';
+  // Listeners dinámicos para "otro" dentro de PAU y Examen propio
+  const pauAnyoSel = document.getElementById('masivo-pau-anyo-' + i);
+  if (pauAnyoSel) {
+    pauAnyoSel.onchange = function() {
+      document.getElementById('masivo-pau-anyo-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+    };
+  }
+  const propiosCursoSel = document.getElementById('masivo-propio-curso-' + i);
+  if (propiosCursoSel) {
+    propiosCursoSel.onchange = function() {
+      document.getElementById('masivo-propio-curso-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+    };
+  }
+  const propiosGrupoSel = document.getElementById('masivo-propio-grupo-' + i);
+  if (propiosGrupoSel) {
+    propiosGrupoSel.onchange = function() {
+      document.getElementById('masivo-propio-grupo-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+    };
+  }
+  const propiosEjercicioSel = document.getElementById('masivo-propio-ejercicio-' + i);
+  if (propiosEjercicioSel) {
+    propiosEjercicioSel.onchange = function() {
+      document.getElementById('masivo-propio-ejercicio-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+    };
+  }
+}
+
+function getMasivoProc(i) {
+  const sel = document.getElementById('masivo-proc-' + i)?.value || 'IA';
+  if (sel === 'otro') {
+    const txt = document.getElementById('masivo-proc-otro-' + i)?.value.trim() || 'Otro';
+    return { label: txt, detalle: {} };
+  }
+  if (sel === 'PAU') {
+    const ca = document.getElementById('masivo-pau-ca-' + i)?.value || 'Andalucía';
+    const anyoSel = document.getElementById('masivo-pau-anyo-' + i)?.value || '';
+    const anyo = anyoSel === 'otro' ? (document.getElementById('masivo-pau-anyo-txt-' + i)?.value.trim() || '') : anyoSel;
+    const examen = document.getElementById('masivo-pau-examen-' + i)?.value || 'Ordinaria';
+    const ejercicio = document.getElementById('masivo-pau-ejercicio-' + i)?.value || '1';
+    return { label: 'PAU ' + ca + ' ' + anyo + ' · ' + examen + ' · Ej.' + ejercicio, detalle: { tipo:'PAU', ca, anyo, examen, ejercicio } };
+  }
+  if (sel === 'Examen propio') {
+    const cursoSel = document.getElementById('masivo-propio-curso-' + i)?.value || '';
+    const curso = cursoSel === 'otro' ? (document.getElementById('masivo-propio-curso-txt-' + i)?.value.trim() || '') : cursoSel;
+    const nivel = document.getElementById('masivo-propio-nivel-' + i)?.value || '';
+    const grupoSel = document.getElementById('masivo-propio-grupo-' + i)?.value || '';
+    const grupo = grupoSel === 'otro' ? (document.getElementById('masivo-propio-grupo-txt-' + i)?.value.trim() || '') : grupoSel;
+    const ejercicioSel = document.getElementById('masivo-propio-ejercicio-' + i)?.value || '1';
+    const ejercicio = ejercicioSel === 'otro' ? (document.getElementById('masivo-propio-ejercicio-txt-' + i)?.value.trim() || '') : ejercicioSel;
+    return { label: 'Propio ' + curso + ' · ' + nivel + ' · Gr.' + grupo + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
+  }
+  return { label: sel, detalle: {} };
 }
 
 async function guardarMasivo() {
@@ -1505,16 +1634,16 @@ async function guardarMasivo() {
     const criterios = criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean);
     const saberes = saberesRaw.split(',').map(s=>s.trim()).filter(Boolean);
 
-    const procSel = document.getElementById(`masivo-proc-${i}`)?.value || 'IA';
-    const procExtra = document.getElementById(`masivo-proc-extra-${i}`)?.value.trim() || '';
-    let procedencia = procSel;
-    if ((procSel === 'PAU' || procSel === 'Examen propio') && procExtra) procedencia = `${procSel} ${procExtra}`;
-    else if (procSel === 'otro') procedencia = procExtra || 'Otro';
+    const procData = getMasivoProc(i);
+    const descripcion = document.getElementById('masivo-desc-' + i)?.value.trim() || '';
 
     const problema = {
       unidad_id, tipo, tematica: '', num_apartados,
       latex_enunciado: masivoItems[i],
-      criterios, saberes, procedencia,
+      criterios, saberes,
+      procedencia: procData.label,
+      procedencia_detalle: procData.detalle,
+      descripcion,
       usado_por: [], curso: cursoDB,
       created_at: new Date().toISOString()
     };
@@ -1689,80 +1818,50 @@ function parsearMasivoDesdeLatex(latex) {
 
   masivoItems = items.filter(it => it.length > 20 && !it.startsWith('%'));
   if (!masivoItems.length) {
-    // Fallback: parseo simple por \item en nivel 0
     parsearMasivo();
     return;
   }
 
   const units = unidades[cursoActual] || [];
-  const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-  const procOpts = `<option value="IA">Generado por IA</option>
-    <option value="PAU">PAU</option>
-    <option value="Examen propio">Examen propio</option>
-    <option value="Libro de texto">Libro de texto</option>
-    <option value="otro">Otro...</option>`;
 
-  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) => `
-    <div class="masivo-item-card" id="masivo-card-${i}">
-      <div class="masivo-item-header">
-        <span class="masivo-item-num">Problema ${i+1}</span>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="masivo-check-${i}" checked onchange="toggleMasivoCard(${i})"> Incluir
-        </label>
-      </div>
-      <div class="masivo-enunciado" id="masivo-enunciado-${i}" onclick="toggleExpandirEnunciado(${i})" title="Clic para expandir/contraer">
-${item}
-      </div>
-      <small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>
-      <div class="masivo-campos" style="grid-template-columns:1fr 1fr 1fr auto;">
-        <div>
-          <label style="font-size:12px;">Unidad</label>
-          <select id="masivo-unidad-${i}" style="font-size:13px;">
-            ${unitOpts || '<option value="">Sin unidades</option>'}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;">Tipo</label>
-          <select id="masivo-tipo-${i}" style="font-size:13px;">
-            <option value="contextualizado">Contextualizado</option>
-            <option value="teorico">Teórico</option>
-            <option value="mixto">Mixto</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;">Criterios (coma)</label>
-          <input type="text" id="masivo-criterios-${i}" placeholder="6.1, 8.2" style="font-size:13px;">
-        </div>
-        <div>
-          <label style="font-size:12px;">Saberes (coma)</label>
-          <input type="text" id="masivo-saberes-${i}" placeholder="D.1.1., D.1.2." style="font-size:13px;">
-        </div>
-        <div>
-          <label style="font-size:12px;">Nº de apartados</label>
-          <select id="masivo-napt-${i}" style="font-size:13px;">
-            <option value="">—</option>
-            <option value="1">1</option><option value="2">2</option>
-            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
-          </select>
-        </div>
-      </div>
-      <div class="masivo-campos-full">
-        <div class="row" style="margin-bottom:0;">
-          <div>
-            <label style="font-size:12px;">Procedencia</label>
-            <select id="masivo-proc-${i}" onchange="toggleMasivoProc(${i})" style="font-size:13px;">${procOpts}</select>
-          </div>
-          <div>
-            <label style="font-size:12px;" id="masivo-proc-label-${i}"></label>
-            <input type="text" id="masivo-proc-extra-${i}" placeholder="Año o detalle" style="font-size:13px; display:none;">
-          </div>
-        </div>
-      </div>
-    </div>`).join('');
+  document.getElementById('masivo-items').innerHTML = masivoItems.map(function(item, i) {
+    const unitOpts2 = units.map(function(u) { return '<option value="' + u.id + '">' + u.nombre + '</option>'; }).join('');
+    return '<div class="masivo-item-card" id="masivo-card-' + i + '">' +
+      '<div class="masivo-item-header">' +
+        '<span class="masivo-item-num">Problema ' + (i+1) + '</span>' +
+        '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">' +
+          '<input type="checkbox" id="masivo-check-' + i + '" checked onchange="toggleMasivoCard(' + i + ')"> Incluir' +
+        '</label>' +
+      '</div>' +
+      '<div class="masivo-enunciado" id="masivo-enunciado-' + i + '" onclick="toggleExpandirEnunciado(' + i + ')" title="Clic para expandir">' +
+        item +
+      '</div>' +
+      '<small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir</small>' +
+      '<div class="masivo-campos" style="grid-template-columns:1fr 1fr;">' +
+        '<div><label style="font-size:12px;">Unidad</label>' +
+          '<select id="masivo-unidad-' + i + '" style="font-size:13px;">' + (unitOpts2 || '<option value="">Sin unidades</option>') + '</select></div>' +
+        '<div><label style="font-size:12px;">Tipo</label>' +
+          '<select id="masivo-tipo-' + i + '" style="font-size:13px;">' +
+            '<option value="contextualizado">Contextualizado</option>' +
+            '<option value="teorico">Teórico</option><option value="mixto">Mixto</option>' +
+          '</select></div>' +
+        '<div><label style="font-size:12px;">Criterios (coma)</label>' +
+          '<input type="text" id="masivo-criterios-' + i + '" placeholder="6.1, 8.2" style="font-size:13px;"></div>' +
+        '<div><label style="font-size:12px;">Saberes (coma)</label>' +
+          '<input type="text" id="masivo-saberes-' + i + '" placeholder="D.1.1., D.1.2." style="font-size:13px;"></div>' +
+        '<div><label style="font-size:12px;">Nº de apartados</label>' +
+          '<select id="masivo-napt-' + i + '" style="font-size:13px;">' +
+            '<option value="">—</option><option value="1">1</option><option value="2">2</option>' +
+            '<option value="3">3</option><option value="4">4</option><option value="5">5</option>' +
+          '</select></div>' +
+      '</div>' +
+      buildProcHtml(i) +
+    '</div>';
+  }).join('');
 
   document.getElementById('masivo-paso1').style.display = 'none';
   document.getElementById('masivo-paso2').style.display = 'block';
-  toast(`${masivoItems.length} problemas detectados del examen`);
+  toast(masivoItems.length + ' problemas detectados del examen');
 }
 
 async function marcarUsado(id) {
