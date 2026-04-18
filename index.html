@@ -3825,31 +3825,18 @@ function borrarCurso() {
 }
 
 // ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
-function mostrar(id, tipo) {
-  const el = document.getElementById(id);
+function _setDisplay(el, val) {
   if (!el) return;
-  el.classList.remove('mf-hidden');
-  el.classList.add(tipo === 'flex' ? 'mf-show-flex' : 'mf-show-block');
+  // Preserve existing cssText but override display
+  const cur = el.style.cssText || '';
+  const cleaned = cur.replace(/display\s*:[^;]+;?\s*/gi, '').trim();
+  el.style.cssText = (cleaned ? cleaned + '; ' : '') + 'display:' + val + ' !important;';
 }
 
-function ocultar(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.remove('mf-show-block', 'mf-show-flex');
-  el.classList.add('mf-hidden');
-}
-
-function mostrarEl(el, tipo) {
-  if (!el) return;
-  el.classList.remove('mf-hidden');
-  el.classList.add(tipo === 'flex' ? 'mf-show-flex' : 'mf-show-block');
-}
-
-function ocultarEl(el) {
-  if (!el) return;
-  el.classList.remove('mf-show-block', 'mf-show-flex');
-  el.classList.add('mf-hidden');
-}
+function mostrar(id, tipo) { _setDisplay(document.getElementById(id), tipo === 'flex' ? 'flex' : 'block'); }
+function ocultar(id) { _setDisplay(document.getElementById(id), 'none'); }
+function mostrarEl(el, tipo) { _setDisplay(el, tipo === 'flex' ? 'flex' : 'block'); }
+function ocultarEl(el) { _setDisplay(el, 'none'); }
 
 function abrirModal(id) {
   const overlay = document.getElementById(id);
@@ -3857,13 +3844,16 @@ function abrirModal(id) {
   const caja = overlay.querySelector('.modal');
   document.body.appendChild(overlay);
   overlay.style.cssText = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:99999 !important; padding:16px !important;';
-  if (caja) caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important;';
+  if (caja) caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important; pointer-events:auto !important;';
   document.body.style.overflow = 'hidden';
 }
 
 function cerrarModal(id) {
   const overlay = document.getElementById(id);
-  if (overlay) ocultarEl(overlay);
+  if (!overlay) return;
+  overlay.style.cssText = 'display:none !important;';
+  const caja = overlay.querySelector('.modal');
+  if (caja) caja.style.cssText = '';
   document.body.style.overflow = '';
 }
 
