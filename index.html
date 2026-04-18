@@ -7,6 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 .modal-hidden { display: none !important; }
+
+.mf-hidden { display: none !important; }
+.mf-show-block { display: block !important; }
+.mf-show-flex { display: flex !important; }
+
 .modal-visible { display: flex !important; }
 </style>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -221,7 +226,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </select>
           </div>
           <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
-          <div id="preview-ref" class="preview-box" style="display:none;"></div>
+          <div id="preview-ref" class="preview-box mf-hidden"></div>
         </div>
         <div class="row">
           <div><label>Nº de apartados (opcional)</label>
@@ -261,7 +266,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn btn-sm" onclick="parsearJSONEjercicio()" style="margin-bottom:12px;">Interpretar JSON →</button>
 
         <!-- Campos pre-rellenados por JSON (mismos que LaTeX manual) -->
-        <div id="json-campos" style="display:none;">
+        <div id="json-campos" class="mf-hidden">
           <div class="field"><label>LaTeX del enunciado</label>
             <textarea id="latex-pegado" placeholder="LaTeX del enunciado..." style="font-family:Courier New,monospace; font-size:12px; min-height:120px;"></textarea>
           </div>
@@ -295,9 +300,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                 <option value="Libro de texto">Libro de texto</option>
                 <option value="otro">Otro...</option>
               </select>
-              <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
+              <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" class="mf-hidden"style="flex:1; min-width:160px; ">
             </div>
-            <div id="proc-pau-fields" style="display:none;">
+            <div id="proc-pau-fields" class="mf-hidden">
               <div class="row" style="margin-bottom:8px;">
                 <div><label style="font-size:12px;">Comunidad Autónoma</label>
                   <select id="proc-pau-ca" style="font-size:13px;">
@@ -311,7 +316,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                   <select id="proc-pau-anyo" onchange="toggleOtroField('proc-pau-anyo','proc-pau-anyo-otro')" style="font-size:13px;">
                     <option value="2040">2040</option><option value="2039">2039</option><option value="2038">2038</option><option value="2037">2037</option><option value="2036">2036</option><option value="2035">2035</option><option value="2034">2034</option><option value="2033">2033</option><option value="2032">2032</option><option value="2031">2031</option><option value="2030">2030</option><option value="2029">2029</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option><option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option><option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option><option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option><option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option><option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-pau-anyo-otro" placeholder="Escribe el año" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
               </div>
               <div class="row" style="margin-bottom:8px;">
@@ -328,17 +333,17 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                     <option value="1">1</option><option value="2">2</option><option value="3">3</option>
                     <option value="4">4</option><option value="5">5</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-pau-ejercicio-otro" placeholder="Escribe el nº" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
               </div>
             </div>
-            <div id="proc-propio-fields" style="display:none;">
+            <div id="proc-propio-fields" class="mf-hidden">
               <div class="row" style="margin-bottom:8px;">
                 <div><label style="font-size:12px;">Curso académico</label>
                   <select id="proc-propio-curso" onchange="toggleOtroField('proc-propio-curso','proc-propio-curso-otro')" style="font-size:13px;">
                     <option value="2025/26" selected>2025/26</option><option value="2024/25">2024/25</option><option value="2023/24">2023/24</option><option value="2022/23">2022/23</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-propio-curso-otro" placeholder="Ej: 2015/16" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
                 <div><label style="font-size:12px;">Nivel</label>
                   <select id="proc-propio-nivel" style="font-size:13px;">
@@ -353,14 +358,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                     <option>A</option><option>B</option><option>C</option><option>D</option>
                     <option>K</option><option>L</option><option>M</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-propio-grupo-otro" placeholder="Escribe el grupo" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
                 <div><label style="font-size:12px;">Ejercicio nº</label>
                   <select id="proc-propio-ejercicio" onchange="toggleOtroField('proc-propio-ejercicio','proc-propio-ejercicio-otro')" style="font-size:13px;">
                     <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
                     <option>6</option><option>7</option><option>8</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
               </div>
               <div class="row" style="margin-bottom:8px;">
@@ -368,7 +373,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                   <select id="proc-propio-examn" onchange="toggleOtroField('proc-propio-examn','proc-propio-examn-otro')" style="font-size:13px;">
                     <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option><option value="otro">Otro</option>
                   </select>
-                  <input type="text" id="proc-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+                  <input type="text" id="proc-propio-examn-otro" placeholder="Ej: Recuperación" class="mf-hidden" style="font-size:13px; margin-top:4px">
                 </div>
               </div>
             </div>
@@ -381,7 +386,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       </div>
 
       <!-- MODO LaTeX manual (modo anterior) -->
-      <div id="resp-modo-latex" style="display:none;">
+      <div id="resp-modo-latex" class="mf-hidden">
         <p style="font-size:12px; color:var(--text2); margin-bottom:8px;">Pega el LaTeX directamente y rellena los campos manualmente.</p>
         <textarea id="latex-pegado-manual" placeholder="Pega aquí el código LaTeX del problema..." style="margin-bottom:10px;"></textarea>
         <div style="display:flex; gap:8px; margin-top:4px;">
@@ -532,7 +537,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
 
     <!-- MODO BANCO DIRECTO -->
-    <div id="exam-modo-banco" style="display:none;">
+    <div id="exam-modo-banco" class="mf-hidden">
       <div class="card">
         <div class="card-title">Examen directo del banco</div>
         <div class="row">
@@ -633,7 +638,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn btn-primary" onclick="generarPromptUnidades()" style="margin-bottom:12px;">Generar prompt → copiar y abrir Claude</button>
 
         <!-- Paso 3 -->
-        <div id="import-unidades-paso2" style="display:none; border-top:1px solid var(--border); padding-top:12px; margin-top:4px;">
+        <div id="import-unidades-paso2" class="mf-hidden"style="border-top:1px solid var(--border); padding-top:12px; margin-top:4px;">
           <div style="font-size:13px; font-weight:500; margin-bottom:6px;">Paso 3 — Pega el JSON que te ha devuelto Claude</div>
           <textarea id="import-unidades-json" placeholder='Pega aquí el JSON de unidades de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:100px; background:var(--surface2); margin-bottom:8px;"></textarea>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -755,18 +760,18 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
 
     <!-- Datos colección PAU por tema -->
-    <div id="pdf-datos-coleccion" style="display:none;">
+    <div id="pdf-datos-coleccion" class="mf-hidden">
       <div class="info-box">Claude detectará automáticamente el año, convocatoria y número de cada ejercicio desde su encabezado.</div>
     </div>
 
     <!-- Datos examen propio -->
-    <div id="pdf-datos-propio" style="display:none;">
+    <div id="pdf-datos-propio" class="mf-hidden">
       <div class="row" style="margin-bottom:8px;">
         <div><label style="font-size:12px;">Curso académico</label>
           <select id="pdf-propio-curso" style="font-size:13px;">
               <option value="2039/40">2039/40</option><option value="2038/39">2038/39</option><option value="2037/38">2037/38</option><option value="2036/37">2036/37</option><option value="2035/36">2035/36</option><option value="2034/35">2034/35</option><option value="2033/34">2033/34</option><option value="2032/33">2032/33</option><option value="2031/32">2031/32</option><option value="2030/31">2030/31</option><option value="2029/30">2029/30</option><option value="2028/29">2028/29</option><option value="2027/28">2027/28</option><option value="2026/27">2026/27</option><option value="2025/26">2025/26</option><option value="2024/25">2024/25</option><option value="2023/24">2023/24</option><option value="2022/23">2022/23</option><option value="2021/22">2021/22</option><option value="2020/21">2020/21</option><option value="2019/20">2019/20</option><option value="2018/19">2018/19</option><option value="2017/18">2017/18</option><option value="2016/17">2016/17</option><option value="2015/16">2015/16</option><option value="2014/15">2014/15</option><option value="2013/14">2013/14</option><option value="2012/13">2012/13</option><option value="2011/12">2011/12</option><option value="2010/11">2010/11</option><option value="2009/10">2009/10</option><option value="2008/09">2008/09</option><option value="2007/08">2007/08</option><option value="2006/07">2006/07</option><option value="2005/06">2005/06</option><option value="2004/05">2004/05</option><option value="2003/04">2003/04</option><option value="2002/03">2002/03</option><option value="2001/02">2001/02</option><option value="2000/01">2000/01</option><option value="otro">Otro</option>
             </select>
-          <input type="text" id="pdf-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;" onchange="">
+          <input type="text" id="pdf-propio-curso-otro" placeholder="Ej: 2015/16" class="mf-hidden" style="font-size:13px; margin-top:4px" onchange="">
         </div>
         <div><label style="font-size:12px;">Nivel</label>
           <select id="pdf-propio-nivel" style="font-size:13px;">
@@ -782,21 +787,21 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <option value="D">D</option><option value="K">K</option><option value="L">L</option>
             <option value="M">M</option><option value="otro">Otro</option>
           </select>
-          <input type="text" id="pdf-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
+          <input type="text" id="pdf-propio-grupo-otro" placeholder="Escribe el grupo" class="mf-hidden" style="font-size:13px; margin-top:4px">
         </div>
         <div><label style="font-size:12px;">Examen nº</label>
           <select id="pdf-propio-examn" style="font-size:13px;">
             <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>
             <option value="otro">Otro</option>
           </select>
-          <input type="text" id="pdf-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+          <input type="text" id="pdf-propio-examn-otro" placeholder="Ej: Recuperación" class="mf-hidden" style="font-size:13px; margin-top:4px">
         </div>
       </div>
       <p style="font-size:12px; color:var(--text2);">Claude detectará automáticamente el número de cada ejercicio dentro del examen.</p>
     </div>
 
     <!-- Datos relación de ejercicios -->
-    <div id="pdf-datos-relacion" style="display:none;">
+    <div id="pdf-datos-relacion" class="mf-hidden">
       <div class="field">
         <label style="font-size:12px;">Nombre de la relación (opcional)</label>
         <input type="text" id="pdf-relacion-nombre" placeholder="Ej: Relación tema 5, Ejercicios de repaso..." style="font-size:13px;">
@@ -810,7 +815,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <button class="btn" onclick="cerrarModal('modal-importar-pdf')">Cancelar</button>
     </div>
 
-    <div id="pdf-paso2" style="display:none; margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem;">
+    <div id="pdf-paso2" class="mf-hidden"style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem;">
       <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Paso 2: Pega el JSON que te ha devuelto Claude</p>
       <textarea id="pdf-json-input" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:150px; background:var(--surface2); margin-bottom:8px;"></textarea>
       <div class="modal-actions">
@@ -877,7 +882,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       </div>
 
       <!-- Modo Claude -->
-      <div id="masivo-modo-claude" style="display:none;">
+      <div id="masivo-modo-claude" class="mf-hidden">
         <div class="info-box" style="margin-bottom:10px;">Claude transcribirá el LaTeX, detectará los ejercicios y los clasificará automáticamente en tus unidades, con criterios, descripción y procedencia.</div>
 
         <div class="field">
@@ -909,7 +914,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
 
-        <div id="masivo-claude-propio" style="display:none;">
+        <div id="masivo-claude-propio" class="mf-hidden">
           <div class="row">
             <div><label style="font-size:12px;">Curso académico</label>
               <select id="masivo-claude-curso" style="font-size:13px;">
@@ -945,7 +950,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           </div>
         </div>
 
-        <div id="masivo-claude-relacion" style="display:none;">
+        <div id="masivo-claude-relacion" class="mf-hidden">
           <div class="field">
             <label style="font-size:12px;">Nombre de la relación (opcional)</label>
             <input type="text" id="masivo-claude-relacion-nombre" placeholder="Ej: Relación tema 5..." style="font-size:13px;">
@@ -962,7 +967,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
         </div>
 
-        <div id="masivo-claude-paso2" style="display:none; margin-top:1.25rem; border-top:1px solid var(--border); padding-top:1rem;">
+        <div id="masivo-claude-paso2" class="mf-hidden"style="margin-top:1.25rem; border-top:1px solid var(--border); padding-top:1rem;">
           <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Pega el JSON que te ha devuelto Claude</p>
           <textarea id="masivo-claude-json" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:120px; background:var(--surface2); margin-bottom:8px;"></textarea>
           <div class="modal-actions">
@@ -973,11 +978,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
 
     <!-- PASO 2: catalogar cada problema (modo manual) -->
-    <div id="masivo-paso2" style="display:none;">
+    <div id="masivo-paso2" class="mf-hidden">
       <p style="margin-bottom:12px;">Revisa y cataloga cada problema. Desmarca los que no quieras guardar.</p>
       <div id="masivo-items"></div>
       <div class="modal-actions" style="margin-top:16px;">
-        <button class="btn" onclick="document.getElementById('masivo-paso1').style.display='block'; document.getElementById('masivo-paso2').style.display='none';">← Volver</button>
+        <button class="btn" onclick="mostrar('masivo-paso1'); ocultar('masivo-paso2')">← Volver</button>
         <button class="btn btn-primary" onclick="guardarMasivo()">Guardar seleccionados en banco</button>
       </div>
     </div>
@@ -1021,9 +1026,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <option value="Libro de texto">Libro de texto</option>
           <option value="otro">Otro...</option>
         </select>
-        <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" style="flex:1; display:none;">
+        <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" class="mf-hidden"style="flex:1; ">
       </div>
-      <div id="proc-modal-pau-fields" style="display:none;">
+      <div id="proc-modal-pau-fields" class="mf-hidden">
         <div class="row" style="margin-bottom:8px;">
           <div><label style="font-size:12px;">Comunidad Autónoma</label>
             <select id="proc-modal-pau-ca" style="font-size:13px;">
@@ -1037,7 +1042,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <select id="proc-modal-pau-anyo" onchange="toggleOtroField('proc-modal-pau-anyo','proc-modal-pau-anyo-otro')" style="font-size:13px;">
               <option value="2040">2040</option><option value="2039">2039</option><option value="2038">2038</option><option value="2037">2037</option><option value="2036">2036</option><option value="2035">2035</option><option value="2034">2034</option><option value="2033">2033</option><option value="2032">2032</option><option value="2031">2031</option><option value="2030">2030</option><option value="2029">2029</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option><option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option><option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option><option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option><option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option><option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option><option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-pau-anyo-otro" placeholder="Escribe el año" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
         </div>
         <div class="row" style="margin-bottom:8px;">
@@ -1054,17 +1059,17 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="4">4</option><option value="5">5</option>
               <option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-pau-ejercicio-otro" placeholder="Escribe el nº" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
         </div>
       </div>
-      <div id="proc-modal-propio-fields" style="display:none;">
+      <div id="proc-modal-propio-fields" class="mf-hidden">
         <div class="row" style="margin-bottom:8px;">
           <div><label style="font-size:12px;">Curso académico</label>
             <select id="proc-modal-propio-curso" onchange="toggleOtroField('proc-modal-propio-curso','proc-modal-propio-curso-otro')" style="font-size:13px;">
               <option value="2039/40">2039/40</option><option value="2038/39">2038/39</option><option value="2037/38">2037/38</option><option value="2036/37">2036/37</option><option value="2035/36">2035/36</option><option value="2034/35">2034/35</option><option value="2033/34">2033/34</option><option value="2032/33">2032/33</option><option value="2031/32">2031/32</option><option value="2030/31">2030/31</option><option value="2029/30">2029/30</option><option value="2028/29">2028/29</option><option value="2027/28">2027/28</option><option value="2026/27">2026/27</option><option value="2025/26">2025/26</option><option value="2024/25">2024/25</option><option value="2023/24">2023/24</option><option value="2022/23">2022/23</option><option value="2021/22">2021/22</option><option value="2020/21">2020/21</option><option value="2019/20">2019/20</option><option value="2018/19">2018/19</option><option value="2017/18">2017/18</option><option value="2016/17">2016/17</option><option value="2015/16">2015/16</option><option value="2014/15">2014/15</option><option value="2013/14">2013/14</option><option value="2012/13">2012/13</option><option value="2011/12">2011/12</option><option value="2010/11">2010/11</option><option value="2009/10">2009/10</option><option value="2008/09">2008/09</option><option value="2007/08">2007/08</option><option value="2006/07">2006/07</option><option value="2005/06">2005/06</option><option value="2004/05">2004/05</option><option value="2003/04">2003/04</option><option value="2002/03">2002/03</option><option value="2001/02">2001/02</option><option value="2000/01">2000/01</option><option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-propio-curso-otro" placeholder="Ej: 2015/16" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
           <div><label style="font-size:12px;">Nivel</label>
             <select id="proc-modal-propio-nivel" style="font-size:13px;">
@@ -1080,7 +1085,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="D">D</option><option value="K">K</option><option value="L">L</option>
               <option value="M">M</option><option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-propio-grupo-otro" placeholder="Escribe el grupo" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
           <div><label style="font-size:12px;">Ejercicio nº</label>
             <select id="proc-modal-propio-ejercicio" onchange="toggleOtroField('proc-modal-propio-ejercicio','proc-modal-propio-ejercicio-otro')" style="font-size:13px;">
@@ -1090,7 +1095,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="10">10</option><option value="11">11</option><option value="12">12</option>
               <option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-propio-ejercicio-otro" placeholder="Escribe el nº" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
         </div>
         <div class="row" style="margin-bottom:8px;">
@@ -1099,7 +1104,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>
               <option value="otro">Otro</option>
             </select>
-            <input type="text" id="proc-modal-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+            <input type="text" id="proc-modal-propio-examn-otro" placeholder="Ej: Recuperación" class="mf-hidden" style="font-size:13px; margin-top:4px">
           </div>
         </div>
   </div>
@@ -1603,7 +1608,7 @@ function actualizarRefSelect() {
       p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad))
     );
   }
-  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas con estos filtros</option>'; document.getElementById('preview-ref').style.display = 'none'; return; }
+  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas con estos filtros</option>'; ocultar('preview-ref'); return; }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     bancoFiltrado.map(p => {
       const u = unitsParaCurso.find(x => x.id === p.unidad_id);
@@ -1614,7 +1619,7 @@ function actualizarRefSelect() {
       const desc = p.descripcion ? ' [' + p.descripcion.substring(0,25) + ']' : '';
       return '<option value="' + p.id + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
     }).join('');
-  document.getElementById('preview-ref').style.display = 'none';
+  ocultar('preview-ref');
 }
 
 function latexAHtml(latex) {
@@ -1640,8 +1645,8 @@ function latexAHtml(latex) {
 }
 
 function renderPreview(el, latex) {
-  if (!latex) { el.style.display = 'none'; return; }
-  el.style.display = 'block';
+  if (!latex) { ocultarEl(el); return; }
+  mostrarEl(el);
   el.innerHTML = latexAHtml(latex);
   // Renderizar matemáticas con KaTeX auto-render si está disponible
   if (window.renderMathInElement) {
@@ -1660,7 +1665,7 @@ function renderPreview(el, latex) {
 function mostrarPreviewRef() {
   const id = document.getElementById('ref-problema').value;
   const previewEl = document.getElementById('preview-ref');
-  if (!id) { previewEl.style.display = 'none'; return; }
+  if (!id) { ocultarEl(previewEl); return; }
   const p = banco.find(x => x.id === id);
   renderPreview(previewEl, p ? p.latex_enunciado : null);
 }
@@ -1765,15 +1770,15 @@ function renderExamSlots() {
         </select>
         <select id="slot-unidad-${i}" onchange="filtrarRefPorUnidad(${i})" style="width:auto; font-size:13px;"></select>
       </div>
-      <div id="slot-similar-${i}" style="display:none; margin-top:6px;">
+      <div id="slot-similar-${i}" class="mf-hidden" style="margin-top:6px;">
         <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
           <label style="font-size:11px; color:var(--text2); margin:0; white-space:nowrap;">Banco de:</label>
           <select id="slot-curso-${i}" onchange="actualizarRefSlot(${i})" style="font-size:12px; flex:1;"></select>
         </div>
         <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" style="font-size:13px; margin-bottom:4px;"></select>
-        <div id="slot-preview-${i}" class="preview-box" style="display:none;"></div>
+        <div id="slot-preview-${i}" class="preview-box mf-hidden"></div>
       </div>
-      <div id="slot-detalle-${i}" style="display:none; margin-top:6px;">
+      <div id="slot-detalle-${i}" class="mf-hidden" style="margin-top:6px;">
         <input type="text" id="slot-detalle-txt-${i}" placeholder="Qué quieres preguntar (ej: Bayes, integral por partes...)">
       </div>
       <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
@@ -1794,8 +1799,8 @@ function renderExamSlots() {
   // Listeners para tipo de slot
   for (let i = 0; i < examSlots; i++) {
     document.getElementById(`slot-tipo-${i}`).addEventListener('change', function() {
-      document.getElementById(`slot-similar-${i}`).style.display = this.value === 'similar' ? 'block' : 'none';
-      document.getElementById(`slot-detalle-${i}`).style.display = this.value === 'detallista' ? 'block' : 'none';
+      ((this.value === 'similar') ? mostrarEl(document.getElementById(`slot-similar-${i}`)) : ocultarEl(document.getElementById(`slot-similar-${i}`)  ));
+      ((this.value === 'detallista') ? mostrarEl(document.getElementById(`slot-detalle-${i}`)) : ocultarEl(document.getElementById(`slot-detalle-${i}`)  ));
     });
   }
 }
@@ -1811,7 +1816,7 @@ function filtrarRefPorUnidad(i) {
   const sr = document.getElementById('slot-ref-' + i);
   if (sr) sr.innerHTML = buildRefOpts(filtered, unitsData);
   const prev = document.getElementById('slot-preview-' + i);
-  if (prev) prev.style.display = 'none';
+  if (prev) ocultarEl(prev);
 }
 
 function buildRefOpts(bancoData, unitsData) {
@@ -1831,7 +1836,7 @@ async function actualizarRefSlot(i) {
   const sr = document.getElementById('slot-ref-' + i);
   if (!sr) return;
   const prev = document.getElementById('slot-preview-' + i);
-  if (prev) prev.style.display = 'none';
+  if (prev) ocultarEl(prev);
   // Update unidad selector for new course
   const units = unidades[cursoKey] || [];
   const su = document.getElementById('slot-unidad-' + i);
@@ -1866,7 +1871,7 @@ function actualizarSelectsExamen() {
 async function mostrarPreviewSlot(i) {
   const id = document.getElementById('slot-ref-' + i).value;
   const previewEl = document.getElementById('slot-preview-' + i);
-  if (!id) { previewEl.style.display = 'none'; return; }
+  if (!id) { ocultarEl(previewEl); return; }
   // Try current banco first, then fetch if needed
   let p = banco.find(x => x.id === id);
   if (!p) {
@@ -1900,8 +1905,8 @@ function restaurarEstadoSlots(estado) {
     const tipoEl = document.getElementById(`slot-tipo-${i}`);
     if (tipoEl) {
       tipoEl.value = s.tipo;
-      document.getElementById(`slot-similar-${i}`).style.display = s.tipo === 'similar' ? 'block' : 'none';
-      document.getElementById(`slot-detalle-${i}`).style.display = s.tipo === 'detallista' ? 'block' : 'none';
+      ((s.tipo === 'similar') ? mostrarEl(document.getElementById(`slot-similar-${i}`)) : ocultarEl(document.getElementById(`slot-similar-${i}`)  ));
+      ((s.tipo === 'detallista') ? mostrarEl(document.getElementById(`slot-detalle-${i}`)) : ocultarEl(document.getElementById(`slot-detalle-${i}`)  ));
     }
     const unidadEl = document.getElementById(`slot-unidad-${i}`);
     if (unidadEl && s.unidad) unidadEl.value = s.unidad;
@@ -1948,7 +1953,7 @@ function showTab(name, el) {
 function showSubtab(name) {
   ['ejercicios','examenes-banco'].forEach(s => {
     const el = document.getElementById('subtab-' + s);
-    if (el) el.style.display = s === name ? 'block' : 'none';
+    if (el) ((s === name) ? mostrarEl(el) : ocultarEl(el));
     const btn = document.getElementById('subtab-' + s + '-btn');
     if (btn) btn.classList.toggle('active', s === name);
   });
@@ -1960,7 +1965,7 @@ function selectMode(mode, el) {
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   ['detallista','similar','libre'].forEach(m =>
-    document.getElementById('modo-'+m).style.display = m === mode ? 'block' : 'none');
+    ((m === mode) ? mostrarEl(document.getElementById('modo-'+m)) : ocultarEl(document.getElementById('modo-'+m))));
   if (mode === 'similar') {
     poblarCursoSelect('ref-curso-select');
     const unidadSel = document.getElementById('ref-unidad-select');
@@ -2282,17 +2287,17 @@ async function guardarExamenYEjercicios() {
 
 // ── IMPORTAR MASIVO ───────────────────────────────────────────────────────────
 function setMasivoModo(modo) {
-  document.getElementById('masivo-modo-manual').style.display = modo === 'manual' ? 'block' : 'none';
-  document.getElementById('masivo-modo-claude').style.display = modo === 'claude' ? 'block' : 'none';
+  ((modo === 'manual') ? mostrar('masivo-modo-manual') : ocultar('masivo-modo-manual'));
+  ((modo === 'claude') ? mostrar('masivo-modo-claude') : ocultar('masivo-modo-claude'));
   document.getElementById('masivo-modo-manual-btn').className = 'btn btn-sm' + (modo === 'manual' ? ' btn-primary' : '');
   document.getElementById('masivo-modo-claude-btn').className = 'btn btn-sm' + (modo === 'claude' ? ' btn-primary' : '');
 }
 
 function toggleMasivoClaude() {
   const proc = document.getElementById('masivo-claude-proc').value;
-  document.getElementById('masivo-claude-pau-examen').style.display = proc === 'PAU-examen' ? 'block' : 'none';
-  document.getElementById('masivo-claude-propio').style.display = proc === 'propio' ? 'block' : 'none';
-  document.getElementById('masivo-claude-relacion').style.display = proc === 'relacion' ? 'block' : 'none';
+  ((proc === 'PAU-examen') ? mostrar('masivo-claude-pau-examen') : ocultar('masivo-claude-pau-examen'));
+  ((proc === 'propio') ? mostrar('masivo-claude-propio') : ocultar('masivo-claude-propio'));
+  ((proc === 'relacion') ? mostrar('masivo-claude-relacion') : ocultar('masivo-claude-relacion'));
   // Listeners para Otro
   ['masivo-claude-curso','masivo-claude-grupo','masivo-claude-examn'].forEach(id => {
     const el = document.getElementById(id);
@@ -2365,7 +2370,7 @@ function generarPromptMasivoLatex() {
     .then(() => {
       toast('Prompt copiado ✓ — abriendo Claude...');
       setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
-      document.getElementById('masivo-claude-paso2').style.display = 'block';
+      mostrar('masivo-claude-paso2');
     })
     .catch(() => toast('No se pudo copiar'));
 }
@@ -2412,9 +2417,9 @@ async function importarJSONmasivo() {
 function mostrarImportarMasivo() {
   document.getElementById('masivo-latex').value = '';
   document.getElementById('masivo-claude-latex') && (document.getElementById('masivo-claude-latex').value = '');
-  document.getElementById('masivo-paso1').style.display = 'block';
-  document.getElementById('masivo-paso2').style.display = 'none';
-  document.getElementById('masivo-claude-paso2') && (document.getElementById('masivo-claude-paso2').style.display = 'none');
+  mostrar('masivo-paso1');
+  ocultar('masivo-paso2');
+  document.getElementById('masivo-claude-paso2') && (ocultar('masivo-claude-paso2'));
   setMasivoModo('manual');
   abrirModal('modal-importar-masivo');
 }
@@ -2490,8 +2495,8 @@ function parsearMasivo() {
     '</div>';
   }).join('');
 
-  document.getElementById('masivo-paso1').style.display = 'none';
-  document.getElementById('masivo-paso2').style.display = 'block';
+  ocultar('masivo-paso1');
+  mostrar('masivo-paso2');
   toast(`${masivoItems.length} problemas detectados`);
 }
 
@@ -2613,32 +2618,32 @@ function buildProcHtml(i) {
 
 function toggleMasivoProc(i) {
   const sel = document.getElementById('masivo-proc-' + i).value;
-  document.getElementById('masivo-proc-otro-' + i).style.display = sel === 'otro' ? 'block' : 'none';
-  document.getElementById('masivo-pau-' + i).style.display = sel === 'PAU' ? 'block' : 'none';
-  document.getElementById('masivo-propio-' + i).style.display = sel === 'Examen propio' ? 'block' : 'none';
+  ((sel === 'otro') ? mostrarEl(document.getElementById('masivo-proc-otro-' + i)) : ocultarEl(document.getElementById('masivo-proc-otro-' + i)));
+  ((sel === 'PAU') ? mostrarEl(document.getElementById('masivo-pau-' + i)) : ocultarEl(document.getElementById('masivo-pau-' + i)));
+  ((sel === 'Examen propio') ? mostrarEl(document.getElementById('masivo-propio-' + i)) : ocultarEl(document.getElementById('masivo-propio-' + i)));
   // Listeners dinámicos para "otro" dentro de PAU y Examen propio
   const pauAnyoSel = document.getElementById('masivo-pau-anyo-' + i);
   if (pauAnyoSel) {
     pauAnyoSel.onchange = function() {
-      document.getElementById('masivo-pau-anyo-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+      ((this.value === 'otro') ? mostrarEl(document.getElementById('masivo-pau-anyo-otro-' + i)) : ocultarEl(document.getElementById('masivo-pau-anyo-otro-' + i)));
     };
   }
   const propiosCursoSel = document.getElementById('masivo-propio-curso-' + i);
   if (propiosCursoSel) {
     propiosCursoSel.onchange = function() {
-      document.getElementById('masivo-propio-curso-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+      ((this.value === 'otro') ? mostrarEl(document.getElementById('masivo-propio-curso-otro-' + i)) : ocultarEl(document.getElementById('masivo-propio-curso-otro-' + i)));
     };
   }
   const propiosGrupoSel = document.getElementById('masivo-propio-grupo-' + i);
   if (propiosGrupoSel) {
     propiosGrupoSel.onchange = function() {
-      document.getElementById('masivo-propio-grupo-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+      ((this.value === 'otro') ? mostrarEl(document.getElementById('masivo-propio-grupo-otro-' + i)) : ocultarEl(document.getElementById('masivo-propio-grupo-otro-' + i)));
     };
   }
   const propiosEjercicioSel = document.getElementById('masivo-propio-ejercicio-' + i);
   if (propiosEjercicioSel) {
     propiosEjercicioSel.onchange = function() {
-      document.getElementById('masivo-propio-ejercicio-otro-' + i).style.display = this.value === 'otro' ? 'block' : 'none';
+      ((this.value === 'otro') ? mostrarEl(document.getElementById('masivo-propio-ejercicio-otro-' + i)) : ocultarEl(document.getElementById('masivo-propio-ejercicio-otro-' + i)));
     };
   }
 }
@@ -2716,22 +2721,23 @@ async function guardarMasivo() {
 
 function toggleProcedenciaOtro() {
   const sel = document.getElementById('procedencia-select').value;
-  document.getElementById('proc-pau-fields').style.display = sel === 'PAU' ? 'block' : 'none';
-  document.getElementById('proc-propio-fields').style.display = sel === 'Examen propio' ? 'block' : 'none';
-  document.getElementById('procedencia-otro').style.display = sel === 'otro' ? 'block' : 'none';
+  ((sel === 'PAU') ? mostrar('proc-pau-fields') : ocultar('proc-pau-fields'));
+  ((sel === 'Examen propio') ? mostrar('proc-propio-fields') : ocultar('proc-propio-fields'));
+  ((sel === 'otro') ? mostrar('procedencia-otro') : ocultar('procedencia-otro'));
 }
 
 function toggleOtroField(selectId, otroId) {
   const sel = document.getElementById(selectId);
-  const otro = document.getElementById(otroId);
-  if (sel && otro) otro.style.display = sel.value === 'otro' ? 'block' : 'none';
+  if (!sel) return;
+  if (sel.value === 'otro') mostrar(otroId);
+  else ocultar(otroId);
 }
 
 function toggleProcedenciaModalOtro() {
   const sel = document.getElementById('procedencia-modal-select').value;
-  document.getElementById('proc-modal-pau-fields').style.display = sel === 'PAU' ? 'block' : 'none';
-  document.getElementById('proc-modal-propio-fields').style.display = sel === 'Examen propio' ? 'block' : 'none';
-  document.getElementById('procedencia-modal-otro').style.display = sel === 'otro' ? 'block' : 'none';
+  ((sel === 'PAU') ? mostrar('proc-modal-pau-fields') : ocultar('proc-modal-pau-fields'));
+  ((sel === 'Examen propio') ? mostrar('proc-modal-propio-fields') : ocultar('proc-modal-propio-fields'));
+  ((sel === 'otro') ? mostrar('procedencia-modal-otro') : ocultar('procedencia-modal-otro'));
 }
 
 function getProcedencia(prefix) {
@@ -2774,7 +2780,7 @@ async function guardarProblema() {
   const descripcion = document.getElementById('descripcion-manual').value.trim();
 
   // Prefer JSON fields if visible, else fall back to detallista fields
-  const jsonCamposVisible = document.getElementById('json-campos')?.style.display !== 'none';
+  const jsonCamposVisible = !document.getElementById('json-campos')?.classList.contains('mf-hidden');
   let unidadId = jsonCamposVisible ? (document.getElementById('json-unidad')?.value || '') : (currentMode === 'detallista' ? document.getElementById('unidad').value : '');
   let tipoVal = jsonCamposVisible ? (document.getElementById('json-tipo')?.value || 'contextualizado') : (currentMode === 'detallista' ? document.getElementById('tipo').value : '');
   let tematicaVal = jsonCamposVisible ? (document.getElementById('json-tematica')?.value || '') : (currentMode === 'detallista' ? document.getElementById('tematica').value : '');
@@ -2827,11 +2833,11 @@ async function completarGuardar({ latex, criterios, saberes, procedencia, proced
   if (document.getElementById('json-pegado')) document.getElementById('json-pegado').value = '';
   if (document.getElementById('json-tematica')) document.getElementById('json-tematica').value = '';
   if (document.getElementById('json-napt')) document.getElementById('json-napt').value = '';
-  if (document.getElementById('json-campos')) document.getElementById('json-campos').style.display = 'none';
+  if (document.getElementById('json-campos')) ocultar('json-campos');
   document.getElementById('procedencia-select').value = 'IA';
-  document.getElementById('procedencia-otro').style.display = 'none';
-  document.getElementById('proc-pau-fields').style.display = 'none';
-  document.getElementById('proc-propio-fields').style.display = 'none';
+  ocultar('procedencia-otro');
+  ocultar('proc-pau-fields');
+  ocultar('proc-propio-fields');
   toast('Problema guardado ✓');
 }
 
@@ -2857,8 +2863,8 @@ async function guardarExamen() {
   setTimeout(() => {
     if (confirm('¿Quieres añadir los problemas de este examen al banco de forma individual?')) {
       document.getElementById('masivo-latex').value = latex;
-      document.getElementById('masivo-paso1').style.display = 'none';
-      document.getElementById('masivo-paso2').style.display = 'none';
+      ocultar('masivo-paso1');
+      ocultar('masivo-paso2');
       abrirModal('modal-importar-masivo');
       // Parsear directamente
       parsearMasivoDesdeLatex(latex);
@@ -2935,8 +2941,8 @@ function parsearMasivoDesdeLatex(latex) {
     '</div>';
   }).join('');
 
-  document.getElementById('masivo-paso1').style.display = 'none';
-  document.getElementById('masivo-paso2').style.display = 'block';
+  ocultar('masivo-paso1');
+  mostrar('masivo-paso2');
   toast(masivoItems.length + ' problemas detectados del examen');
 }
 
@@ -3005,27 +3011,14 @@ function verLatex(id) {
 // examBancoSeleccionados removed - now using slot-based selection
 
 function setExamModo(modo) {
-  document.getElementById('exam-modo-ia').style.display = modo === 'ia' ? 'block' : 'none';
-  document.getElementById('exam-modo-banco').style.display = modo === 'banco' ? 'block' : 'none';
+  ((modo === 'ia') ? mostrar('exam-modo-ia') : ocultar('exam-modo-ia'));
+  ((modo === 'banco') ? mostrar('exam-modo-banco') : ocultar('exam-modo-banco'));
   document.getElementById('exam-modo-ia-btn').classList.toggle('active', modo === 'ia');
   document.getElementById('exam-modo-banco-btn').classList.toggle('active', modo === 'banco');
   if (modo === 'banco') { actualizarFiltrosExamBanco(); renderExamBancoSlots(); }
 }
 
-function actualizarFiltrosExamBanco() {
-  // Populate curso selector
-  const cursosEl = document.getElementById('exam-banco-curso');
-  if (cursosEl) {
-    cursosEl.innerHTML = Object.entries(cursos).map(([key, c]) =>
-      '<option value="' + key + '"' + (key === cursoActual ? ' selected' : '') + '>' + c.label + '</option>'
-    ).join('');
-  }
-  // Populate unidades for current exam-banco course
-  const cursoKey = cursosEl?.value || cursoActual;
-  const units = unidades[cursoKey] || [];
-  const sel = document.getElementById('exam-banco-filtro-unidad');
-  if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
-}
+
 
 // ── EXAM BANCO DIRECTO (slot-based) ──────────────────────────────────────────
 let examBancoSlots = 4;
@@ -3060,7 +3053,7 @@ function renderExamBancoSlots(savedVals) {
     '<div class="examen-slot" style="margin-bottom:8px;">' +
     '<span style="font-size:13px; font-weight:500; display:block; margin-bottom:4px;">Ejercicio ' + (i+1) + '</span>' +
     '<select id="exam-banco-ref-' + i + '" onchange="mostrarPreviewExamBanco(' + i + ')" style="font-size:13px; margin-bottom:4px;">' + opts + '</select>' +
-    '<div id="exam-banco-preview-' + i + '" class="preview-box" style="display:none;"></div>' +
+    '<div id="exam-banco-preview-' + i + '" class="preview-box mf-hidden"></div>' +
     '</div>'
   ).join('');
   savedVals.forEach((val, i) => {
@@ -3181,7 +3174,7 @@ function generarExamenDesdeBanco() {
     '\\end{document}';
 
   document.getElementById('exam-banco-latex-result').value = latex;
-  document.getElementById('exam-banco-result-card').style.display = 'block';
+  mostrar('exam-banco-result-card');
   document.getElementById('exam-banco-result-card').scrollIntoView({ behavior: 'smooth' });
   toast('LaTeX generado ✓');
 }
@@ -3214,7 +3207,7 @@ let pdfTipo = 'examen';
 
 function mostrarImportarPDF() {
   actualizarFiltrosExamBanco();
-  document.getElementById('pdf-paso2').style.display = 'none';
+  ocultar('pdf-paso2');
   document.getElementById('pdf-json-input').value = '';
   abrirModal('modal-importar-pdf');
 }
@@ -3223,10 +3216,10 @@ function setPdfTipo(tipo, el) {
   pdfTipo = tipo;
   document.querySelectorAll('#modal-importar-pdf .mode-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  document.getElementById('pdf-datos-examen').style.display = tipo === 'examen' ? 'block' : 'none';
-  document.getElementById('pdf-datos-coleccion').style.display = tipo === 'coleccion' ? 'block' : 'none';
-  document.getElementById('pdf-datos-propio').style.display = tipo === 'propio' ? 'block' : 'none';
-  document.getElementById('pdf-datos-relacion').style.display = tipo === 'relacion' ? 'block' : 'none';
+  ((tipo === 'examen') ? mostrar('pdf-datos-examen') : ocultar('pdf-datos-examen'));
+  ((tipo === 'coleccion') ? mostrar('pdf-datos-coleccion') : ocultar('pdf-datos-coleccion'));
+  ((tipo === 'propio') ? mostrar('pdf-datos-propio') : ocultar('pdf-datos-propio'));
+  ((tipo === 'relacion') ? mostrar('pdf-datos-relacion') : ocultar('pdf-datos-relacion'));
   // Listeners para "otro" en examen propio
   const cursoSel = document.getElementById('pdf-propio-curso');
   if (cursoSel) cursoSel.onchange = function() { toggleOtroField('pdf-propio-curso', 'pdf-propio-curso-otro'); };
@@ -3307,7 +3300,7 @@ function generarPromptPDF() {
     .then(() => {
       toast('Prompt copiado ✓ — abriendo Claude...');
       setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
-      document.getElementById('pdf-paso2').style.display = 'block';
+      mostrar('pdf-paso2');
     })
     .catch(() => toast('No se pudo copiar'));
 }
@@ -3392,8 +3385,8 @@ function verLatexExamen(id) {
 }
 
 function setRespModo(modo) {
-  document.getElementById('resp-modo-json').style.display = modo === 'json' ? 'block' : 'none';
-  document.getElementById('resp-modo-latex').style.display = modo === 'latex' ? 'block' : 'none';
+  ((modo === 'json') ? mostrar('resp-modo-json') : ocultar('resp-modo-json'));
+  ((modo === 'latex') ? mostrar('resp-modo-latex') : ocultar('resp-modo-latex'));
   document.getElementById('resp-modo-json-btn').classList.toggle('active', modo === 'json');
   document.getElementById('resp-modo-latex-btn').classList.toggle('active', modo === 'latex');
 }
@@ -3427,7 +3420,7 @@ function parsearJSONEjercicio() {
   document.getElementById('criterios-manual').value = (data.criterios||[]).join(', ');
   document.getElementById('saberes-manual').value = (data.saberes||[]).join(', ');
   document.getElementById('descripcion-manual').value = data.descripcion || '';
-  document.getElementById('json-campos').style.display = 'block';
+  mostrar('json-campos');
   toast('JSON interpretado — revisa y guarda ✓');
 }
 
@@ -3436,7 +3429,7 @@ function usarLatexManual() {
   if (!latex) { toast('Pega el LaTeX primero'); return; }
   poblarJsonUnidad();
   document.getElementById('latex-pegado').value = latex;
-  document.getElementById('json-campos').style.display = 'block';
+  mostrar('json-campos');
   setRespModo('json');
   toast('LaTeX cargado — rellena los campos y guarda');
 }
@@ -3734,7 +3727,7 @@ INSTRUCCIONES:
     .then(() => {
       toast('Prompt copiado ✓ — abriendo Claude...');
       setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
-      document.getElementById('import-unidades-paso2').style.display = 'block';
+      mostrar('import-unidades-paso2');
     })
     .catch(() => toast('No se pudo copiar — cópialo manualmente'));
 }
@@ -3777,7 +3770,7 @@ function importarUnidadesDeClaude() {
   guardarUnidades();
   actualizarUnidadesUI();
   document.getElementById('import-unidades-json').value = '';
-  document.getElementById('import-unidades-paso2').style.display = 'none';
+  ocultar('import-unidades-paso2');
   toast(`${nuevas.length} unidades importadas ✓`);
 }
 function renderConfigGeneral() {
@@ -3831,6 +3824,33 @@ function borrarCurso() {
   toast('Curso eliminado');
 }
 
+// ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
+function mostrar(id, tipo) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('mf-hidden');
+  el.classList.add(tipo === 'flex' ? 'mf-show-flex' : 'mf-show-block');
+}
+
+function ocultar(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('mf-show-block', 'mf-show-flex');
+  el.classList.add('mf-hidden');
+}
+
+function mostrarEl(el, tipo) {
+  if (!el) return;
+  el.classList.remove('mf-hidden');
+  el.classList.add(tipo === 'flex' ? 'mf-show-flex' : 'mf-show-block');
+}
+
+function ocultarEl(el) {
+  if (!el) return;
+  el.classList.remove('mf-show-block', 'mf-show-flex');
+  el.classList.add('mf-hidden');
+}
+
 function abrirModal(id) {
   const overlay = document.getElementById(id);
   if (!overlay) { console.error('Modal no encontrado:', id); return; }
@@ -3843,7 +3863,7 @@ function abrirModal(id) {
 
 function cerrarModal(id) {
   const overlay = document.getElementById(id);
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) ocultarEl(overlay);
   document.body.style.overflow = '';
 }
 
