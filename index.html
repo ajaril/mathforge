@@ -140,8 +140,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <h1>Math<span>Forge</span></h1>
     <div class="curso-selector" id="curso-selector">
       <!-- cursos se renderizan dinámicamente -->
+      <button class="curso-btn-new" id="btn-nuevo-curso" onclick="abrirNuevoCurso()">+ Nuevo</button>
     </div>
-    <button class="curso-btn-new" onclick="abrirNuevoCurso()">+ Nuevo</button>
   </div>
 
   <div class="tabs">
@@ -493,24 +493,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
         <div class="field">
           <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Selecciona los ejercicios del banco</label>
-          <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Filtra y marca los ejercicios que quieres incluir. Se generará el LaTeX del examen completo con ellos tal cual.</p>
-          <div class="filter-bar" style="margin-bottom:10px;">
-            <select id="exam-banco-curso" onchange="cambiarCursoExamBanco()" style="font-size:13px; font-weight:500; border-color:var(--accent);"></select>
-            <select id="exam-banco-filtro-unidad" onchange="renderExamBancoSelector()"><option value="">Todas las unidades</option></select>
-            <select id="exam-banco-filtro-tipo" onchange="renderExamBancoSelector()">
-              <option value="">Todos los tipos</option>
-              <option value="contextualizado">Contextualizado</option>
-              <option value="teorico">Teórico</option>
-              <option value="mixto">Mixto</option>
-            </select>
-            <select id="exam-banco-filtro-proc" onchange="renderExamBancoSelector()">
-              <option value="">Todas las procedencias</option>
-              <option value="IA">IA</option>
-              <option value="PAU">PAU</option>
-              <option value="Propio">Examen propio</option>
+          <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Elige el banco y filtra por unidad. Añade tantos ejercicios como necesites — al seleccionar uno verás el enunciado renderizado.</p>
+          <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; align-items:center;">
+            <label style="font-size:12px; color:var(--text2); white-space:nowrap;">Banco:</label>
+            <select id="exam-banco-curso" onchange="cambiarCursoExamBanco()" style="font-size:13px; font-weight:500; border-color:var(--accent); flex:0 0 auto;"></select>
+            <select id="exam-banco-filtro-unidad" onchange="actualizarSlotsBancoFiltro()" style="font-size:13px; flex:1;">
+              <option value="">Todas las unidades</option>
             </select>
           </div>
-          <div id="exam-banco-selector"></div>
+          <div id="exam-banco-slots"></div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-sm" onclick="añadirSlotBanco()">+ Añadir ejercicio</button>
+            <button class="btn btn-sm btn-danger" onclick="quitarSlotBanco()">− Quitar último</button>
+          </div>
         </div>
         <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="generarExamenDesdeBanco()">Generar LaTeX del examen</button>
@@ -1127,9 +1122,18 @@ function init() {
 
 function renderCursoSelector() {
   const sel = document.getElementById('curso-selector');
-  sel.innerHTML = Object.entries(cursos).map(([key, c]) =>
+  const botonesHTML = Object.entries(cursos).map(([key, c]) =>
     '<button class="curso-btn' + (key === cursoActual ? ' active' : '') + '" data-curso="' + key + '">' + c.label + '</button>'
   ).join('');
+  // Keep the + Nuevo button — append curso buttons before it
+  const btnNuevo = document.getElementById('btn-nuevo-curso');
+  // Remove all children except btn-nuevo-curso
+  Array.from(sel.children).forEach(child => {
+    if (child.id !== 'btn-nuevo-curso') child.remove();
+  });
+  // Insert curso buttons before the + Nuevo button
+  sel.insertAdjacentHTML('afterbegin', botonesHTML);
+  // Re-attach event listeners
   sel.querySelectorAll('.curso-btn').forEach(btn => {
     btn.addEventListener('click', function() { setCurso(this.dataset.curso, this); });
   });
@@ -1144,11 +1148,12 @@ function abrirModalNuevoCurso() {
 function abrirNuevoCurso() {
   document.getElementById('nuevo-curso-nombre').value = '';
   document.getElementById('nuevo-curso-id').value = '';
-  document.getElementById('modal-nuevo-curso').style.display = 'flex';
+  const m = document.getElementById('modal-nuevo-curso');
+  m.style.cssText = 'display:flex !important; position:fixed !important; top:0 !important; left:0 !important; right:0 !important; bottom:0 !important; z-index:99999 !important; background:rgba(0,0,0,0.5) !important; align-items:center !important; justify-content:center !important;';
 }
 
 function cerrarNuevoCurso() {
-  document.getElementById('modal-nuevo-curso').style.display = 'none';
+  document.getElementById('modal-nuevo-curso').style.cssText = 'display:none !important;';
 }
 
 function crearCurso() {
@@ -2604,14 +2609,14 @@ function verLatex(id) {
 }
 
 // ── EXAMEN DIRECTO DEL BANCO ──────────────────────────────────────────────────
-let examBancoSeleccionados = new Set();
+// examBancoSeleccionados removed - now using slot-based selection
 
 function setExamModo(modo) {
   document.getElementById('exam-modo-ia').style.display = modo === 'ia' ? 'block' : 'none';
   document.getElementById('exam-modo-banco').style.display = modo === 'banco' ? 'block' : 'none';
   document.getElementById('exam-modo-ia-btn').classList.toggle('active', modo === 'ia');
   document.getElementById('exam-modo-banco-btn').classList.toggle('active', modo === 'banco');
-  if (modo === 'banco') { actualizarFiltrosExamBanco(); renderExamBancoSelector(); }
+  if (modo === 'banco') { actualizarFiltrosExamBanco(); renderExamBancoSlots(); }
 }
 
 function actualizarFiltrosExamBanco() {
@@ -2629,17 +2634,93 @@ function actualizarFiltrosExamBanco() {
   if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
 }
 
-// Cache for cross-course banco data
+// ── EXAM BANCO DIRECTO (slot-based) ──────────────────────────────────────────
+let examBancoSlots = 4;
 let examBancoCruzado = null;
 let examBancoCruzadoCurso = null;
 
-async function cambiarCursoExamBanco() {
+function getBancoParaExamBanco() {
   const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
-  // Update unidades filter
+  if (cursoKey !== cursoActual && examBancoCruzado) return { data: examBancoCruzado, cursoKey };
+  return { data: banco, cursoKey: cursoActual };
+}
+
+function getBancoRefOpts() {
+  const { data, cursoKey } = getBancoParaExamBanco();
+  const units = unidades[cursoKey] || [];
+  const filtroUnidad = document.getElementById('exam-banco-filtro-unidad')?.value || '';
+  const filtered = filtroUnidad
+    ? data.filter(p => p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad)))
+    : data;
+  return { opts: buildRefOpts(filtered, units), units };
+}
+
+function renderExamBancoSlots() {
+  const c = document.getElementById('exam-banco-slots');
+  if (!c) return;
+  const { opts } = getBancoRefOpts();
+  c.innerHTML = Array.from({length: examBancoSlots}, (_, i) => `
+    <div class="examen-slot" style="margin-bottom:8px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+        <span style="font-size:13px; font-weight:500; min-width:80px;">Ejercicio ${i+1}</span>
+      </div>
+      <select id="exam-banco-ref-${i}" onchange="mostrarPreviewExamBanco(${i})" style="font-size:13px; margin-bottom:4px;">${opts}</select>
+      <div id="exam-banco-preview-${i}" class="preview-box" style="display:none;"></div>
+    </div>`).join('');
+}
+
+function actualizarSlotsBancoFiltro() {
+  const { opts } = getBancoRefOpts();
+  for (let i = 0; i < examBancoSlots; i++) {
+    const sel = document.getElementById('exam-banco-ref-' + i);
+    if (sel) {
+      const current = sel.value;
+      sel.innerHTML = opts;
+      if (current) sel.value = current;
+    }
+    const prev = document.getElementById('exam-banco-preview-' + i);
+    if (prev) prev.style.display = 'none';
+  }
+}
+
+function mostrarPreviewExamBanco(i) {
+  const id = document.getElementById('exam-banco-ref-' + i)?.value;
+  const prev = document.getElementById('exam-banco-preview-' + i);
+  if (!id || !prev) { if(prev) prev.style.display='none'; return; }
+  const { data } = getBancoParaExamBanco();
+  const p = data.find(x => x.id === id) || banco.find(x => x.id === id);
+  renderPreview(prev, p ? p.latex_enunciado : null);
+}
+
+function añadirSlotBanco() {
+  examBancoSlots++;
+  renderExamBancoSlots();
+}
+
+function quitarSlotBanco() {
+  if (examBancoSlots <= 1) return;
+  examBancoSlots--;
+  renderExamBancoSlots();
+}
+
+function actualizarFiltrosExamBanco() {
+  const cursosEl = document.getElementById('exam-banco-curso');
+  if (cursosEl) {
+    cursosEl.innerHTML = Object.entries(cursos).map(([key, c]) =>
+      '<option value="' + key + '"' + (key === cursoActual ? ' selected' : '') + '>' + c.label + '</option>'
+    ).join('');
+  }
+  const cursoKey = cursosEl?.value || cursoActual;
   const units = unidades[cursoKey] || [];
   const sel = document.getElementById('exam-banco-filtro-unidad');
   if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
-  // Load banco for that course if different
+}
+
+async function cambiarCursoExamBanco() {
+  const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
+  const units = unidades[cursoKey] || [];
+  const sel = document.getElementById('exam-banco-filtro-unidad');
+  if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
   if (cursoKey !== cursoActual) {
     const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
     const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
@@ -2649,74 +2730,28 @@ async function cambiarCursoExamBanco() {
     examBancoCruzado = null;
     examBancoCruzadoCurso = null;
   }
-  examBancoSeleccionados.clear();
-  renderExamBancoSelector();
+  renderExamBancoSlots();
 }
 
-function getExamBancoActual() {
-  const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
-  if (cursoKey !== cursoActual && examBancoCruzado) return { bancoData: examBancoCruzado, cursoKey };
-  return { bancoData: banco, cursoKey: cursoActual };
-}
-
-function renderExamBancoSelector() {
-  const c = document.getElementById('exam-banco-selector');
-  const fu = document.getElementById('exam-banco-filtro-unidad')?.value || '';
-  const ft = document.getElementById('exam-banco-filtro-tipo')?.value || '';
-  const fp = document.getElementById('exam-banco-filtro-proc')?.value || '';
-  const { bancoData, cursoKey } = getExamBancoActual();
-  const unitsParaCurso = unidades[cursoKey] || [];
-
-  let filtrados = bancoData.filter(p => {
-    if (fu) {
-      const enPrincipal = p.unidad_id === fu;
-      const enArray = Array.isArray(p.unidades_ids) && p.unidades_ids.includes(fu);
-      if (!enPrincipal && !enArray) return false;
-    }
-    if (ft && p.tipo !== ft) return false;
-    if (fp && !(p.procedencia||'').includes(fp)) return false;
-    return true;
-  });
-  if (!filtrados.length) { c.innerHTML = '<div class="empty" style="padding:1rem;">No hay ejercicios con estos filtros.</div>'; return; }
-  c.innerHTML = filtrados.map(p => {
-    const unidad = unitsParaCurso.find(x => x.id === p.unidad_id);
-    const sel = examBancoSeleccionados.has(p.id);
-    const ces = (p.criterios||[]).map(c => 'CE ' + c).join(', ');
-    return '<div class="problem-card" style="' + (sel ? 'border-color:var(--accent);background:var(--info-bg);' : '') + '">' +
-      '<div style="display:flex;align-items:flex-start;gap:10px;">' +
-        '<input type="checkbox" ' + (sel ? 'checked' : '') + ' style="flex-shrink:0;margin-top:4px;" onchange="toggleExamBanco(\'' + p.id + '\')">' +
-        '<div style="flex:1;cursor:pointer;" onclick="toggleExamBanco(\'' + p.id + '\')">' +
-          '<div style="font-size:13px;font-weight:500;">' + (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática') + ' · ' + (p.num_apartados||'?') + ' apt.</div>' +
-          '<div style="font-size:11px;color:var(--text2);">' + (p.procedencia||'') + (p.descripcion ? ' · ' + p.descripcion : '') + (ces ? ' · ' + ces : '') + '</div>' +
-        '</div>' +
-        '<button class="btn btn-sm" style="flex-shrink:0;" onclick="event.stopPropagation();verEnunciadoModal(\'' + p.id + '\')">Ver</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-  actualizarContadorExamBanco();
-}
-
-function toggleExamBanco(id) {
-  if (examBancoSeleccionados.has(id)) examBancoSeleccionados.delete(id);
-  else examBancoSeleccionados.add(id);
-  renderExamBancoSelector();
-}
-
-function actualizarContadorExamBanco() {
-  const el = document.getElementById('exam-banco-seleccionados');
-  if (el) el.textContent = examBancoSeleccionados.size + ' ejercicio' + (examBancoSeleccionados.size !== 1 ? 's' : '') + ' seleccionado' + (examBancoSeleccionados.size !== 1 ? 's' : '');
-}
+// Keep for compatibility
+function renderExamBancoSelector() { renderExamBancoSlots(); }
 
 function generarExamenDesdeBanco() {
-  if (!examBancoSeleccionados.size) { toast('Selecciona al menos un ejercicio'); return; }
+  const allBanco = [...banco, ...(examBancoCruzado || [])];
+  const ejerciciosSeleccionados = [];
+  for (let i = 0; i < examBancoSlots; i++) {
+    const id = document.getElementById('exam-banco-ref-' + i)?.value;
+    if (id) {
+      const p = allBanco.find(x => x.id === id);
+      if (p && !ejerciciosSeleccionados.find(x => x.id === id)) ejerciciosSeleccionados.push(p);
+    }
+  }
+  if (!ejerciciosSeleccionados.length) { toast('Selecciona al menos un ejercicio en los slots'); return; }
   const titulo = document.getElementById('exam-banco-titulo').value || 'Examen';
   const fecha = document.getElementById('exam-banco-fecha').value || new Date().toLocaleDateString('es-ES');
   const profesor = document.getElementById('exam-banco-profesor').value || '';
   const conv = document.getElementById('exam-banco-conv').value;
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
-
-  const { bancoData } = getExamBancoActual();
-  const ejerciciosSeleccionados = [...examBancoSeleccionados].map(id => bancoData.find(p => p.id === id) || banco.find(p => p.id === id)).filter(Boolean);
 
   // Recoger todos los criterios únicos para la tabla
   const todosLosCE = new Set();
