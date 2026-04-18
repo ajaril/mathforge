@@ -149,7 +149,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <button class="tab" onclick="showTab('examenes',this)">Generar examen</button>
     <button class="tab" onclick="showTab('banco',this)">Banco</button>
     <button class="tab" onclick="showTab('pdfs',this)">Exámenes PDF</button>
-    <button class="tab" onclick="showTab('config',this)">Configuración</button>
+    <button class="tab" onclick="showTab('config',this)">Configuración del curso</button>
+    <button class="tab" onclick="showTab('config-general',this)">Configuración general</button>
   </div>
 
   <!-- GENERAR -->
@@ -212,9 +213,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div id="modo-similar" style="display:none">
         <div class="field">
           <label>Problema de referencia del banco</label>
-          <div style="display:flex; gap:8px; margin-bottom:6px; align-items:center;">
-            <label style="font-size:12px; color:var(--text2); margin:0; white-space:nowrap;">Mostrar banco de:</label>
+          <div style="display:flex; gap:8px; margin-bottom:6px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:12px; color:var(--text2); margin:0; white-space:nowrap;">Banco de:</label>
             <select id="ref-curso-select" onchange="actualizarRefSelect()" style="font-size:13px; flex:1;"></select>
+            <select id="ref-unidad-select" onchange="actualizarRefSelect()" style="font-size:13px; flex:1;">
+              <option value="">Todas las unidades</option>
+            </select>
           </div>
           <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
           <div id="preview-ref" class="preview-box" style="display:none;"></div>
@@ -241,143 +245,148 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <button class="btn btn-primary" onclick="generarProblema()">Generar → copiar prompt y abrir Claude</button>
     </div>
 
-    <div class="card" style="border-style: dashed;">
-      <div class="card-title">Pega aquí el LaTeX que te ha dado Claude</div>
-      <div class="paste-area"><textarea id="latex-pegado" placeholder="Pega aquí el código LaTeX del problema..."></textarea></div>
-      <div class="row" style="margin-top:10px;">
-        <div>
-          <label>Criterios (separados por coma)</label>
-          <input type="text" id="criterios-manual" placeholder="Ej: 6.1, 8.2, 1.1">
-        </div>
-        <div>
-          <label>Saberes (opcional, separados por coma)</label>
-          <input type="text" id="saberes-manual" placeholder="Ej: D.1.1., D.1.2., B.2.1.">
+    <div class="card" style="border-style:dashed;">
+      <div class="card-title">Respuesta de Claude</div>
+
+      <!-- Mode selector -->
+      <div style="display:flex; gap:4px; margin-bottom:12px; background:var(--surface2); border-radius:100px; padding:3px; width:fit-content;">
+        <button id="resp-modo-json-btn" class="tab active" style="border-radius:100px; font-size:12px;" onclick="setRespModo('json')">✨ JSON (recomendado)</button>
+        <button id="resp-modo-latex-btn" class="tab" style="border-radius:100px; font-size:12px;" onclick="setRespModo('latex')">LaTeX manual</button>
+      </div>
+
+      <!-- MODO JSON -->
+      <div id="resp-modo-json">
+        <p style="font-size:12px; color:var(--text2); margin-bottom:8px;">Pide a Claude que responda con un JSON (el prompt ya lo indica). Pégalo aquí — los campos se rellenan automáticamente. Solo deberás revisar la procedencia antes de guardar.</p>
+        <textarea id="json-pegado" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:100px; background:var(--surface2); margin-bottom:8px;"></textarea>
+        <button class="btn btn-sm" onclick="parsearJSONEjercicio()" style="margin-bottom:12px;">Interpretar JSON →</button>
+
+        <!-- Campos pre-rellenados por JSON (mismos que LaTeX manual) -->
+        <div id="json-campos" style="display:none;">
+          <div class="field"><label>LaTeX del enunciado</label>
+            <textarea id="latex-pegado" placeholder="LaTeX del enunciado..." style="font-family:Courier New,monospace; font-size:12px; min-height:120px;"></textarea>
+          </div>
+          <div class="row">
+            <div><label>Unidad principal</label><select id="json-unidad" style="font-size:13px;"></select></div>
+            <div><label>Tipo</label>
+              <select id="json-tipo" style="font-size:13px;">
+                <option value="contextualizado">Contextualizado</option>
+                <option value="teorico">Teórico</option>
+                <option value="mixto">Mixto</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div><label>Temática</label><input type="text" id="json-tematica"></div>
+            <div><label>Nº apartados</label><input type="text" id="json-napt"></div>
+          </div>
+          <div class="row">
+            <div><label>Criterios</label><input type="text" id="criterios-manual" placeholder="Ej: 6.1, 8.2"></div>
+            <div><label>Saberes</label><input type="text" id="saberes-manual" placeholder="Ej: D.1.1., D.1.2."></div>
+          </div>
+          <div class="field"><label>Descripción</label><input type="text" id="descripcion-manual" placeholder="Tipo de problema en 3-5 palabras"></div>
+          <!-- Procedencia -->
+          <div class="field">
+            <label>Procedencia</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+              <select id="procedencia-select" onchange="toggleProcedenciaOtro()" style="flex:1; min-width:160px;">
+                <option value="IA">Generado por IA</option>
+                <option value="PAU">PAU</option>
+                <option value="Examen propio">Examen propio</option>
+                <option value="Libro de texto">Libro de texto</option>
+                <option value="otro">Otro...</option>
+              </select>
+              <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
+            </div>
+            <div id="proc-pau-fields" style="display:none;">
+              <div class="row" style="margin-bottom:8px;">
+                <div><label style="font-size:12px;">Comunidad Autónoma</label>
+                  <select id="proc-pau-ca" style="font-size:13px;">
+                    <option value="Andalucía">Andalucía</option><option value="Madrid">Madrid</option>
+                    <option value="Cataluña">Cataluña</option><option value="Valencia">Valencia</option>
+                    <option value="País Vasco">País Vasco</option><option value="Galicia">Galicia</option>
+                    <option value="Otra">Otra CA</option>
+                  </select>
+                </div>
+                <div><label style="font-size:12px;">Año</label>
+                  <select id="proc-pau-anyo" onchange="toggleOtroField('proc-pau-anyo','proc-pau-anyo-otro')" style="font-size:13px;">
+                    <option value="2040">2040</option><option value="2039">2039</option><option value="2038">2038</option><option value="2037">2037</option><option value="2036">2036</option><option value="2035">2035</option><option value="2034">2034</option><option value="2033">2033</option><option value="2032">2032</option><option value="2031">2031</option><option value="2030">2030</option><option value="2029">2029</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option><option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option><option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option><option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option><option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option><option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+              </div>
+              <div class="row" style="margin-bottom:8px;">
+                <div><label style="font-size:12px;">Examen</label>
+                  <select id="proc-pau-examen" style="font-size:13px;">
+                    <option value="Ordinaria">Ordinaria</option><option value="Extraordinaria">Extraordinaria</option>
+                    <option value="Reserva 1">Reserva 1</option><option value="Reserva 2">Reserva 2</option>
+                    <option value="Reserva 3">Reserva 3</option><option value="Reserva 4">Reserva 4</option>
+                    <option value="Reserva 5">Reserva 5</option><option value="Reserva 6">Reserva 6</option>
+                  </select>
+                </div>
+                <div><label style="font-size:12px;">Ejercicio nº</label>
+                  <select id="proc-pau-ejercicio" onchange="toggleOtroField('proc-pau-ejercicio','proc-pau-ejercicio-otro')" style="font-size:13px;">
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+              </div>
+            </div>
+            <div id="proc-propio-fields" style="display:none;">
+              <div class="row" style="margin-bottom:8px;">
+                <div><label style="font-size:12px;">Curso académico</label>
+                  <select id="proc-propio-curso" onchange="toggleOtroField('proc-propio-curso','proc-propio-curso-otro')" style="font-size:13px;">
+                    <option value="2025/26" selected>2025/26</option><option value="2024/25">2024/25</option><option value="2023/24">2023/24</option><option value="2022/23">2022/23</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+                <div><label style="font-size:12px;">Nivel</label>
+                  <select id="proc-propio-nivel" style="font-size:13px;">
+                    <option>1º ESO</option><option>2º ESO</option><option>3º ESO</option><option>4º ESO</option>
+                    <option>1º Bachillerato</option><option selected>2º Bachillerato</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row" style="margin-bottom:8px;">
+                <div><label style="font-size:12px;">Grupo</label>
+                  <select id="proc-propio-grupo" onchange="toggleOtroField('proc-propio-grupo','proc-propio-grupo-otro')" style="font-size:13px;">
+                    <option>A</option><option>B</option><option>C</option><option>D</option>
+                    <option>K</option><option>L</option><option>M</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+                <div><label style="font-size:12px;">Ejercicio nº</label>
+                  <select id="proc-propio-ejercicio" onchange="toggleOtroField('proc-propio-ejercicio','proc-propio-ejercicio-otro')" style="font-size:13px;">
+                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                    <option>6</option><option>7</option><option>8</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+              </div>
+              <div class="row" style="margin-bottom:8px;">
+                <div><label style="font-size:12px;">Examen nº</label>
+                  <select id="proc-propio-examn" onchange="toggleOtroField('proc-propio-examn','proc-propio-examn-otro')" style="font-size:13px;">
+                    <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option><option value="otro">Otro</option>
+                  </select>
+                  <input type="text" id="proc-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:4px;">
+            <button class="btn btn-primary" onclick="guardarProblema()">Guardar en banco</button>
+            <button class="btn" onclick="copiarLatex()">Copiar LaTeX</button>
+          </div>
         </div>
       </div>
-      <div class="field">
-        <label>Procedencia</label>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-          <select id="procedencia-select" onchange="toggleProcedenciaOtro()" style="flex:1; min-width:160px;">
-            <option value="IA">Generado por IA</option>
-            <option value="PAU">PAU</option>
-            <option value="Examen propio">Examen propio</option>
-            <option value="Libro de texto">Libro de texto</option>
-            <option value="otro">Otro...</option>
-          </select>
-          <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
+
+      <!-- MODO LaTeX manual (modo anterior) -->
+      <div id="resp-modo-latex" style="display:none;">
+        <p style="font-size:12px; color:var(--text2); margin-bottom:8px;">Pega el LaTeX directamente y rellena los campos manualmente.</p>
+        <textarea id="latex-pegado-manual" placeholder="Pega aquí el código LaTeX del problema..." style="margin-bottom:10px;"></textarea>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button class="btn btn-primary" onclick="usarLatexManual()">Usar este LaTeX →</button>
         </div>
-        <!-- Campos PAU -->
-        <div id="proc-pau-fields" style="display:none;">
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label style="font-size:12px;">Comunidad Autónoma</label>
-              <select id="proc-pau-ca" style="font-size:13px;">
-                <option value="Andalucía">Andalucía</option>
-                <option value="Madrid">Madrid</option>
-                <option value="Cataluña">Cataluña</option>
-                <option value="Valencia">Valencia</option>
-                <option value="País Vasco">País Vasco</option>
-                <option value="Galicia">Galicia</option>
-                <option value="Otra">Otra CA</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:12px;">Año</label>
-              <select id="proc-pau-anyo" onchange="toggleOtroField('proc-pau-anyo','proc-pau-anyo-otro')" style="font-size:13px;">
-              <option value="2040">2040</option><option value="2039">2039</option><option value="2038">2038</option><option value="2037">2037</option><option value="2036">2036</option><option value="2035">2035</option><option value="2034">2034</option><option value="2033">2033</option><option value="2032">2032</option><option value="2031">2031</option><option value="2030">2030</option><option value="2029">2029</option><option value="2028">2028</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option><option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option><option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option><option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option><option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option><option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option><option value="otro">Otro</option>
-            </select>
-              <input type="text" id="proc-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-          </div>
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label style="font-size:12px;">Examen</label>
-              <select id="proc-pau-examen" style="font-size:13px;">
-                <option value="Ordinaria">Ordinaria</option>
-                <option value="Extraordinaria">Extraordinaria</option>
-                <option value="Reserva 1">Reserva 1</option>
-                <option value="Reserva 2">Reserva 2</option>
-                <option value="Reserva 3">Reserva 3</option>
-                <option value="Reserva 4">Reserva 4</option>
-                <option value="Reserva 5">Reserva 5</option>
-                <option value="Reserva 6">Reserva 6</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:12px;">Ejercicio nº</label>
-              <select id="proc-pau-ejercicio" onchange="toggleOtroField('proc-pau-ejercicio','proc-pau-ejercicio-otro')" style="font-size:13px;">
-                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="otro">Otro</option>
-              </select>
-              <input type="text" id="proc-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-          </div>
-        </div>
-        <!-- Campos Examen propio -->
-        <div id="proc-propio-fields" style="display:none;">
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label style="font-size:12px;">Curso académico</label>
-              <select id="proc-propio-curso" onchange="toggleOtroField('proc-propio-curso','proc-propio-curso-otro')" style="font-size:13px;">
-              <option value="2039/40">2039/40</option><option value="2038/39">2038/39</option><option value="2037/38">2037/38</option><option value="2036/37">2036/37</option><option value="2035/36">2035/36</option><option value="2034/35">2034/35</option><option value="2033/34">2033/34</option><option value="2032/33">2032/33</option><option value="2031/32">2031/32</option><option value="2030/31">2030/31</option><option value="2029/30">2029/30</option><option value="2028/29">2028/29</option><option value="2027/28">2027/28</option><option value="2026/27">2026/27</option><option value="2025/26">2025/26</option><option value="2024/25">2024/25</option><option value="2023/24">2023/24</option><option value="2022/23">2022/23</option><option value="2021/22">2021/22</option><option value="2020/21">2020/21</option><option value="2019/20">2019/20</option><option value="2018/19">2018/19</option><option value="2017/18">2017/18</option><option value="2016/17">2016/17</option><option value="2015/16">2015/16</option><option value="2014/15">2014/15</option><option value="2013/14">2013/14</option><option value="2012/13">2012/13</option><option value="2011/12">2011/12</option><option value="2010/11">2010/11</option><option value="2009/10">2009/10</option><option value="2008/09">2008/09</option><option value="2007/08">2007/08</option><option value="2006/07">2006/07</option><option value="2005/06">2005/06</option><option value="2004/05">2004/05</option><option value="2003/04">2003/04</option><option value="2002/03">2002/03</option><option value="2001/02">2001/02</option><option value="2000/01">2000/01</option><option value="otro">Otro</option>
-            </select>
-              <input type="text" id="proc-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-            <div>
-              <label style="font-size:12px;">Nivel</label>
-              <select id="proc-propio-nivel" style="font-size:13px;">
-                <option value="1º ESO">1º ESO</option>
-                <option value="2º ESO">2º ESO</option>
-                <option value="3º ESO">3º ESO</option>
-                <option value="4º ESO">4º ESO</option>
-                <option value="1º Bachillerato">1º Bachillerato</option>
-                <option value="2º Bachillerato" selected>2º Bachillerato</option>
-              </select>
-            </div>
-          </div>
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label style="font-size:12px;">Grupo</label>
-              <select id="proc-propio-grupo" onchange="toggleOtroField('proc-propio-grupo','proc-propio-grupo-otro')" style="font-size:13px;">
-                <option value="A">A</option><option value="B">B</option><option value="C">C</option>
-                <option value="D">D</option><option value="K">K</option><option value="L">L</option>
-                <option value="M">M</option><option value="otro">Otro</option>
-              </select>
-              <input type="text" id="proc-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-            <div>
-              <label style="font-size:12px;">Ejercicio nº</label>
-              <select id="proc-propio-ejercicio" onchange="toggleOtroField('proc-propio-ejercicio','proc-propio-ejercicio-otro')" style="font-size:13px;">
-                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                <option value="otro">Otro</option>
-              </select>
-              <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-          </div>
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label style="font-size:12px;">Examen nº (si hay varios del mismo grupo)</label>
-              <select id="proc-propio-examn" onchange="toggleOtroField('proc-propio-examn','proc-propio-examn-otro')" style="font-size:13px;">
-                <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>
-                <option value="otro">Otro</option>
-              </select>
-              <input type="text" id="proc-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
-            </div>
-          </div>
-        </div>
-        <!-- Descripción -->
-        <div class="field" style="margin-bottom:0; margin-top:4px;">
-          <label style="font-size:12px;">Descripción del problema (opcional)</label>
-          <input type="text" id="descripcion-manual" placeholder="Ej: Probabilidad total + Bayes, Urna sin reemplazamiento, Área con integrales...">
-        </div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:4px;">
-        <button class="btn btn-primary" onclick="guardarProblema()">Guardar en banco</button>
-        <button class="btn" onclick="copiarLatex()">Copiar LaTeX</button>
       </div>
     </div>
   </div>
@@ -470,10 +479,53 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
       </div>
       <div class="card" style="border-style:dashed;">
-        <div class="card-title">Pega aquí el LaTeX del examen</div>
-        <div class="paste-area"><textarea id="examen-latex-pegado" placeholder="Pega aquí el LaTeX del examen completo..."></textarea></div>
-        <div style="display:flex; gap:8px; margin-top:10px;">
-          <button class="btn btn-primary" onclick="guardarExamen()">Guardar examen</button>
+        <div class="card-title">Respuesta de Claude</div>
+        <p style="font-size:12px; color:var(--text2); margin-bottom:12px;">Claude te dará el LaTeX del examen completo y un JSON por cada ejercicio. Pégalos en sus áreas correspondientes — al guardar, el examen va al banco de exámenes y los ejercicios al banco individual.</p>
+
+        <div class="field">
+          <label>LaTeX del examen completo</label>
+          <div class="paste-area"><textarea id="examen-latex-pegado" placeholder="Pega aquí el LaTeX del examen completo..."></textarea></div>
+        </div>
+
+        <div class="field" style="margin-top:10px;">
+          <label>JSONs de los ejercicios individuales (opcional — para guardarlos en el banco)</label>
+          <p style="font-size:11px; color:var(--text3); margin-bottom:6px;">Pega el array JSON que Claude devuelve con los ejercicios del examen.</p>
+          <textarea id="examen-jsons-pegado" placeholder='Pega aquí el JSON de ejercicios de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:80px; background:var(--surface2);"></textarea>
+        </div>
+
+        <div class="field" style="margin-top:8px;">
+          <label style="font-size:12px;">Procedencia (para los ejercicios guardados en banco)</label>
+          <div class="row" style="margin-bottom:4px;">
+            <div><label style="font-size:11px;">Curso académico</label>
+              <select id="exam-json-curso" style="font-size:13px;">
+                <option value="2025/26">2025/26</option><option value="2024/25">2024/25</option>
+                <option value="2023/24">2023/24</option><option value="otro">Otro</option>
+              </select>
+            </div>
+            <div><label style="font-size:11px;">Nivel</label>
+              <select id="exam-json-nivel" style="font-size:13px;">
+                <option>1º Bachillerato</option><option selected>2º Bachillerato</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div><label style="font-size:11px;">Grupo</label>
+              <select id="exam-json-grupo" style="font-size:13px;">
+                <option>A</option><option>B</option><option>C</option><option>D</option>
+                <option>K</option><option>L</option><option>M</option>
+              </select>
+            </div>
+            <div><label style="font-size:11px;">Examen nº</label>
+              <select id="exam-json-examn" style="font-size:13px;">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="guardarExamenYEjercicios()">Guardar examen + ejercicios</button>
+          <button class="btn" onclick="guardarExamen()">Solo guardar examen</button>
           <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
         </div>
       </div>
@@ -536,7 +588,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   <div id="tab-config" class="panel">
     <div class="config-section">
       <h3>Unidades didácticas — <span id="config-curso-label">2º Bach CCSS</span></h3>
-      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Define las unidades del curso actual. Si dejas los saberes vacíos, Claude los deduce por el nombre.</p>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:8px;">Define las unidades del curso actual. Si dejas los saberes vacíos, Claude los deduce por el nombre.</p>
+      <div class="info-box" style="margin-bottom:1rem; font-size:12px;">
+        ✅ <strong>Puedes renombrar unidades sin problema</strong> — los ejercicios se clasifican por ID interno, no por nombre, así que siempre permanecen vinculados aunque cambies el nombre.<br>
+        ⚠️ <strong>Borrar</strong> una unidad con ejercicios te ofrecerá reasignarlos antes de eliminarla.
+      </div>
       <div id="unidades-list"></div>
       <div class="add-unit-form">
         <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
@@ -545,9 +601,26 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       </div>
     </div>
   </div>
-</div>
 
-<!-- Modal nuevo recurso PDF -->
+  <!-- CONFIGURACIÓN GENERAL -->
+  <div id="tab-config-general" class="panel">
+    <div class="config-section">
+      <h3>Orden de cursos</h3>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Arrastra los cursos para reordenarlos. El orden se refleja en los botones de la cabecera.</p>
+      <div id="cursos-orden-list" style="margin-bottom:1rem;"></div>
+      <button class="btn btn-primary" onclick="guardarOrdenCursos()">Guardar orden</button>
+    </div>
+
+    <div class="config-section" style="margin-top:1.5rem;">
+      <h3>Eliminar curso</h3>
+      <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Elimina un curso del sistema (no borra los ejercicios de Supabase).</p>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <select id="curso-borrar-select" style="flex:1;"></select>
+        <button class="btn btn-danger" onclick="borrarCurso()">Eliminar curso</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="modal-recurso" style="display:none;" class="modal-overlay">
   <div class="modal">
     <h3>Añadir enlace de recursos</h3>
@@ -986,6 +1059,113 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 </div>
 
+<!-- Modal editar problema -->
+<div id="modal-editar-problema" style="display:none;" class="modal-overlay">
+  <div class="modal" style="max-width:700px;">
+    <h3>Editar ejercicio</h3>
+    <input type="hidden" id="edit-prob-id">
+    <div class="row">
+      <div><label>Unidad</label><select id="edit-prob-unidad" style="font-size:13px;"></select></div>
+      <div><label>Tipo</label>
+        <select id="edit-prob-tipo" style="font-size:13px;">
+          <option value="contextualizado">Contextualizado</option>
+          <option value="teorico">Teórico</option>
+          <option value="mixto">Mixto</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Temática</label><input type="text" id="edit-prob-tematica"></div>
+      <div><label>Nº apartados</label><input type="text" id="edit-prob-napt" placeholder="Ej: 3"></div>
+    </div>
+    <div class="field"><label>Descripción</label><input type="text" id="edit-prob-descripcion" placeholder="Tipo de problema en 3-5 palabras"></div>
+    <div class="field"><label>Criterios (separados por coma)</label><input type="text" id="edit-prob-criterios" placeholder="Ej: 6.1, 8.2"></div>
+    <div class="field"><label>LaTeX del enunciado</label><textarea id="edit-prob-latex" style="min-height:180px; font-family:Courier New,monospace; font-size:12px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="guardarEdicionProblema()">Guardar cambios</button>
+      <button class="btn" onclick="cerrarModal('modal-editar-problema')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar recurso PDF -->
+<div id="modal-editar-recurso" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Editar enlace</h3>
+    <input type="hidden" id="edit-rec-id">
+    <div class="field"><label>Nombre</label><input type="text" id="edit-rec-nombre"></div>
+    <div class="field"><label>URL</label><input type="text" id="edit-rec-url"></div>
+    <div class="field"><label>Descripción (opcional)</label><input type="text" id="edit-rec-desc"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="guardarEdicionRecurso()">Guardar cambios</button>
+      <button class="btn" onclick="cerrarModal('modal-editar-recurso')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar examen -->
+<div id="modal-editar-examen" style="display:none;" class="modal-overlay">
+  <div class="modal" style="max-width:700px;">
+    <h3>Editar examen</h3>
+    <input type="hidden" id="edit-exam-id">
+    <div class="row">
+      <div><label>Título</label><input type="text" id="edit-exam-titulo"></div>
+      <div><label>Fecha</label><input type="date" id="edit-exam-fecha"></div>
+    </div>
+    <div class="row">
+      <div><label>Profesor</label><input type="text" id="edit-exam-profesor"></div>
+      <div><label>Convocatoria</label>
+        <select id="edit-exam-conv"><option>Ordinaria</option><option>Extraordinaria</option><option>Recuperación</option></select>
+      </div>
+    </div>
+    <div class="field"><label>LaTeX del examen</label><textarea id="edit-exam-latex" style="min-height:200px; font-family:Courier New,monospace; font-size:12px;"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="guardarEdicionExamen()">Guardar cambios</button>
+      <button class="btn" onclick="cerrarModal('modal-editar-examen')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar unidad -->
+<div id="modal-editar-unidad" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Editar unidad didáctica</h3>
+    <div class="info-box" style="margin-bottom:12px;">
+      ✅ Cambiar el nombre <strong>no afecta</strong> a los ejercicios ya clasificados — siguen vinculados por ID interno, no por nombre.
+    </div>
+    <input type="hidden" id="edit-unidad-id">
+    <div class="field"><label>Nombre de la unidad</label>
+      <input type="text" id="edit-unidad-nombre" placeholder="Ej: Probabilidad condicionada">
+    </div>
+    <div class="field"><label>Saberes (vacío = Claude los deduce)</label>
+      <input type="text" id="edit-unidad-saberes" placeholder="Ej: D.1.1., D.1.2.">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="guardarEdicionUnidad()">Guardar cambios</button>
+      <button class="btn" onclick="cerrarModal('modal-editar-unidad')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal borrar unidad con reasignación -->
+<div id="modal-borrar-unidad" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Borrar unidad</h3>
+    <div style="background:var(--warn-bg); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:12px; margin-bottom:12px;">
+      <strong id="borrar-unidad-nombre"></strong> tiene <strong id="borrar-unidad-count"></strong> ejercicio(s) clasificados en ella.
+      <br>¿A qué unidad quieres reasignarlos antes de borrar?
+    </div>
+    <input type="hidden" id="borrar-unidad-id">
+    <div class="field"><label>Reasignar ejercicios a:</label>
+      <select id="borrar-unidad-reasignar" style="font-size:13px;"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="confirmarBorrarUnidad(document.getElementById('borrar-unidad-id').value, document.getElementById('borrar-unidad-reasignar').value)">Borrar unidad</button>
+      <button class="btn" onclick="cerrarModal('modal-borrar-unidad')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal nuevo curso -->
 <div id="modal-nuevo-curso" class="modal-overlay" style="display:none">
   <div class="modal">
@@ -1146,14 +1326,23 @@ function abrirModalNuevoCurso() {
 }
 
 function abrirNuevoCurso() {
-  document.getElementById('nuevo-curso-nombre').value = '';
-  document.getElementById('nuevo-curso-id').value = '';
-  const m = document.getElementById('modal-nuevo-curso');
-  m.style.cssText = 'display:flex !important; position:fixed !important; top:0 !important; left:0 !important; right:0 !important; bottom:0 !important; z-index:99999 !important; background:rgba(0,0,0,0.5) !important; align-items:center !important; justify-content:center !important;';
+  const overlay = document.getElementById('modal-nuevo-curso');
+  const caja = overlay ? overlay.querySelector('.modal') : null;
+  const nombre = document.getElementById('nuevo-curso-nombre');
+  const id = document.getElementById('nuevo-curso-id');
+  if (!overlay || !caja || !nombre || !id) { console.error('Modal nuevo curso no encontrado'); return; }
+  nombre.value = '';
+  id.value = '';
+  document.body.appendChild(overlay);
+  overlay.style.cssText = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:999999 !important; padding:16px !important;';
+  caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; width:min(620px,calc(100vw - 32px)) !important; max-width:620px !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important;';
+  document.body.style.overflow = 'hidden';
 }
 
 function cerrarNuevoCurso() {
-  document.getElementById('modal-nuevo-curso').style.cssText = 'display:none !important;';
+  const overlay = document.getElementById('modal-nuevo-curso');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function crearCurso() {
@@ -1214,7 +1403,7 @@ function actualizarUnidadesUI() {
     ? units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('')
     : '<option value="">Sin unidades — ve a Configuración</option>';
 
-  ['unidad','unidad-modal-select','masivo-unidad'].forEach(id => {
+  ['unidad','unidad-modal-select','masivo-unidad','json-unidad','edit-prob-unidad'].forEach(id => {
     const s = document.getElementById(id);
     if (s) s.innerHTML = opts;
   });
@@ -1260,20 +1449,71 @@ function añadirUnidad() {
 function editarUnidad(id) {
   const u = (unidades[cursoActual]||[]).find(x => x.id === id);
   if (!u) return;
-  const nombre = prompt('Nombre de la unidad:', u.nombre);
-  if (nombre === null) return;
-  const saberes = prompt('Saberes asociados (vacío = Claude los deduce):', u.saberes || '');
-  if (saberes === null) return;
-  u.nombre = nombre.trim(); u.saberes = saberes.trim();
-  guardarUnidades(); actualizarUnidadesUI();
-  toast('Unidad actualizada ✓');
+  document.getElementById('edit-unidad-id').value = id;
+  document.getElementById('edit-unidad-nombre').value = u.nombre;
+  document.getElementById('edit-unidad-saberes').value = u.saberes || '';
+  document.getElementById('modal-editar-unidad').style.display = 'flex';
+}
+
+async function guardarEdicionUnidad() {
+  const id = document.getElementById('edit-unidad-id').value;
+  const u = (unidades[cursoActual]||[]).find(x => x.id === id);
+  if (!u) return;
+  const nuevoNombre = document.getElementById('edit-unidad-nombre').value.trim();
+  const nuevosSaberes = document.getElementById('edit-unidad-saberes').value.trim();
+  if (!nuevoNombre) { toast('El nombre no puede estar vacío'); return; }
+  u.nombre = nuevoNombre;
+  u.saberes = nuevosSaberes;
+  guardarUnidades();
+  actualizarUnidadesUI();
+  cerrarModal('modal-editar-unidad');
+  toast('Unidad actualizada ✓ — los ejercicios ya clasificados siguen vinculados correctamente');
 }
 
 function borrarUnidad(id) {
-  if (!confirm('¿Borrar esta unidad?')) return;
+  const u = (unidades[cursoActual]||[]).find(x => x.id === id);
+  if (!u) return;
+  // Count exercises using this unit
+  const afectados = banco.filter(p =>
+    p.unidad_id === id || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(id))
+  );
+  const otras = (unidades[cursoActual]||[]).filter(x => x.id !== id);
+  if (afectados.length > 0 && otras.length > 0) {
+    // Show reassignment modal
+    document.getElementById('borrar-unidad-id').value = id;
+    document.getElementById('borrar-unidad-nombre').textContent = u.nombre;
+    document.getElementById('borrar-unidad-count').textContent = afectados.length;
+    const reasignarSel = document.getElementById('borrar-unidad-reasignar');
+    reasignarSel.innerHTML = '<option value="">— Dejarlos sin unidad —</option>' +
+      otras.map(x => '<option value="' + x.id + '">' + x.nombre + '</option>').join('');
+    document.getElementById('modal-borrar-unidad').style.display = 'flex';
+  } else {
+    if (!confirm('¿Borrar la unidad "' + u.nombre + '"?' + (afectados.length > 0 ? ' Los ' + afectados.length + ' ejercicios de esta unidad quedarán sin unidad asignada.' : ''))) return;
+    confirmarBorrarUnidad(id, '');
+  }
+}
+
+async function confirmarBorrarUnidad(id, reasignarA) {
+  // Reassign exercises if needed
+  if (reasignarA) {
+    const afectados = banco.filter(p =>
+      p.unidad_id === id || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(id))
+    );
+    for (const p of afectados) {
+      if (p.unidad_id === id) p.unidad_id = reasignarA;
+      if (Array.isArray(p.unidades_ids)) {
+        p.unidades_ids = p.unidades_ids.map(uid => uid === id ? reasignarA : uid);
+      }
+      await sbFetch('problemas?id=eq.' + p.id, { method:'PATCH', body: JSON.stringify({ unidad_id: p.unidad_id, unidades_ids: p.unidades_ids }) });
+    }
+    guardarLocal();
+  }
   unidades[cursoActual] = (unidades[cursoActual]||[]).filter(x => x.id !== id);
-  guardarUnidades(); actualizarUnidadesUI();
-  toast('Unidad borrada');
+  guardarUnidades();
+  actualizarUnidadesUI();
+  renderBanco();
+  cerrarModal('modal-borrar-unidad');
+  toast('Unidad borrada' + (reasignarA ? ' — ejercicios reasignados ✓' : ''));
 }
 
 function actualizarStats() {
@@ -1308,15 +1548,26 @@ async function cargarBancoCruzado(cursoKey) {
 function actualizarRefSelect() {
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
-  // Populate curso selector first
   poblarCursoSelect('ref-curso-select');
   const cursoKey = document.getElementById('ref-curso-select')?.value || cursoActual;
   const unitsParaCurso = unidades[cursoKey] || [];
-  const bancoFiltrado = banco.filter(p => {
-    const cursoDB = (cursos[cursoKey]||{}).curso_db || cursoKey;
-    return (p.curso||'') === cursoDB || cursoKey === cursoActual;
-  });
-  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas en el banco de este curso</option>'; document.getElementById('preview-ref').style.display = 'none'; return; }
+  // Populate unidad selector for this course
+  const unidadSel = document.getElementById('ref-unidad-select');
+  if (unidadSel) {
+    const currentUnidad = unidadSel.value;
+    unidadSel.innerHTML = '<option value="">Todas las unidades</option>' +
+      unitsParaCurso.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+    if (currentUnidad) unidadSel.value = currentUnidad;
+  }
+  const filtroUnidad = unidadSel?.value || '';
+  const cursoDB = (cursos[cursoKey]||{}).curso_db || cursoKey;
+  let bancoFiltrado = banco.filter(p => (p.curso||'') === cursoDB || cursoKey === cursoActual);
+  if (filtroUnidad) {
+    bancoFiltrado = bancoFiltrado.filter(p =>
+      p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad))
+    );
+  }
+  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas con estos filtros</option>'; document.getElementById('preview-ref').style.display = 'none'; return; }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     bancoFiltrado.map(p => {
       const u = unitsParaCurso.find(x => x.id === p.unidad_id);
@@ -1426,6 +1677,7 @@ function renderBanco() {
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verEnunciadoModal('${p.id}')">Ver</button>
           <button class="btn btn-sm" onclick="verLatex('${p.id}')">LaTeX</button>
+          <button class="btn btn-sm" onclick="editarProblema('${p.id}')">Editar</button>
           <button class="btn btn-sm" onclick="marcarUsado('${p.id}')">Marcar usado</button>
           <button class="btn btn-sm btn-danger" onclick="borrarProblema('${p.id}')">Borrar</button>
         </div>
@@ -1455,6 +1707,7 @@ function renderExamenesBanco() {
         </div>
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verLatexExamen('${e.id}')">Ver LaTeX</button>
+          <button class="btn btn-sm" onclick="editarExamen('${e.id}')">Editar</button>
           <button class="btn btn-sm btn-danger" onclick="borrarExamen('${e.id}')">Borrar</button>
         </div>
       </div>
@@ -1650,6 +1903,7 @@ function showTab(name, el) {
   else document.querySelector('.tab[onclick*="' + name + '"]')?.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'config') actualizarUnidadesUI();
+  if (name === 'config-general') renderConfigGeneral();
   if (name === 'examenes') { actualizarFiltrosExamBanco(); }
   if (name === 'banco') renderExamenesBanco();
   if (name === 'pdfs') cargarRecursos();
@@ -1673,6 +1927,9 @@ function selectMode(mode, el) {
     document.getElementById('modo-'+m).style.display = m === mode ? 'block' : 'none');
   if (mode === 'similar') {
     poblarCursoSelect('ref-curso-select');
+    const unidadSel = document.getElementById('ref-unidad-select');
+    if (unidadSel) unidadSel.innerHTML = '<option value="">Todas las unidades</option>' +
+      (unidades[cursoActual]||[]).map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
     actualizarRefSelect();
   }
 }
@@ -1695,14 +1952,33 @@ function buildPrompt() {
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
   const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
 
+  const units = unidades[cursoActual] || [];
+  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n');
+
   const formato = `
-FORMATO OBLIGATORIO — devuelve SOLO el bloque LaTeX dentro de \`\`\`latex ... \`\`\`:
+FORMATO DE RESPUESTA OBLIGATORIO — devuelve SOLO un objeto JSON con esta estructura exacta (sin texto antes ni después, sin bloques markdown):
+{
+  "latex_enunciado": "\\\\item \\\\textbf{enunciado principal...} \\\\begin{enumerate}[a)]\\n  \\\\item \\\\textbf{[CE X.X]} texto apartado a.\\n  \\\\item \\\\textbf{[CE Y.Y]} texto apartado b.\\n\\\\end{enumerate}",
+  "unidad_id": "id_de_la_unidad_de_la_lista",
+  "unidades_ids": ["id1", "id2"],
+  "tipo": "contextualizado",
+  "tematica": "descripción breve del contexto",
+  "descripcion": "tipo de problema en 3-5 palabras (ej: Probabilidad total + Bayes)",
+  "num_apartados": 3,
+  "criterios": ["6.1", "8.2"],
+  "saberes": ["D.1.1.", "D.1.2."]
+}
+
+UNIDADES DEL CURSO:
+${unidadesListado}
+
+NORMAS LATEX:
 - Toda expresión matemática en $...$ o $$...$$
 - Sigue EXACTAMENTE este estilo de los exámenes del centro:
 ${EJEMPLO_PROBLEMA}
-- Estructura: \\item \\textbf{enunciado} seguido de \\begin{enumerate}[a)] con \\item \\textbf{[CE X.X, Y.Y]} por apartado
-- Apartados narrativamente conectados (misma función/datos a lo largo de todos)
-- Al final del bloque: %CRITERIOS: X.X,Y.Y y %SABERES: X.X.,Y.Y.`;
+- Apartados narrativamente conectados (misma función/datos)
+- criterios: solo los números sin "CE" (ej: "6.1")
+- unidades_ids: incluye TODAS las unidades del problema si hay varias`;
 
   if (currentMode === 'libre') {
     return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
@@ -1887,11 +2163,85 @@ ${tablaPlaceholder}
 \\end{document}
 \`\`\`
 
-Toda expresión matemática en $...$ o $$...$$. Devuelve el documento LaTeX COMPLETO con la tabla de criterios correctamente construida.`;
+Toda expresión matemática en $...$ o $$...$$. Devuelve el documento LaTeX COMPLETO con la tabla de criterios correctamente construida.
+
+ADEMÁS del LaTeX, devuelve también un array JSON con un objeto por cada ejercicio generado, en el siguiente formato (separado del LaTeX, después del bloque \`\`\`latex):
+
+\`\`\`json
+[
+  {
+    "latex_enunciado": "\\\\item \\\\textbf{...} \\\\begin{enumerate}[a)]\\n  \\\\item \\\\textbf{[CE 6.1]} Texto.\\n\\\\end{enumerate}",
+    "unidad_id": "id_de_la_unidad",
+    "unidades_ids": ["id1"],
+    "tipo": "contextualizado",
+    "tematica": "contexto breve",
+    "descripcion": "tipo en 3-5 palabras",
+    "num_apartados": 3,
+    "criterios": ["6.1", "8.2"],
+    "saberes": ["D.1.1."]
+  }
+]
+\`\`\`
+
+UNIDADES DEL CURSO para el JSON:
+${(unidades[cursoActual]||[]).map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n')}`;
 
   navigator.clipboard.writeText(prompt)
     .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
     .catch(() => toast('No se pudo copiar automáticamente'));
+}
+
+async function guardarExamenYEjercicios() {
+  // 1. Save the exam
+  await guardarExamen();
+
+  // 2. Parse and save individual exercises
+  const jsonTxt = document.getElementById('examen-jsons-pegado')?.value.trim();
+  if (!jsonTxt) return;
+
+  let items;
+  try {
+    const clean = jsonTxt.replace(/^```json?\s*/i,'').replace(/```\s*$/i,'').trim();
+    items = JSON.parse(clean);
+    if (!Array.isArray(items)) items = [items];
+  } catch(e) { toast('JSON de ejercicios no válido — el examen ya se guardó'); return; }
+
+  const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
+  const cursoAcad = document.getElementById('exam-json-curso')?.value || '2025/26';
+  const nivel = document.getElementById('exam-json-nivel')?.value || '2º Bachillerato';
+  const grupo = document.getElementById('exam-json-grupo')?.value || 'A';
+  const examN = document.getElementById('exam-json-examn')?.value || '1';
+  const examNStr = examN !== '1' ? ' · Examen ' + examN : '';
+
+  let guardados = 0;
+  for (let idx = 0; idx < items.length; idx++) {
+    const item = items[idx];
+    const ej = idx + 1;
+    const procedencia = 'Propio ' + cursoAcad + ' · ' + nivel + ' ' + grupo + examNStr + ' · Ej.' + ej;
+    const problema = {
+      unidad_id: item.unidad_id || '',
+      unidades_ids: item.unidades_ids || [],
+      tipo: item.tipo || 'contextualizado',
+      tematica: item.tematica || '',
+      descripcion: item.descripcion || '',
+      num_apartados: item.num_apartados || null,
+      latex_enunciado: item.latex_enunciado || '',
+      criterios: item.criterios || [],
+      saberes: item.saberes || [],
+      procedencia,
+      procedencia_detalle: { tipo:'Examen propio', curso: cursoAcad, nivel, grupo, ejercicio: String(ej), examN },
+      usado_por: [],
+      curso: cursoDB,
+      created_at: new Date().toISOString()
+    };
+    const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
+    if (saved && saved.length) banco.unshift(saved[0]);
+    else banco.unshift({...problema, id: Date.now().toString() + Math.random()});
+    guardados++;
+  }
+  guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
+  document.getElementById('examen-jsons-pegado').value = '';
+  toast('Examen guardado + ' + guardados + ' ejercicios al banco ✓');
 }
 
 // ── IMPORTAR MASIVO ───────────────────────────────────────────────────────────
@@ -2386,13 +2736,16 @@ async function guardarProblema() {
   const saberes = saberesRaw ? saberesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
   const proc = getProcedencia('');
   const descripcion = document.getElementById('descripcion-manual').value.trim();
-  const unidadId = currentMode === 'detallista' ? document.getElementById('unidad').value : '';
-  const tipoVal = currentMode === 'detallista' ? document.getElementById('tipo').value : '';
-  const tematicaVal = currentMode === 'detallista' ? document.getElementById('tematica').value : '';
-  const naptVal = currentMode === 'detallista' ? parseInt(document.getElementById('num-apartados').value) : 3;
+
+  // Prefer JSON fields if visible, else fall back to detallista fields
+  const jsonCamposVisible = document.getElementById('json-campos')?.style.display !== 'none';
+  let unidadId = jsonCamposVisible ? (document.getElementById('json-unidad')?.value || '') : (currentMode === 'detallista' ? document.getElementById('unidad').value : '');
+  let tipoVal = jsonCamposVisible ? (document.getElementById('json-tipo')?.value || 'contextualizado') : (currentMode === 'detallista' ? document.getElementById('tipo').value : '');
+  let tematicaVal = jsonCamposVisible ? (document.getElementById('json-tematica')?.value || '') : (currentMode === 'detallista' ? document.getElementById('tematica').value : '');
+  let naptVal = jsonCamposVisible ? (parseInt(document.getElementById('json-napt')?.value) || null) : (currentMode === 'detallista' ? parseInt(document.getElementById('num-apartados').value) : null);
 
   if (!unidadId) {
-    pendienteGuardar = { latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion };
+    pendienteGuardar = { latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal };
     document.getElementById('tematica-modal-input').value = tematicaVal || '';
     actualizarUnidadesUI();
     document.getElementById('modal-bloque').style.display = 'flex';
@@ -2435,6 +2788,10 @@ async function completarGuardar({ latex, criterios, saberes, procedencia, proced
   document.getElementById('criterios-manual').value = '';
   document.getElementById('saberes-manual').value = '';
   document.getElementById('descripcion-manual').value = '';
+  if (document.getElementById('json-pegado')) document.getElementById('json-pegado').value = '';
+  if (document.getElementById('json-tematica')) document.getElementById('json-tematica').value = '';
+  if (document.getElementById('json-napt')) document.getElementById('json-napt').value = '';
+  if (document.getElementById('json-campos')) document.getElementById('json-campos').style.display = 'none';
   document.getElementById('procedencia-select').value = 'IA';
   document.getElementById('procedencia-otro').style.display = 'none';
   document.getElementById('proc-pau-fields').style.display = 'none';
@@ -2655,52 +3012,43 @@ function getBancoRefOpts() {
   return { opts: buildRefOpts(filtered, units), units };
 }
 
-function renderExamBancoSlots() {
+function renderExamBancoSlots(savedVals) {
   const c = document.getElementById('exam-banco-slots');
   if (!c) return;
   const { opts } = getBancoRefOpts();
-  c.innerHTML = Array.from({length: examBancoSlots}, (_, i) => `
-    <div class="examen-slot" style="margin-bottom:8px;">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-        <span style="font-size:13px; font-weight:500; min-width:80px;">Ejercicio ${i+1}</span>
-      </div>
-      <select id="exam-banco-ref-${i}" onchange="mostrarPreviewExamBanco(${i})" style="font-size:13px; margin-bottom:4px;">${opts}</select>
-      <div id="exam-banco-preview-${i}" class="preview-box" style="display:none;"></div>
-    </div>`).join('');
-}
-
-function actualizarSlotsBancoFiltro() {
-  const { opts } = getBancoRefOpts();
-  for (let i = 0; i < examBancoSlots; i++) {
+  if (!savedVals) savedVals = Array.from({length: examBancoSlots}, (_, i) => {
+    const el = document.getElementById('exam-banco-ref-' + i);
+    return el ? el.value : '';
+  });
+  c.innerHTML = Array.from({length: examBancoSlots}, (_, i) =>
+    '<div class="examen-slot" style="margin-bottom:8px;">' +
+    '<span style="font-size:13px; font-weight:500; display:block; margin-bottom:4px;">Ejercicio ' + (i+1) + '</span>' +
+    '<select id="exam-banco-ref-' + i + '" onchange="mostrarPreviewExamBanco(' + i + ')" style="font-size:13px; margin-bottom:4px;">' + opts + '</select>' +
+    '<div id="exam-banco-preview-' + i + '" class="preview-box" style="display:none;"></div>' +
+    '</div>'
+  ).join('');
+  savedVals.forEach((val, i) => {
+    if (!val) return;
     const sel = document.getElementById('exam-banco-ref-' + i);
-    if (sel) {
-      const current = sel.value;
-      sel.innerHTML = opts;
-      if (current) sel.value = current;
-    }
-    const prev = document.getElementById('exam-banco-preview-' + i);
-    if (prev) prev.style.display = 'none';
-  }
-}
-
-function mostrarPreviewExamBanco(i) {
-  const id = document.getElementById('exam-banco-ref-' + i)?.value;
-  const prev = document.getElementById('exam-banco-preview-' + i);
-  if (!id || !prev) { if(prev) prev.style.display='none'; return; }
-  const { data } = getBancoParaExamBanco();
-  const p = data.find(x => x.id === id) || banco.find(x => x.id === id);
-  renderPreview(prev, p ? p.latex_enunciado : null);
+    if (sel) { sel.value = val; if (sel.value === val) mostrarPreviewExamBanco(i); }
+  });
 }
 
 function añadirSlotBanco() {
+  const saved = Array.from({length: examBancoSlots}, (_, i) => {
+    const el = document.getElementById('exam-banco-ref-' + i); return el ? el.value : '';
+  });
+  saved.push('');
   examBancoSlots++;
-  renderExamBancoSlots();
+  renderExamBancoSlots(saved);
+  document.getElementById('exam-banco-slots')?.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function quitarSlotBanco() {
   if (examBancoSlots <= 1) return;
+  const c = document.getElementById('exam-banco-slots');
+  if (c && c.lastElementChild) c.lastElementChild.remove();
   examBancoSlots--;
-  renderExamBancoSlots();
 }
 
 function actualizarFiltrosExamBanco() {
@@ -3007,17 +3355,63 @@ function verLatexExamen(id) {
   }
 }
 
+function setRespModo(modo) {
+  document.getElementById('resp-modo-json').style.display = modo === 'json' ? 'block' : 'none';
+  document.getElementById('resp-modo-latex').style.display = modo === 'latex' ? 'block' : 'none';
+  document.getElementById('resp-modo-json-btn').classList.toggle('active', modo === 'json');
+  document.getElementById('resp-modo-latex-btn').classList.toggle('active', modo === 'latex');
+}
+
+function poblarJsonUnidad() {
+  const sel = document.getElementById('json-unidad');
+  if (!sel) return;
+  const units = unidades[cursoActual] || [];
+  sel.innerHTML = units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+}
+
+function parsearJSONEjercicio() {
+  const txt = document.getElementById('json-pegado').value.trim();
+  if (!txt) { toast('Pega el JSON primero'); return; }
+  let data;
+  try {
+    const clean = txt.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '').trim();
+    data = JSON.parse(clean);
+    // If it's an array, take the first element
+    if (Array.isArray(data)) data = data[0];
+  } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
+
+  poblarJsonUnidad();
+  document.getElementById('latex-pegado').value = data.latex_enunciado || '';
+  // Set unidad
+  const unidadSel = document.getElementById('json-unidad');
+  if (unidadSel && data.unidad_id) unidadSel.value = data.unidad_id;
+  document.getElementById('json-tipo').value = data.tipo || 'contextualizado';
+  document.getElementById('json-tematica').value = data.tematica || '';
+  document.getElementById('json-napt').value = data.num_apartados || '';
+  document.getElementById('criterios-manual').value = (data.criterios||[]).join(', ');
+  document.getElementById('saberes-manual').value = (data.saberes||[]).join(', ');
+  document.getElementById('descripcion-manual').value = data.descripcion || '';
+  document.getElementById('json-campos').style.display = 'block';
+  toast('JSON interpretado — revisa y guarda ✓');
+}
+
+function usarLatexManual() {
+  const latex = document.getElementById('latex-pegado-manual').value.trim();
+  if (!latex) { toast('Pega el LaTeX primero'); return; }
+  poblarJsonUnidad();
+  document.getElementById('latex-pegado').value = latex;
+  document.getElementById('json-campos').style.display = 'block';
+  setRespModo('json');
+  toast('LaTeX cargado — rellena los campos y guarda');
+}
+
 function copiarLatex() {
   const txt = document.getElementById('latex-pegado').value;
   if (!txt) { toast('No hay LaTeX para copiar'); return; }
   navigator.clipboard.writeText(txt).then(() => toast('LaTeX copiado ✓'));
 }
 
-function copiarExamen() {
-  const txt = document.getElementById('examen-latex-pegado').value;
-  if (!txt) { toast('No hay LaTeX para copiar'); return; }
-  navigator.clipboard.writeText(txt).then(() => toast('Copiado — pégalo en Overleaf ✓'));
-}
+
 
 // ── EXPORT/IMPORT ─────────────────────────────────────────────────────────────
 function exportarJSON() {
@@ -3128,6 +3522,7 @@ function renderRecursos() {
       </div>
       <div style="display:flex; gap:4px; flex-shrink:0;">
         <a class="btn btn-sm btn-primary" href="${r.url||'#'}" target="_blank" rel="noopener">Abrir</a>
+        <button class="btn btn-sm" onclick="editarRecurso('${r.id}')">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="borrarRecurso('${r.id}')">Borrar</button>
       </div>
     </div>`).join('');
@@ -3161,6 +3556,155 @@ async function borrarRecurso(id) {
   localStorage.setItem('mf_recursos_' + cursoActual, JSON.stringify(recursos));
   renderRecursos();
   toast('Recurso borrado');
+}
+
+// ── EDITAR ────────────────────────────────────────────────────────────────────
+function editarProblema(id) {
+  const p = banco.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('edit-prob-id').value = id;
+  // Populate unidad selector
+  const units = unidades[cursoActual] || [];
+  document.getElementById('edit-prob-unidad').innerHTML =
+    units.map(u => '<option value="' + u.id + '"' + (u.id === p.unidad_id ? ' selected' : '') + '>' + u.nombre + '</option>').join('');
+  document.getElementById('edit-prob-tipo').value = p.tipo || 'contextualizado';
+  document.getElementById('edit-prob-tematica').value = p.tematica || '';
+  document.getElementById('edit-prob-napt').value = p.num_apartados || '';
+  document.getElementById('edit-prob-descripcion').value = p.descripcion || '';
+  document.getElementById('edit-prob-criterios').value = (p.criterios||[]).join(', ');
+  document.getElementById('edit-prob-latex').value = p.latex_enunciado || '';
+  document.getElementById('modal-editar-problema').style.display = 'flex';
+}
+
+async function guardarEdicionProblema() {
+  const id = document.getElementById('edit-prob-id').value;
+  const p = banco.find(x => x.id === id);
+  if (!p) return;
+  const criteriosRaw = document.getElementById('edit-prob-criterios').value;
+  const updates = {
+    unidad_id: document.getElementById('edit-prob-unidad').value,
+    tipo: document.getElementById('edit-prob-tipo').value,
+    tematica: document.getElementById('edit-prob-tematica').value.trim(),
+    num_apartados: parseInt(document.getElementById('edit-prob-napt').value) || null,
+    descripcion: document.getElementById('edit-prob-descripcion').value.trim(),
+    criterios: criteriosRaw.split(',').map(s => s.trim()).filter(Boolean),
+    latex_enunciado: document.getElementById('edit-prob-latex').value.trim(),
+  };
+  await sbFetch('problemas?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(updates) });
+  Object.assign(p, updates);
+  guardarLocal();
+  renderBanco();
+  cerrarModal('modal-editar-problema');
+  toast('Ejercicio actualizado ✓');
+}
+
+function editarRecurso(id) {
+  const r = recursos.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('edit-rec-id').value = id;
+  document.getElementById('edit-rec-nombre').value = r.nombre || '';
+  document.getElementById('edit-rec-url').value = r.url || '';
+  document.getElementById('edit-rec-desc').value = r.descripcion || '';
+  document.getElementById('modal-editar-recurso').style.display = 'flex';
+}
+
+async function guardarEdicionRecurso() {
+  const id = document.getElementById('edit-rec-id').value;
+  const r = recursos.find(x => x.id === id);
+  if (!r) return;
+  const updates = {
+    nombre: document.getElementById('edit-rec-nombre').value.trim(),
+    url: document.getElementById('edit-rec-url').value.trim(),
+    descripcion: document.getElementById('edit-rec-desc').value.trim(),
+  };
+  if (!updates.nombre || !updates.url) { toast('Nombre y URL son obligatorios'); return; }
+  await sbFetch('recursos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(updates) });
+  Object.assign(r, updates);
+  renderRecursos();
+  cerrarModal('modal-editar-recurso');
+  toast('Enlace actualizado ✓');
+}
+
+function editarExamen(id) {
+  const e = examenes.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('edit-exam-id').value = id;
+  document.getElementById('edit-exam-titulo').value = e.titulo || '';
+  document.getElementById('edit-exam-fecha').value = e.fecha || '';
+  document.getElementById('edit-exam-profesor').value = e.profesor || '';
+  document.getElementById('edit-exam-conv').value = e.convocatoria || 'Ordinaria';
+  document.getElementById('edit-exam-latex').value = e.latex || '';
+  document.getElementById('modal-editar-examen').style.display = 'flex';
+}
+
+async function guardarEdicionExamen() {
+  const id = document.getElementById('edit-exam-id').value;
+  const e = examenes.find(x => x.id === id);
+  if (!e) return;
+  const updates = {
+    titulo: document.getElementById('edit-exam-titulo').value.trim(),
+    fecha: document.getElementById('edit-exam-fecha').value,
+    profesor: document.getElementById('edit-exam-profesor').value.trim(),
+    convocatoria: document.getElementById('edit-exam-conv').value,
+    latex: document.getElementById('edit-exam-latex').value.trim(),
+  };
+  await sbFetch('examenes?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(updates) });
+  Object.assign(e, updates);
+  renderExamenesBanco();
+  cerrarModal('modal-editar-examen');
+  toast('Examen actualizado ✓');
+}
+
+// ── CONFIGURACIÓN GENERAL ─────────────────────────────────────────────────────
+function renderConfigGeneral() {
+  const list = document.getElementById('cursos-orden-list');
+  if (!list) return;
+  const claves = Object.keys(cursos);
+  list.innerHTML = claves.map((key, i) => `
+    <div class="problem-card" style="display:flex; align-items:center; gap:12px; cursor:grab; padding:10px 16px;" draggable="true"
+         ondragstart="dragCursoStart(event,'${key}')" ondragover="event.preventDefault()" ondrop="dragCursoDrop(event,'${key}')">
+      <span style="font-size:18px; color:var(--text3);">⠿</span>
+      <span style="font-size:14px; font-weight:500;">${cursos[key].label}</span>
+      <span style="font-size:12px; color:var(--text3); margin-left:auto;">id: ${key}</span>
+    </div>`).join('');
+
+  // Populate borrar select
+  const borrarSel = document.getElementById('curso-borrar-select');
+  if (borrarSel) borrarSel.innerHTML = claves
+    .filter(k => k !== cursoActual)
+    .map(k => '<option value="' + k + '">' + cursos[k].label + '</option>').join('');
+}
+
+let draggedCurso = null;
+function dragCursoStart(e, key) { draggedCurso = key; e.dataTransfer.effectAllowed = 'move'; }
+function dragCursoDrop(e, targetKey) {
+  e.preventDefault();
+  if (!draggedCurso || draggedCurso === targetKey) return;
+  const entries = Object.entries(cursos);
+  const fromIdx = entries.findIndex(([k]) => k === draggedCurso);
+  const toIdx = entries.findIndex(([k]) => k === targetKey);
+  entries.splice(toIdx, 0, entries.splice(fromIdx, 1)[0]);
+  cursos = Object.fromEntries(entries);
+  renderConfigGeneral();
+}
+
+function guardarOrdenCursos() {
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  renderCursoSelector();
+  toast('Orden guardado ✓');
+}
+
+function borrarCurso() {
+  const key = document.getElementById('curso-borrar-select')?.value;
+  if (!key) return;
+  if (!confirm('¿Eliminar el curso "' + cursos[key]?.label + '"? Los ejercicios en Supabase no se borran.')) return;
+  delete cursos[key];
+  delete unidades[key];
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  guardarUnidades();
+  renderCursoSelector();
+  renderConfigGeneral();
+  toast('Curso eliminado');
 }
 
 function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
