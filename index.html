@@ -113,6 +113,13 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .item-preview { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 6px; font-size: 12px; font-family: 'Courier New', monospace; line-height: 1.5; color: var(--text2); max-height: 80px; overflow: hidden; cursor: pointer; transition: all 0.15s; }
 .item-preview:hover { background: var(--surface2); }
 .item-preview.selected { border-color: var(--accent); background: var(--info-bg); color: var(--info-text); }
+.recurso-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 10px; display:flex; align-items:flex-start; gap:12px; transition: border 0.15s; }
+.recurso-card:hover { border-color: var(--border2); }
+.recurso-icon { font-size:24px; flex-shrink:0; margin-top:2px; }
+.recurso-body { flex:1; }
+.recurso-nombre { font-size:14px; font-weight:500; margin-bottom:3px; }
+.recurso-desc { font-size:12px; color:var(--text2); margin-bottom:6px; }
+.recurso-url { font-size:12px; color:var(--info-text); word-break:break-all; }
 #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 100px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
 #toast.show { opacity: 1; }
 @media (max-width: 600px) {
@@ -134,9 +141,10 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('generar',this)">Generar</button>
+    <button class="tab active" onclick="showTab('generar',this)">Generar ejercicio</button>
+    <button class="tab" onclick="showTab('examenes',this)">Generar examen</button>
     <button class="tab" onclick="showTab('banco',this)">Banco</button>
-    <button class="tab" onclick="showTab('examenes',this)">Exámenes</button>
+    <button class="tab" onclick="showTab('pdfs',this)">Exámenes PDF</button>
     <button class="tab" onclick="showTab('config',this)">Configuración</button>
   </div>
 
@@ -380,34 +388,49 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn btn-sm" onclick="mostrarImportar()">Importar JSON</button>
       </div>
     </div>
-    <div class="stats-grid">
-      <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">En el banco</div></div>
-      <div class="stat"><div class="stat-num" id="stat-usados">0</div><div class="stat-label">Usados</div></div>
-      <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
+
+    <!-- Subtabs -->
+    <div style="display:flex; gap:2px; margin-bottom:1.25rem; background:var(--surface2); border-radius:100px; padding:4px; width:fit-content;">
+      <button id="subtab-ejercicios-btn" class="tab active" style="border-radius:100px;" onclick="showSubtab('ejercicios')">Ejercicios</button>
+      <button id="subtab-examenes-btn" class="tab" style="border-radius:100px;" onclick="showSubtab('examenes-banco')">Exámenes</button>
     </div>
-    <div class="filter-bar">
-      <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
-      <select id="filtro-tipo" onchange="renderBanco()">
-        <option value="">Todos los tipos</option>
-        <option value="contextualizado">Contextualizado</option>
-        <option value="teorico">Teórico</option>
-        <option value="mixto">Mixto</option>
-      </select>
-      <select id="filtro-usado" onchange="renderBanco()">
-        <option value="">Todos</option><option value="no">Disponibles</option><option value="si">Ya usados</option>
-      </select>
-      <select id="filtro-procedencia" onchange="renderBanco()">
-        <option value="">Todas las procedencias</option>
-        <option value="IA">Generado por IA</option>
-        <option value="PAU">PAU</option>
-        <option value="Examen propio">Examen propio</option>
-        <option value="Libro de texto">Libro de texto</option>
-      </select>
+
+    <!-- Subtab ejercicios -->
+    <div id="subtab-ejercicios">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">En el banco</div></div>
+        <div class="stat"><div class="stat-num" id="stat-usados">0</div><div class="stat-label">Usados</div></div>
+        <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
+      </div>
+      <div class="filter-bar">
+        <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
+        <select id="filtro-tipo" onchange="renderBanco()">
+          <option value="">Todos los tipos</option>
+          <option value="contextualizado">Contextualizado</option>
+          <option value="teorico">Teórico</option>
+          <option value="mixto">Mixto</option>
+        </select>
+        <select id="filtro-usado" onchange="renderBanco()">
+          <option value="">Todos</option><option value="no">Disponibles</option><option value="si">Ya usados</option>
+        </select>
+        <select id="filtro-procedencia" onchange="renderBanco()">
+          <option value="">Todas las procedencias</option>
+          <option value="IA">Generado por IA</option>
+          <option value="PAU">PAU</option>
+          <option value="Examen propio">Examen propio</option>
+          <option value="Libro de texto">Libro de texto</option>
+        </select>
+      </div>
+      <div id="banco-container"><div class="empty">Cargando banco...</div></div>
     </div>
-    <div id="banco-container"><div class="empty">Cargando banco...</div></div>
+
+    <!-- Subtab exámenes -->
+    <div id="subtab-examenes-banco" style="display:none;">
+      <div id="examenes-banco-container" class="empty">Cargando exámenes...</div>
+    </div>
   </div>
 
-  <!-- EXÁMENES -->
+  <!-- GENERAR EXAMEN -->
   <div id="tab-examenes" class="panel">
     <div class="card">
       <div class="card-title">Nuevo examen</div>
@@ -444,11 +467,15 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
       </div>
     </div>
+  </div>
 
-    <div style="margin-top:1.5rem;">
-      <div style="font-size:13px; font-weight:500; margin-bottom:10px; color:var(--text2);">Exámenes guardados</div>
-      <div id="examenes-container" class="empty">Todavía no hay exámenes guardados.</div>
+  <!-- EXÁMENES PDF -->
+  <div id="tab-pdfs" class="panel">
+    <div class="sync-bar">
+      📂 <strong>Recursos compartidos</strong> — enlaces a carpetas de Drive del curso actual.
+      <button class="btn btn-sm btn-primary" style="margin-left:auto;" onclick="mostrarAddRecurso()">+ Añadir enlace</button>
     </div>
+    <div id="recursos-container"><div class="empty">Cargando recursos...</div></div>
   </div>
 
   <!-- CONFIGURACIÓN -->
@@ -462,6 +489,27 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <input type="text" id="nueva-unidad-saberes" placeholder="Saberes opcionales (ej: D.1.1., D.1.2.)">
         <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo recurso PDF -->
+<div id="modal-recurso" style="display:none;" class="modal-overlay">
+  <div class="modal">
+    <h3>Añadir enlace de recursos</h3>
+    <p>Añade un enlace a una carpeta de Drive u otro recurso compartido.</p>
+    <div class="field"><label>Nombre</label>
+      <input type="text" id="recurso-nombre" placeholder="Ej: Exámenes propios 2024/25, PAU por bloques...">
+    </div>
+    <div class="field"><label>URL</label>
+      <input type="text" id="recurso-url" placeholder="https://drive.google.com/...">
+    </div>
+    <div class="field"><label>Descripción (opcional)</label>
+      <input type="text" id="recurso-desc" placeholder="Ej: Carpeta con todos los exámenes del curso">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="guardarRecurso()">Añadir enlace</button>
+      <button class="btn" onclick="cerrarModal('modal-recurso')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -847,6 +895,7 @@ function setCurso(key, el) {
   el.classList.add('active');
   actualizarUnidadesUI();
   cargarBanco(); cargarExamenes();
+  if (document.getElementById('tab-pdfs').classList.contains('active')) cargarRecursos();
 }
 
 function actualizarUnidadesUI() {
@@ -1038,7 +1087,13 @@ function renderBanco() {
 }
 
 function renderExamenes() {
-  const c = document.getElementById('examenes-container');
+  // kept for compatibility — delegates to renderExamenesBanco
+  renderExamenesBanco();
+}
+
+function renderExamenesBanco() {
+  const c = document.getElementById('examenes-banco-container');
+  if (!c) return;
   if (!examenes.length) { c.className='empty'; c.innerHTML='Todavía no hay exámenes guardados.'; return; }
   c.className='';
   c.innerHTML = examenes.map(e => `
@@ -1046,7 +1101,7 @@ function renderExamenes() {
       <div class="problem-header">
         <div>
           <div class="problem-title">${e.titulo||'Examen sin título'}</div>
-          <div class="problem-meta">${e.profesor||''} · ${e.fecha||''} · ${e.convocatoria||''}</div>
+          <div class="problem-meta">${e.profesor||''} ${e.fecha ? '· '+e.fecha : ''} · ${e.convocatoria||''}</div>
         </div>
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verLatexExamen('${e.id}')">Ver LaTeX</button>
@@ -1185,9 +1240,22 @@ function quitarSlot() {
 function showTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
+  else document.querySelector('.tab[onclick*="' + name + '"]')?.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'config') actualizarUnidadesUI();
+  if (name === 'banco') renderExamenesBanco();
+  if (name === 'pdfs') cargarRecursos();
+}
+
+function showSubtab(name) {
+  ['ejercicios','examenes-banco'].forEach(s => {
+    const el = document.getElementById('subtab-' + s);
+    if (el) el.style.display = s === name ? 'block' : 'none';
+    const btn = document.getElementById('subtab-' + s + '-btn');
+    if (btn) btn.classList.toggle('active', s === name);
+  });
+  if (name === 'examenes-banco') renderExamenesBanco();
 }
 
 function selectMode(mode, el) {
@@ -1959,7 +2027,11 @@ function verLatex(id) {
 
 function verLatexExamen(id) {
   const e = examenes.find(x => x.id === id);
-  if (e) { document.getElementById('examen-latex-pegado').value = e.latex || ''; showTab('examenes', document.querySelectorAll('.tab')[2]); toast('LaTeX cargado'); }
+  if (e) {
+    document.getElementById('examen-latex-pegado').value = e.latex || '';
+    showTab('examenes', document.querySelectorAll('.tab')[1]);
+    toast('LaTeX cargado');
+  }
 }
 
 function copiarLatex() {
@@ -2052,6 +2124,70 @@ function procesarImport(txt) {
     guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); renderExamenes(); actualizarUnidadesUI(); actualizarSelectsExamen();
     toast(`Importados: ${ap} problemas, ${ae} exámenes ✓`);
   } catch { toast('Error al leer el JSON'); }
+}
+
+// ── RECURSOS PDF ──────────────────────────────────────────────────────────────
+let recursos = [];
+
+async function cargarRecursos() {
+  const c = document.getElementById('recursos-container');
+  if (!c) return;
+  c.innerHTML = '<div class="empty">Cargando...</div>';
+  const cursoDB = encodeURIComponent((cursos[cursoActual]||{}).curso_db || cursoActual);
+  const data = await sbFetch('recursos?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
+  if (data !== null) recursos = data;
+  else { const local = localStorage.getItem('mf_recursos_' + cursoActual); recursos = local ? JSON.parse(local) : []; }
+  renderRecursos();
+}
+
+function renderRecursos() {
+  const c = document.getElementById('recursos-container');
+  if (!c) return;
+  if (!recursos.length) { c.className = 'empty'; c.innerHTML = 'No hay recursos añadidos para este curso. Pulsa "+ Añadir enlace" para empezar.'; return; }
+  c.className = '';
+  c.innerHTML = recursos.map(r => `
+    <div class="recurso-card">
+      <div class="recurso-icon">📁</div>
+      <div class="recurso-body">
+        <div class="recurso-nombre">${r.nombre||'Sin nombre'}</div>
+        ${r.descripcion ? `<div class="recurso-desc">${r.descripcion}</div>` : ''}
+        <a class="recurso-url" href="${r.url||'#'}" target="_blank" rel="noopener">${r.url||''}</a>
+      </div>
+      <div style="display:flex; gap:4px; flex-shrink:0;">
+        <a class="btn btn-sm btn-primary" href="${r.url||'#'}" target="_blank" rel="noopener">Abrir</a>
+        <button class="btn btn-sm btn-danger" onclick="borrarRecurso('${r.id}')">Borrar</button>
+      </div>
+    </div>`).join('');
+}
+
+function mostrarAddRecurso() {
+  document.getElementById('recurso-nombre').value = '';
+  document.getElementById('recurso-url').value = '';
+  document.getElementById('recurso-desc').value = '';
+  document.getElementById('modal-recurso').style.display = 'flex';
+}
+
+async function guardarRecurso() {
+  const nombre = document.getElementById('recurso-nombre').value.trim();
+  const url = document.getElementById('recurso-url').value.trim();
+  const descripcion = document.getElementById('recurso-desc').value.trim();
+  if (!nombre || !url) { toast('Nombre y URL son obligatorios'); return; }
+  const recurso = { nombre, url, descripcion, curso: (cursos[cursoActual]||{}).curso_db || cursoActual, created_at: new Date().toISOString() };
+  const saved = await sbFetch('recursos', { method:'POST', body: JSON.stringify(recurso) });
+  if (saved && saved.length) recursos.unshift(saved[0]);
+  else { recursos.unshift({...recurso, id: Date.now().toString()}); localStorage.setItem('mf_recursos_' + cursoActual, JSON.stringify(recursos)); }
+  renderRecursos();
+  cerrarModal('modal-recurso');
+  toast('Recurso añadido ✓');
+}
+
+async function borrarRecurso(id) {
+  if (!confirm('¿Borrar este enlace?')) return;
+  await sbFetch('recursos?id=eq.' + id, { method:'DELETE' });
+  recursos = recursos.filter(r => r.id !== id);
+  localStorage.setItem('mf_recursos_' + cursoActual, JSON.stringify(recursos));
+  renderRecursos();
+  toast('Recurso borrado');
 }
 
 function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
