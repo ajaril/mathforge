@@ -141,7 +141,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="curso-selector" id="curso-selector">
       <!-- cursos se renderizan dinámicamente -->
     </div>
-    <button class="curso-btn-new" onclick="var m=document.getElementById('modal-nuevo-curso'); m.className=m.className.replace('modal-hidden','') + ' modal-visible'; document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''">+ Nuevo</button>
+    <button class="curso-btn-new" onclick="abrirNuevoCurso()">+ Nuevo</button>
   </div>
 
   <div class="tabs">
@@ -992,19 +992,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 </div>
 
 <!-- Modal nuevo curso -->
-<div id="modal-nuevo-curso" class="modal-overlay modal-hidden">
+<div id="modal-nuevo-curso" class="modal-overlay" style="display:none">
   <div class="modal">
     <h3>Nuevo curso</h3>
-    <p>Añade un nuevo curso al sistema. Podrás definir sus unidades desde Configuración.</p>
+    <p>Añade un nuevo curso. Podrás definir sus unidades desde Configuración.</p>
     <div class="field"><label>Nombre del curso</label>
       <input type="text" id="nuevo-curso-nombre" placeholder="Ej: 4º ESO, 1º Bach Ciencias...">
     </div>
-    <div class="field"><label>Identificador corto (sin espacios ni caracteres especiales)</label>
-      <input type="text" id="nuevo-curso-id" placeholder="Ej: 4eso, 1bach-cien">
+    <div class="field"><label>Identificador corto (sin espacios)</label>
+      <input type="text" id="nuevo-curso-id" placeholder="Ej: 4eso, 1bach">
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="crearCurso()">Crear curso</button>
-      <button class="btn" onclick="var m=document.getElementById('modal-nuevo-curso'); m.classList.remove('modal-visible'); m.classList.add('modal-hidden')">Cancelar</button>
+      <button class="btn" onclick="cerrarNuevoCurso()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1141,6 +1141,16 @@ function abrirModalNuevoCurso() {
   document.getElementById('modal-nuevo-curso').style.display = 'flex';
 }
 
+function abrirNuevoCurso() {
+  document.getElementById('nuevo-curso-nombre').value = '';
+  document.getElementById('nuevo-curso-id').value = '';
+  document.getElementById('modal-nuevo-curso').style.display = 'flex';
+}
+
+function cerrarNuevoCurso() {
+  document.getElementById('modal-nuevo-curso').style.display = 'none';
+}
+
 function crearCurso() {
   const nombre = document.getElementById('nuevo-curso-nombre').value.trim();
   const id = document.getElementById('nuevo-curso-id').value.trim().replace(/\s+/g, '-');
@@ -1150,11 +1160,7 @@ function crearCurso() {
   unidades[id] = [];
   localStorage.setItem('mf_cursos', JSON.stringify(cursos));
   guardarUnidades();
-  const m = document.getElementById('modal-nuevo-curso');
-  m.classList.remove('modal-visible');
-  m.classList.add('modal-hidden');
-  document.getElementById('nuevo-curso-nombre').value = '';
-  document.getElementById('nuevo-curso-id').value = '';
+  cerrarNuevoCurso();
   renderCursoSelector();
   toast('Curso "' + nombre + '" creado ✓');
 }
@@ -2565,7 +2571,7 @@ async function borrarExamen(id) {
 }
 
 function verEnunciadoModal(id) {
-  const p = banco.find(x => x.id === id);
+  const p = banco.find(x => x.id === id) || (examBancoCruzado||[]).find(x => x.id === id);
   if (!p) return;
   const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
   document.getElementById('modal-enunciado-titulo').textContent = (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática');
@@ -2675,13 +2681,15 @@ function renderExamBancoSelector() {
   c.innerHTML = filtrados.map(p => {
     const unidad = unitsParaCurso.find(x => x.id === p.unidad_id);
     const sel = examBancoSeleccionados.has(p.id);
-    return '<div class="problem-card" style="cursor:pointer;' + (sel ? 'border-color:var(--accent);background:var(--info-bg);' : '') + '" onclick="toggleExamBanco(\'' + p.id + '\')" id="exam-banco-card-' + p.id + '">' +
-      '<div style="display:flex;align-items:center;gap:10px;">' +
-        '<input type="checkbox" ' + (sel ? 'checked' : '') + ' style="flex-shrink:0;" onclick="event.stopPropagation();toggleExamBanco(\'' + p.id + '\')">' +
-        '<div>' +
+    const ces = (p.criterios||[]).map(c => 'CE ' + c).join(', ');
+    return '<div class="problem-card" style="' + (sel ? 'border-color:var(--accent);background:var(--info-bg);' : '') + '">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;">' +
+        '<input type="checkbox" ' + (sel ? 'checked' : '') + ' style="flex-shrink:0;margin-top:4px;" onchange="toggleExamBanco(\'' + p.id + '\')">' +
+        '<div style="flex:1;cursor:pointer;" onclick="toggleExamBanco(\'' + p.id + '\')">' +
           '<div style="font-size:13px;font-weight:500;">' + (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática') + ' · ' + (p.num_apartados||'?') + ' apt.</div>' +
-          '<div style="font-size:11px;color:var(--text2);">' + (p.procedencia||'') + (p.descripcion ? ' · ' + p.descripcion : '') + '</div>' +
+          '<div style="font-size:11px;color:var(--text2);">' + (p.procedencia||'') + (p.descripcion ? ' · ' + p.descripcion : '') + (ces ? ' · ' + ces : '') + '</div>' +
         '</div>' +
+        '<button class="btn btn-sm" style="flex-shrink:0;" onclick="event.stopPropagation();verEnunciadoModal(\'' + p.id + '\')">Ver</button>' +
       '</div>' +
     '</div>';
   }).join('');
