@@ -138,7 +138,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="curso-selector" id="curso-selector">
       <!-- cursos se renderizan dinámicamente -->
     </div>
-    <button class="curso-btn-new" onclick="document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''; document.getElementById('modal-nuevo-curso').style.display='flex'">+ Nuevo</button>
+    <button class="curso-btn-new" id="btn-nuevo-static" onclick="this.blur(); var m=document.getElementById('modal-nuevo-curso'); m.style.cssText='display:flex !important'; document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''">+ Nuevo</button>
   </div>
 
   <div class="tabs">
@@ -492,6 +492,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Selecciona los ejercicios del banco</label>
           <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Filtra y marca los ejercicios que quieres incluir. Se generará el LaTeX del examen completo con ellos tal cual.</p>
           <div class="filter-bar" style="margin-bottom:10px;">
+            <select id="exam-banco-curso" onchange="cambiarCursoExamBanco()" style="font-size:13px; font-weight:500; border-color:var(--accent);"></select>
             <select id="exam-banco-filtro-unidad" onchange="renderExamBancoSelector()"><option value="">Todas las unidades</option></select>
             <select id="exam-banco-filtro-tipo" onchange="renderExamBancoSelector()">
               <option value="">Todos los tipos</option>
@@ -988,19 +989,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 </div>
 
 <!-- Modal nuevo curso -->
-<div id="modal-nuevo-curso" style="display:none;" class="modal-overlay">
+<div id="modal-nuevo-curso" class="modal-overlay" style="display:none;">
   <div class="modal">
     <h3>Nuevo curso</h3>
     <p>Añade un nuevo curso al sistema. Podrás definir sus unidades desde Configuración.</p>
     <div class="field"><label>Nombre del curso</label>
       <input type="text" id="nuevo-curso-nombre" placeholder="Ej: 4º ESO, 1º Bach Ciencias...">
     </div>
-    <div class="field"><label>Identificador corto</label>
-      <input type="text" id="nuevo-curso-id" placeholder="Ej: 4eso, 1bach-cien (sin espacios)">
+    <div class="field"><label>Identificador corto (sin espacios ni caracteres especiales)</label>
+      <input type="text" id="nuevo-curso-id" placeholder="Ej: 4eso, 1bach-cien">
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="crearCurso()">Crear curso</button>
-      <button class="btn" onclick="cerrarModal('modal-nuevo-curso')">Cancelar</button>
+      <button class="btn" onclick="document.getElementById('modal-nuevo-curso').style.cssText=''">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1146,11 +1147,11 @@ function crearCurso() {
   unidades[id] = [];
   localStorage.setItem('mf_cursos', JSON.stringify(cursos));
   guardarUnidades();
-  cerrarModal('modal-nuevo-curso');
+  document.getElementById('modal-nuevo-curso').style.cssText = '';
   document.getElementById('nuevo-curso-nombre').value = '';
   document.getElementById('nuevo-curso-id').value = '';
   renderCursoSelector();
-  toast('Curso creado ✓');
+  toast('Curso "' + nombre + '" creado ✓');
 }
 
 // ── DATOS ─────────────────────────────────────────────────────────────────────
@@ -2585,9 +2586,48 @@ function setExamModo(modo) {
 }
 
 function actualizarFiltrosExamBanco() {
-  const units = unidades[cursoActual] || [];
+  // Populate curso selector
+  const cursosEl = document.getElementById('exam-banco-curso');
+  if (cursosEl) {
+    cursosEl.innerHTML = Object.entries(cursos).map(([key, c]) =>
+      '<option value="' + key + '"' + (key === cursoActual ? ' selected' : '') + '>' + c.label + '</option>'
+    ).join('');
+  }
+  // Populate unidades for current exam-banco course
+  const cursoKey = cursosEl?.value || cursoActual;
+  const units = unidades[cursoKey] || [];
   const sel = document.getElementById('exam-banco-filtro-unidad');
   if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+}
+
+// Cache for cross-course banco data
+let examBancoCruzado = null;
+let examBancoCruzadoCurso = null;
+
+async function cambiarCursoExamBanco() {
+  const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
+  // Update unidades filter
+  const units = unidades[cursoKey] || [];
+  const sel = document.getElementById('exam-banco-filtro-unidad');
+  if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+  // Load banco for that course if different
+  if (cursoKey !== cursoActual) {
+    const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
+    const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
+    examBancoCruzado = data || [];
+    examBancoCruzadoCurso = cursoKey;
+  } else {
+    examBancoCruzado = null;
+    examBancoCruzadoCurso = null;
+  }
+  examBancoSeleccionados.clear();
+  renderExamBancoSelector();
+}
+
+function getExamBancoActual() {
+  const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
+  if (cursoKey !== cursoActual && examBancoCruzado) return { bancoData: examBancoCruzado, cursoKey };
+  return { bancoData: banco, cursoKey: cursoActual };
 }
 
 function renderExamBancoSelector() {
@@ -2595,15 +2635,22 @@ function renderExamBancoSelector() {
   const fu = document.getElementById('exam-banco-filtro-unidad')?.value || '';
   const ft = document.getElementById('exam-banco-filtro-tipo')?.value || '';
   const fp = document.getElementById('exam-banco-filtro-proc')?.value || '';
-  let filtrados = banco.filter(p => {
-    if (fu && p.unidad_id !== fu) return false;
+  const { bancoData, cursoKey } = getExamBancoActual();
+  const unitsParaCurso = unidades[cursoKey] || [];
+
+  let filtrados = bancoData.filter(p => {
+    if (fu) {
+      const enPrincipal = p.unidad_id === fu;
+      const enArray = Array.isArray(p.unidades_ids) && p.unidades_ids.includes(fu);
+      if (!enPrincipal && !enArray) return false;
+    }
     if (ft && p.tipo !== ft) return false;
     if (fp && !(p.procedencia||'').includes(fp)) return false;
     return true;
   });
   if (!filtrados.length) { c.innerHTML = '<div class="empty" style="padding:1rem;">No hay ejercicios con estos filtros.</div>'; return; }
   c.innerHTML = filtrados.map(p => {
-    const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+    const unidad = unitsParaCurso.find(x => x.id === p.unidad_id);
     const sel = examBancoSeleccionados.has(p.id);
     return '<div class="problem-card" style="cursor:pointer;' + (sel ? 'border-color:var(--accent);background:var(--info-bg);' : '') + '" onclick="toggleExamBanco(\'' + p.id + '\')" id="exam-banco-card-' + p.id + '">' +
       '<div style="display:flex;align-items:center;gap:10px;">' +
@@ -2637,7 +2684,8 @@ function generarExamenDesdeBanco() {
   const conv = document.getElementById('exam-banco-conv').value;
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
 
-  const ejerciciosSeleccionados = [...examBancoSeleccionados].map(id => banco.find(p => p.id === id)).filter(Boolean);
+  const { bancoData } = getExamBancoActual();
+  const ejerciciosSeleccionados = [...examBancoSeleccionados].map(id => bancoData.find(p => p.id === id) || banco.find(p => p.id === id)).filter(Boolean);
 
   // Recoger todos los criterios únicos para la tabla
   const todosLosCE = new Set();
