@@ -394,6 +394,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       💾 <strong id="sync-status-text">Conectando...</strong>
       <div style="display:flex; gap:6px; margin-left:auto; flex-wrap:wrap;">
         <button class="btn btn-sm" onclick="mostrarImportarMasivo()">Importar LaTeX masivo</button>
+        <button class="btn btn-sm" onclick="mostrarImportarPDF()">Importar desde PDF</button>
         <button class="btn btn-sm" onclick="exportarJSON()">Exportar JSON</button>
         <button class="btn btn-sm" onclick="mostrarImportar()">Importar JSON</button>
       </div>
@@ -442,39 +443,92 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- GENERAR EXAMEN -->
   <div id="tab-examenes" class="panel">
-    <div class="card">
-      <div class="card-title">Nuevo examen</div>
-      <div class="row">
-        <div><label>Título</label><input type="text" id="exam-titulo" placeholder="Ej: Examen Tema 4 — Probabilidad"></div>
-        <div><label>Fecha</label><input type="date" id="exam-fecha"></div>
-      </div>
-      <div class="row">
-        <div><label>Profesor</label><input type="text" id="exam-profesor" placeholder="Nombre"></div>
-        <div><label>Convocatoria</label><select id="exam-conv"><option>Ordinaria</option><option>Extraordinaria</option><option>Recuperación</option></select></div>
-      </div>
-
-      <div class="field">
-        <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Estructura del examen</label>
-        <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Define cada pregunta. Puedes elegir un problema del banco como referencia para cada slot, o dejarlo libre para que Claude decida.</p>
-        <div id="exam-slots-container"></div>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <button class="btn btn-sm" onclick="añadirSlot()">+ Añadir pregunta</button>
-          <button class="btn btn-sm btn-danger" onclick="quitarSlot()">− Quitar última</button>
-        </div>
-      </div>
-
-      <div class="field"><label>Instrucciones adicionales para Claude (opcional)</label>
-        <textarea id="exam-desc" placeholder="Ej: temática sevillana, mezcla de tipos..."></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
+    <!-- Selector de modo -->
+    <div style="display:flex; gap:2px; margin-bottom:1.25rem; background:var(--surface2); border-radius:100px; padding:4px; width:fit-content;">
+      <button id="exam-modo-ia-btn" class="tab active" style="border-radius:100px;" onclick="setExamModo('ia')">Con IA (Claude)</button>
+      <button id="exam-modo-banco-btn" class="tab" style="border-radius:100px;" onclick="setExamModo('banco')">Del banco directamente</button>
     </div>
 
-    <div class="card" style="border-style:dashed;">
-      <div class="card-title">Pega aquí el LaTeX del examen</div>
-      <div class="paste-area"><textarea id="examen-latex-pegado" placeholder="Pega aquí el LaTeX del examen completo..."></textarea></div>
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <button class="btn btn-primary" onclick="guardarExamen()">Guardar examen</button>
-        <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
+    <!-- MODO IA -->
+    <div id="exam-modo-ia">
+      <div class="card">
+        <div class="card-title">Nuevo examen con IA</div>
+        <div class="row">
+          <div><label>Título</label><input type="text" id="exam-titulo" placeholder="Ej: Examen Tema 4 — Probabilidad"></div>
+          <div><label>Fecha</label><input type="date" id="exam-fecha"></div>
+        </div>
+        <div class="row">
+          <div><label>Profesor</label><input type="text" id="exam-profesor" placeholder="Nombre"></div>
+          <div><label>Convocatoria</label><select id="exam-conv"><option>Ordinaria</option><option>Extraordinaria</option><option>Recuperación</option></select></div>
+        </div>
+        <div class="field">
+          <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Estructura del examen</label>
+          <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Define cada pregunta. Puedes elegir un problema del banco como referencia para cada slot, o dejarlo libre para que Claude decida.</p>
+          <div id="exam-slots-container"></div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-sm" onclick="añadirSlot()">+ Añadir pregunta</button>
+            <button class="btn btn-sm btn-danger" onclick="quitarSlot()">− Quitar última</button>
+          </div>
+        </div>
+        <div class="field"><label>Instrucciones adicionales para Claude (opcional)</label>
+          <textarea id="exam-desc" placeholder="Ej: temática sevillana, mezcla de tipos..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
+      </div>
+      <div class="card" style="border-style:dashed;">
+        <div class="card-title">Pega aquí el LaTeX del examen</div>
+        <div class="paste-area"><textarea id="examen-latex-pegado" placeholder="Pega aquí el LaTeX del examen completo..."></textarea></div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn btn-primary" onclick="guardarExamen()">Guardar examen</button>
+          <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODO BANCO DIRECTO -->
+    <div id="exam-modo-banco" style="display:none;">
+      <div class="card">
+        <div class="card-title">Examen directo del banco</div>
+        <div class="row">
+          <div><label>Título</label><input type="text" id="exam-banco-titulo" placeholder="Ej: Examen Tema 4 — Probabilidad"></div>
+          <div><label>Fecha</label><input type="date" id="exam-banco-fecha"></div>
+        </div>
+        <div class="row">
+          <div><label>Profesor</label><input type="text" id="exam-banco-profesor" placeholder="Nombre"></div>
+          <div><label>Convocatoria</label><select id="exam-banco-conv"><option>Ordinaria</option><option>Extraordinaria</option><option>Recuperación</option></select></div>
+        </div>
+        <div class="field">
+          <label style="font-weight:500; color:var(--text); margin-bottom:8px;">Selecciona los ejercicios del banco</label>
+          <p style="font-size:12px; color:var(--text2); margin-bottom:10px;">Filtra y marca los ejercicios que quieres incluir. Se generará el LaTeX del examen completo con ellos tal cual.</p>
+          <div class="filter-bar" style="margin-bottom:10px;">
+            <select id="exam-banco-filtro-unidad" onchange="renderExamBancoSelector()"><option value="">Todas las unidades</option></select>
+            <select id="exam-banco-filtro-tipo" onchange="renderExamBancoSelector()">
+              <option value="">Todos los tipos</option>
+              <option value="contextualizado">Contextualizado</option>
+              <option value="teorico">Teórico</option>
+              <option value="mixto">Mixto</option>
+            </select>
+            <select id="exam-banco-filtro-proc" onchange="renderExamBancoSelector()">
+              <option value="">Todas las procedencias</option>
+              <option value="IA">IA</option>
+              <option value="PAU">PAU</option>
+              <option value="Propio">Examen propio</option>
+            </select>
+          </div>
+          <div id="exam-banco-selector"></div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="generarExamenDesdeBanco()">Generar LaTeX del examen</button>
+          <span id="exam-banco-seleccionados" style="font-size:13px; color:var(--text2); align-self:center;">0 ejercicios seleccionados</span>
+        </div>
+      </div>
+      <div class="card" style="border-style:dashed; display:none;" id="exam-banco-result-card">
+        <div class="card-title">LaTeX del examen generado</div>
+        <div class="paste-area"><textarea id="exam-banco-latex-result" style="min-height:200px;" readonly></textarea></div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn btn-primary" onclick="guardarExamenBanco()">Guardar examen</button>
+          <button class="btn" onclick="copiarExamenBanco()">Copiar para Overleaf</button>
+        </div>
       </div>
     </div>
   </div>
@@ -520,6 +574,94 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="guardarRecurso()">Añadir enlace</button>
       <button class="btn" onclick="cerrarModal('modal-recurso')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ver enunciado -->
+<div id="modal-ver-enunciado" style="display:none;" class="modal-overlay">
+  <div class="modal" style="max-width:700px;">
+    <h3 id="modal-enunciado-titulo">Enunciado</h3>
+    <p id="modal-enunciado-meta" style="margin-bottom:12px;"></p>
+    <div id="modal-enunciado-render" class="preview-box" style="max-height:400px; font-size:14px; line-height:1.8;"></div>
+    <div style="margin-top:12px;">
+      <details>
+        <summary style="font-size:12px; color:var(--text2); cursor:pointer;">Ver código LaTeX</summary>
+        <textarea id="modal-enunciado-latex" readonly style="font-family:'Courier New',monospace; font-size:11px; margin-top:8px; min-height:120px; background:var(--surface2);"></textarea>
+      </details>
+    </div>
+    <div class="modal-actions" style="margin-top:12px;">
+      <button class="btn" onclick="copiarLatexModal()">Copiar LaTeX</button>
+      <button class="btn btn-primary" onclick="cerrarModal('modal-ver-enunciado')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal importar PDF vía Claude -->
+<div id="modal-importar-pdf" style="display:none;" class="modal-overlay">
+  <div class="modal" style="max-width:680px;">
+    <h3>Importar desde PDF vía Claude</h3>
+    <p>MathForge prepara el prompt para Claude. Tú llevas el PDF a Claude, pegas el prompt y Claude devuelve un JSON que importas aquí directamente.</p>
+
+    <div class="field">
+      <label>Tipo de PDF</label>
+      <div class="mode-cards" style="grid-template-columns:1fr 1fr; margin-bottom:12px;">
+        <div class="mode-card selected" id="pdf-tipo-examen-card" onclick="setPdfTipo('examen',this)">
+          <div class="mode-title">Examen completo PAU</div>
+          <div class="mode-desc">Un examen PAU entero con todos sus bloques y ejercicios</div>
+        </div>
+        <div class="mode-card" id="pdf-tipo-coleccion-card" onclick="setPdfTipo('coleccion',this)">
+          <div class="mode-title">Colección por tema</div>
+          <div class="mode-desc">PDF con ejercicios resueltos agrupados por tema (varios exámenes)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos PAU examen completo -->
+    <div id="pdf-datos-examen">
+      <div class="row">
+        <div><label style="font-size:12px;">Año</label>
+          <select id="pdf-pau-anyo" style="font-size:13px;">
+            <option value="2026">2026</option><option value="2025" selected>2025</option><option value="2024">2024</option>
+            <option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option>
+            <option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option>
+            <option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option>
+            <option value="2014">2014</option><option value="2013">2013</option><option value="2000">2000</option>
+          </select>
+        </div>
+        <div><label style="font-size:12px;">Convocatoria</label>
+          <select id="pdf-pau-conv" style="font-size:13px;">
+            <option value="Ordinaria">Ordinaria (Junio)</option>
+            <option value="Extraordinaria">Extraordinaria (Julio/Sept)</option>
+            <option value="Reserva 1">Reserva 1</option><option value="Reserva 2">Reserva 2</option>
+            <option value="Reserva 3">Reserva 3</option><option value="Reserva 4">Reserva 4</option>
+            <option value="Reserva 5">Reserva 5</option><option value="Reserva 6">Reserva 6</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos colección por tema -->
+    <div id="pdf-datos-coleccion" style="display:none;">
+      <div class="info-box" style="margin-bottom:8px;">En los PDFs de colección por tema, Claude detectará automáticamente el año, convocatoria y ejercicio de cada problema desde el encabezado del problema.</div>
+    </div>
+
+    <div class="field" style="margin-top:4px;">
+      <label>Unidad didáctica (para todos los ejercicios del PDF)</label>
+      <select id="pdf-unidad" style="font-size:13px;"></select>
+    </div>
+
+    <div class="modal-actions" style="margin-top:8px;">
+      <button class="btn btn-primary" onclick="generarPromptPDF()">Generar prompt → copiar y abrir Claude</button>
+      <button class="btn" onclick="cerrarModal('modal-importar-pdf')">Cancelar</button>
+    </div>
+
+    <div id="pdf-paso2" style="display:none; margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem;">
+      <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Paso 2: Pega el JSON que te ha devuelto Claude</p>
+      <textarea id="pdf-json-input" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:150px; background:var(--surface2); margin-bottom:8px;"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="importarJSONdePDF()">Importar al banco</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1088,7 +1230,8 @@ function renderBanco() {
           <div class="problem-meta">${p.tipo||''} ${usado ? '· '+usadoPor : ''}</div>
         </div>
         <div class="problem-actions">
-          <button class="btn btn-sm" onclick="verLatex('${p.id}')">Ver LaTeX</button>
+          <button class="btn btn-sm" onclick="verEnunciadoModal('${p.id}')">Ver</button>
+          <button class="btn btn-sm" onclick="verLatex('${p.id}')">LaTeX</button>
           <button class="btn btn-sm" onclick="marcarUsado('${p.id}')">Marcar usado</button>
           <button class="btn btn-sm btn-danger" onclick="borrarProblema('${p.id}')">Borrar</button>
         </div>
@@ -1257,6 +1400,7 @@ function showTab(name, el) {
   else document.querySelector('.tab[onclick*="' + name + '"]')?.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'config') actualizarUnidadesUI();
+  if (name === 'examenes') { actualizarFiltrosExamBanco(); }
   if (name === 'banco') renderExamenesBanco();
   if (name === 'pdfs') cargarRecursos();
 }
@@ -2046,9 +2190,313 @@ async function borrarExamen(id) {
   toast('Examen borrado');
 }
 
+function verEnunciadoModal(id) {
+  const p = banco.find(x => x.id === id);
+  if (!p) return;
+  const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+  document.getElementById('modal-enunciado-titulo').textContent = (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática');
+  document.getElementById('modal-enunciado-meta').textContent = (p.tipo||'') + (p.procedencia ? ' · ' + p.procedencia : '') + (p.descripcion ? ' · ' + p.descripcion : '');
+  document.getElementById('modal-enunciado-latex').value = p.latex_enunciado || '';
+  const renderEl = document.getElementById('modal-enunciado-render');
+  renderPreview(renderEl, p.latex_enunciado);
+  document.getElementById('modal-ver-enunciado').style.display = 'flex';
+}
+
+function copiarLatexModal() {
+  const txt = document.getElementById('modal-enunciado-latex').value;
+  navigator.clipboard.writeText(txt).then(() => toast('LaTeX copiado ✓'));
+}
+
 function verLatex(id) {
   const p = banco.find(x => x.id === id);
-  if (p) { document.getElementById('latex-pegado').value = p.latex_enunciado || ''; showTab('generar', document.querySelectorAll('.tab')[0]); toast('LaTeX cargado'); }
+  if (!p) return;
+  document.getElementById('modal-enunciado-latex').value = p.latex_enunciado || '';
+  // Open modal showing LaTeX directly expanded
+  const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+  document.getElementById('modal-enunciado-titulo').textContent = (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática');
+  document.getElementById('modal-enunciado-meta').textContent = (p.tipo||'') + (p.procedencia ? ' · ' + p.procedencia : '');
+  const renderEl = document.getElementById('modal-enunciado-render');
+  renderPreview(renderEl, p.latex_enunciado);
+  // Auto-expand the LaTeX details
+  const details = document.querySelector('#modal-ver-enunciado details');
+  if (details) details.open = true;
+  document.getElementById('modal-ver-enunciado').style.display = 'flex';
+}
+
+// ── EXAMEN DIRECTO DEL BANCO ──────────────────────────────────────────────────
+let examBancoSeleccionados = new Set();
+
+function setExamModo(modo) {
+  document.getElementById('exam-modo-ia').style.display = modo === 'ia' ? 'block' : 'none';
+  document.getElementById('exam-modo-banco').style.display = modo === 'banco' ? 'block' : 'none';
+  document.getElementById('exam-modo-ia-btn').classList.toggle('active', modo === 'ia');
+  document.getElementById('exam-modo-banco-btn').classList.toggle('active', modo === 'banco');
+  if (modo === 'banco') { actualizarFiltrosExamBanco(); renderExamBancoSelector(); }
+}
+
+function actualizarFiltrosExamBanco() {
+  const units = unidades[cursoActual] || [];
+  const sel = document.getElementById('exam-banco-filtro-unidad');
+  if (sel) sel.innerHTML = '<option value="">Todas las unidades</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+  const pdfSel = document.getElementById('pdf-unidad');
+  if (pdfSel) pdfSel.innerHTML = units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+}
+
+function renderExamBancoSelector() {
+  const c = document.getElementById('exam-banco-selector');
+  const fu = document.getElementById('exam-banco-filtro-unidad')?.value || '';
+  const ft = document.getElementById('exam-banco-filtro-tipo')?.value || '';
+  const fp = document.getElementById('exam-banco-filtro-proc')?.value || '';
+  let filtrados = banco.filter(p => {
+    if (fu && p.unidad_id !== fu) return false;
+    if (ft && p.tipo !== ft) return false;
+    if (fp && !(p.procedencia||'').includes(fp)) return false;
+    return true;
+  });
+  if (!filtrados.length) { c.innerHTML = '<div class="empty" style="padding:1rem;">No hay ejercicios con estos filtros.</div>'; return; }
+  c.innerHTML = filtrados.map(p => {
+    const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+    const sel = examBancoSeleccionados.has(p.id);
+    return '<div class="problem-card" style="cursor:pointer;' + (sel ? 'border-color:var(--accent);background:var(--info-bg);' : '') + '" onclick="toggleExamBanco(\'' + p.id + '\')" id="exam-banco-card-' + p.id + '">' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<input type="checkbox" ' + (sel ? 'checked' : '') + ' style="flex-shrink:0;" onclick="event.stopPropagation();toggleExamBanco(\'' + p.id + '\')">' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:500;">' + (unidad ? unidad.nombre : '?') + ' · ' + (p.tematica || 'Sin temática') + ' · ' + (p.num_apartados||'?') + ' apt.</div>' +
+          '<div style="font-size:11px;color:var(--text2);">' + (p.procedencia||'') + (p.descripcion ? ' · ' + p.descripcion : '') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  actualizarContadorExamBanco();
+}
+
+function toggleExamBanco(id) {
+  if (examBancoSeleccionados.has(id)) examBancoSeleccionados.delete(id);
+  else examBancoSeleccionados.add(id);
+  renderExamBancoSelector();
+}
+
+function actualizarContadorExamBanco() {
+  const el = document.getElementById('exam-banco-seleccionados');
+  if (el) el.textContent = examBancoSeleccionados.size + ' ejercicio' + (examBancoSeleccionados.size !== 1 ? 's' : '') + ' seleccionado' + (examBancoSeleccionados.size !== 1 ? 's' : '');
+}
+
+function generarExamenDesdeBanco() {
+  if (!examBancoSeleccionados.size) { toast('Selecciona al menos un ejercicio'); return; }
+  const titulo = document.getElementById('exam-banco-titulo').value || 'Examen';
+  const fecha = document.getElementById('exam-banco-fecha').value || new Date().toLocaleDateString('es-ES');
+  const profesor = document.getElementById('exam-banco-profesor').value || '';
+  const conv = document.getElementById('exam-banco-conv').value;
+  const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
+
+  const ejerciciosSeleccionados = [...examBancoSeleccionados].map(id => banco.find(p => p.id === id)).filter(Boolean);
+
+  // Recoger todos los criterios únicos para la tabla
+  const todosLosCE = new Set();
+  ejerciciosSeleccionados.forEach(p => (p.criterios||[]).forEach(c => todosLosCE.add(c)));
+  const cesOrdenados = [...todosLosCE].sort();
+  const nCE = cesOrdenados.length || 3;
+
+  const tablaTE = '\\begin{tabular}{|' + Array(nCE).fill(' c |').join('') + '}\n' +
+    '\\hline\n' +
+    '\\multicolumn{' + nCE + '}{ |c| }{Calificación de CE} \\\\ \\hline\n' +
+    cesOrdenados.map(c => 'CE ' + c).join(' & ') + ' \\\\ \\hline\n' +
+    cesOrdenados.map(() => ' ').join(' & ') + ' \\\\\n' +
+    cesOrdenados.map(() => ' ').join(' & ') + ' \\\\\n' +
+    '\\hline\n\\end{tabular}';
+
+  const problemasLatex = ejerciciosSeleccionados.map((p, i) =>
+    '\n\\vspace{0.5cm}\n' + (p.latex_enunciado || '')
+  ).join('\n');
+
+  const latex = PLANTILLA_LATEX + '\n\n' +
+    '\\begin{document}\n' +
+    '\\renewcommand*{\\headrulewidth}{0pt}\n' +
+    '\\renewcommand*{\\footrulewidth}{0.1pt}\n\n' +
+    '\\begin{center}\n' +
+    '\\begin{minipage}[c]{3.5cm}\n\\vspace{-1cm}\n\\includegraphics[width=3cm]{logo.png}\n\\vspace{-1cm}\n\\end{minipage}\n' +
+    '\\begin{minipage}[c]{13.5cm}\n\\begin{small}\n' +
+    '\\begin{tabularx}{13.5cm}{lXr}\n' +
+    '  \\multicolumn{3}{c}{\\textbf{' + cursoLabel.toUpperCase() + ' \\hspace{3cm} MATEMÁTICAS APL CCSS}}\\\\\\\\\n' +
+    '  \\cline{1-3}\\\\\\\\\n' +
+    '  ' + titulo + ' & & CURSO 2025-2026\\\\\\\\\n' +
+    '  \\cline{1-3}\\\\\\\\\n' +
+    '  APELLIDOS, NOMBRE: & & ' + fecha + '\\\\\\\\\n' +
+    '  \\cline{1-3}\n' +
+    '\\end{tabularx}\n\\end{small}\n\\end{minipage}\n\\end{center}\n\n' +
+    '\\begin{tabularx}{17cm}{lXr}\n' +
+    tablaTE + ' & &\n' +
+    '\\begin{tabular}{| c |}\n\\multicolumn{1}{c}{\\includegraphics[width=6cm]{logo2.jpg}}\n\\end{tabular}\n' +
+    '\\end{tabularx}\n\n' +
+    '\\noindent $ $\n\n' +
+    '\\begin{enumerate}\n' +
+    problemasLatex + '\n' +
+    '\\end{enumerate}\n\n' +
+    '\\end{document}';
+
+  document.getElementById('exam-banco-latex-result').value = latex;
+  document.getElementById('exam-banco-result-card').style.display = 'block';
+  document.getElementById('exam-banco-result-card').scrollIntoView({ behavior: 'smooth' });
+  toast('LaTeX generado ✓');
+}
+
+async function guardarExamenBanco() {
+  const latex = document.getElementById('exam-banco-latex-result').value.trim();
+  if (!latex) return;
+  const examen = {
+    titulo: document.getElementById('exam-banco-titulo').value || 'Examen',
+    fecha: document.getElementById('exam-banco-fecha').value || '',
+    profesor: document.getElementById('exam-banco-profesor').value || '',
+    convocatoria: document.getElementById('exam-banco-conv').value,
+    curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
+    latex, created_at: new Date().toISOString()
+  };
+  const saved = await sbFetch('examenes', { method:'POST', body: JSON.stringify(examen) });
+  if (saved && saved.length) examenes.unshift(saved[0]);
+  else { examenes.unshift({...examen, id: Date.now().toString()}); guardarLocal(); }
+  renderExamenes();
+  toast('Examen guardado ✓');
+}
+
+function copiarExamenBanco() {
+  const txt = document.getElementById('exam-banco-latex-result').value;
+  navigator.clipboard.writeText(txt).then(() => toast('Copiado — pégalo en Overleaf ✓'));
+}
+
+// ── IMPORTAR DESDE PDF ────────────────────────────────────────────────────────
+let pdfTipo = 'examen';
+
+function mostrarImportarPDF() {
+  actualizarFiltrosExamBanco();
+  document.getElementById('pdf-paso2').style.display = 'none';
+  document.getElementById('pdf-json-input').value = '';
+  document.getElementById('modal-importar-pdf').style.display = 'flex';
+}
+
+function setPdfTipo(tipo, el) {
+  pdfTipo = tipo;
+  document.querySelectorAll('#modal-importar-pdf .mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('pdf-datos-examen').style.display = tipo === 'examen' ? 'block' : 'none';
+  document.getElementById('pdf-datos-coleccion').style.display = tipo === 'coleccion' ? 'block' : 'none';
+}
+
+function generarPromptPDF() {
+  const unidadId = document.getElementById('pdf-unidad').value;
+  const unidad = (unidades[cursoActual]||[]).find(u => u.id === unidadId);
+  const unidadNombre = unidad ? unidad.nombre : 'la unidad correspondiente';
+  const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
+
+  let contexto = '';
+  if (pdfTipo === 'examen') {
+    const anyo = document.getElementById('pdf-pau-anyo').value;
+    const conv = document.getElementById('pdf-pau-conv').value;
+    contexto = `Este es un examen PAU de Matemáticas Aplicadas a CCSS de Andalucía.
+Año: ${anyo} | Convocatoria: ${conv}
+Extrae TODOS los ejercicios del PDF.`;
+  } else {
+    contexto = `Este es un PDF con ejercicios resueltos de selectividad agrupados por tema.
+Cada ejercicio incluye en su encabezado el año, convocatoria y número de ejercicio — extráelos.
+Extrae SOLO el enunciado de cada ejercicio (NO la resolución).`;
+  }
+
+  const prompt = `MATHFORGE_IMPORTAR_PDF
+
+${contexto}
+
+Para cada ejercicio del PDF, devuelve un JSON con este formato EXACTO (array de objetos):
+
+[
+  {
+    "latex_enunciado": "\\\\item \\\\textbf{Enunciado completo...} \\\\begin{enumerate}[a)]...\\\\end{enumerate}",
+    "unidad_nombre": "${unidadNombre}",
+    "tipo": "contextualizado",
+    "tematica": "descripción breve del contexto (ej: empresa de móviles, excursión a Sierra Nevada)",
+    "descripcion": "tipo de problema en 3-5 palabras (ej: Probabilidad total + Bayes, Tabla contingencia, Distribución binomial)",
+    "num_apartados": 3,
+    "criterios": ["6.1", "8.2"],
+    "procedencia_tipo": "PAU",
+    "pau_ca": "Andalucía",
+    "pau_anyo": "${pdfTipo === 'examen' ? document.getElementById('pdf-pau-anyo').value : 'detectar del PDF'}",
+    "pau_conv": "${pdfTipo === 'examen' ? document.getElementById('pdf-pau-conv').value : 'detectar del PDF'}",
+    "pau_ejercicio": "4"
+  }
+]
+
+INSTRUCCIONES IMPORTANTES:
+- latex_enunciado: transcribe el enunciado completo en LaTeX válido. Usa \\\\item \\\\textbf{...} para el enunciado principal y \\\\begin{enumerate}[a)] para los apartados. Cada apartado con \\\\item \\\\textbf{[CE X.X]} texto.
+- Toda expresión matemática en $...$ o $$...$$
+- tipo: "contextualizado", "teorico" o "mixto"
+- criterios: los CE que aparecen en el ejercicio (sin "CE", solo el número: "6.1", "8.2")
+- Devuelve SOLO el JSON, sin texto antes ni después, sin bloques de código markdown.`;
+
+  navigator.clipboard.writeText(prompt)
+    .then(() => {
+      toast('Prompt copiado ✓ — abriendo Claude...');
+      setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      document.getElementById('pdf-paso2').style.display = 'block';
+    })
+    .catch(() => toast('No se pudo copiar'));
+}
+
+async function importarJSONdePDF() {
+  const txt = document.getElementById('pdf-json-input').value.trim();
+  if (!txt) { toast('Pega el JSON primero'); return; }
+
+  let items;
+  try {
+    // Strip possible markdown code block
+    const clean = txt.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '').trim();
+    items = JSON.parse(clean);
+  } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
+
+  if (!Array.isArray(items) || !items.length) { toast('El JSON debe ser un array de ejercicios'); return; }
+
+  const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
+  const units = unidades[cursoActual] || [];
+  let guardados = 0;
+
+  for (const item of items) {
+    // Match unidad by name
+    const unidad = units.find(u => u.nombre.toLowerCase().includes((item.unidad_nombre||'').toLowerCase().substring(0,8))) || units[0];
+
+    // Build procedencia
+    let procedencia = 'PAU';
+    let procedencia_detalle = {};
+    if (item.procedencia_tipo === 'PAU') {
+      const ca = item.pau_ca || 'Andalucía';
+      const anyo = item.pau_anyo || '';
+      const conv = item.pau_conv || 'Ordinaria';
+      const ej = item.pau_ejercicio || '';
+      procedencia = 'PAU ' + ca + ' ' + anyo + ' · ' + conv + ' · Ej.' + ej;
+      procedencia_detalle = { tipo:'PAU', ca, anyo, examen: conv, ejercicio: ej };
+    }
+
+    const problema = {
+      unidad_id: unidad?.id || '',
+      tipo: item.tipo || 'contextualizado',
+      tematica: item.tematica || '',
+      descripcion: item.descripcion || '',
+      num_apartados: item.num_apartados || null,
+      latex_enunciado: item.latex_enunciado || '',
+      criterios: item.criterios || [],
+      saberes: [],
+      procedencia,
+      procedencia_detalle,
+      usado_por: [],
+      curso: cursoDB,
+      created_at: new Date().toISOString()
+    };
+
+    const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
+    if (saved && saved.length) banco.unshift(saved[0]);
+    else banco.unshift({...problema, id: Date.now().toString() + Math.random()});
+    guardados++;
+  }
+
+  guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
+  cerrarModal('modal-importar-pdf');
+  toast(guardados + ' ejercicios importados del PDF ✓');
 }
 
 function verLatexExamen(id) {
