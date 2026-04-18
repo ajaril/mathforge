@@ -149,13 +149,17 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('generar',this)">Generar ejercicio</button>
-    <button class="tab" onclick="showTab('examenes',this)">Generar examen</button>
-    <button class="tab" onclick="showTab('banco',this)">Banco</button>
-    <button class="tab" onclick="showTab('pdfs',this)">Exámenes PDF</button>
-    <button class="tab" onclick="showTab('config',this)">Configuración del curso</button>
-    <button class="tab" onclick="showTab('config-general',this)">Configuración general</button>
+  <div style="margin-bottom:1.5rem;">
+    <div class="tabs" style="margin-bottom:4px;">
+      <button class="tab active" onclick="showTab('generar',this)">Generar ejercicio</button>
+      <button class="tab" onclick="showTab('examenes',this)">Generar examen</button>
+      <button class="tab" onclick="showTab('banco',this)">Banco</button>
+      <button class="tab" onclick="showTab('pdfs',this)">Exámenes PDF</button>
+    </div>
+    <div class="tabs">
+      <button class="tab" onclick="showTab('config',this)">Configuración del curso</button>
+      <button class="tab" onclick="showTab('config-general',this)">Configuración general</button>
+    </div>
   </div>
 
   <!-- GENERAR -->
@@ -1941,11 +1945,11 @@ function showTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
-  else document.querySelector('.tab[onclick*="' + name + '"]')?.classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
   if (name === 'config') actualizarUnidadesUI();
   if (name === 'config-general') renderConfigGeneral();
-  if (name === 'examenes') { actualizarFiltrosExamBanco(); }
+  if (name === 'examenes') actualizarFiltrosExamBanco();
   if (name === 'banco') renderExamenesBanco();
   if (name === 'pdfs') cargarRecursos();
 }
@@ -3403,25 +3407,61 @@ function parsearJSONEjercicio() {
   if (!txt) { toast('Pega el JSON primero'); return; }
   let data;
   try {
-    const clean = txt.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '').trim();
+    // Try to extract JSON — handle mixed LaTeX+JSON output from Claude
+    let clean = txt;
+    // Remove markdown code fences
+    clean = clean.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
+    // If it starts with a { find the first complete JSON object
+    const jsonStart = clean.indexOf('{');
+    const jsonEnd = clean.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      clean = clean.slice(jsonStart, jsonEnd + 1);
+    }
     data = JSON.parse(clean);
-    // If it's an array, take the first element
     if (Array.isArray(data)) data = data[0];
-  } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
+  } catch(e) {
+    // Try to find JSON array
+    try {
+      const txt2 = document.getElementById('json-pegado').value.trim();
+      const arrStart = txt2.indexOf('[');
+      const arrEnd = txt2.lastIndexOf(']');
+      if (arrStart !== -1 && arrEnd !== -1) {
+        const arr = JSON.parse(txt2.slice(arrStart, arrEnd + 1));
+        data = Array.isArray(arr) ? arr[0] : arr;
+      } else {
+        throw new Error('No JSON found');
+      }
+    } catch(e2) {
+      toast('JSON no válido — asegúrate de que Claude devolvió solo el JSON');
+      return;
+    }
+  }
+
+  if (!data) { toast('No se pudo interpretar el JSON'); return; }
 
   poblarJsonUnidad();
   document.getElementById('latex-pegado').value = data.latex_enunciado || '';
-  // Set unidad
   const unidadSel = document.getElementById('json-unidad');
-  if (unidadSel && data.unidad_id) unidadSel.value = data.unidad_id;
-  document.getElementById('json-tipo').value = data.tipo || 'contextualizado';
-  document.getElementById('json-tematica').value = data.tematica || '';
-  document.getElementById('json-napt').value = data.num_apartados || '';
+  if (unidadSel && data.unidad_id) {
+    unidadSel.value = data.unidad_id;
+    // If not found, try to match by name
+    if (!unidadSel.value && data.unidad_nombre) {
+      const opts = Array.from(unidadSel.options);
+      const match = opts.find(o => o.text.toLowerCase().includes((data.unidad_nombre||'').toLowerCase().substring(0,8)));
+      if (match) unidadSel.value = match.value;
+    }
+  }
+  const tipoSel = document.getElementById('json-tipo');
+  if (tipoSel) tipoSel.value = data.tipo || 'contextualizado';
+  const tematicaEl = document.getElementById('json-tematica');
+  if (tematicaEl) tematicaEl.value = data.tematica || '';
+  const naptEl = document.getElementById('json-napt');
+  if (naptEl) naptEl.value = data.num_apartados || '';
   document.getElementById('criterios-manual').value = (data.criterios||[]).join(', ');
   document.getElementById('saberes-manual').value = (data.saberes||[]).join(', ');
   document.getElementById('descripcion-manual').value = data.descripcion || '';
   mostrar('json-campos');
-  toast('JSON interpretado — revisa y guarda ✓');
+  toast('JSON interpretado ✓ — revisa los campos y selecciona la procedencia');
 }
 
 function usarLatexManual() {
@@ -3851,10 +3891,14 @@ function abrirModal(id) {
 function cerrarModal(id) {
   const overlay = document.getElementById(id);
   if (!overlay) return;
-  overlay.style.cssText = 'display:none !important;';
+  // Nuclear hide: multiple approaches so at least one works
+  overlay.setAttribute('style', 'display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important;');
+  overlay.style.cssText = 'display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important;';
   const caja = overlay.querySelector('.modal');
   if (caja) caja.style.cssText = '';
   document.body.style.overflow = '';
+  // Move back to end of body so it's out of the way but still findable by getElementById
+  try { document.body.appendChild(overlay); } catch(e) {}
 }
 
 function toast(msg) {
