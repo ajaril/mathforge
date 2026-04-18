@@ -668,14 +668,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="config-section">
       <h3>Orden de cursos</h3>
       <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Arrastra los cursos para reordenarlos. El orden se refleja en los botones de la cabecera.</p>
-      <div id="cursos-orden-list" style="margin-bottom:1rem;"></div>
+      <div id="cursos-orden-list" style="margin-bottom:1rem; max-width:600px;"></div>
       <button class="btn btn-primary" onclick="guardarOrdenCursos()">Guardar orden</button>
     </div>
 
     <div class="config-section" style="margin-top:1.5rem;">
       <h3>Eliminar curso</h3>
       <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Elimina un curso del sistema (no borra los ejercicios de Supabase).</p>
-      <div style="display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; gap:8px; align-items:center; max-width:600px;">
         <select id="curso-borrar-select" style="flex:1;"></select>
         <button class="btn btn-danger" onclick="borrarCurso()">Eliminar curso</button>
       </div>
@@ -4024,7 +4024,7 @@ function renderConfigGeneral() {
   if (!list) return;
   const claves = Object.keys(cursos);
   list.innerHTML = claves.map((key, i) => `
-    <div class="problem-card" style="display:flex; align-items:center; gap:12px; cursor:grab; padding:10px 16px;" draggable="true"
+    <div class="problem-card" style="display:flex; align-items:center; gap:12px; cursor:grab; padding:10px 16px; margin-bottom:6px;" draggable="true"
          ondragstart="dragCursoStart(event,'${key}')" ondragover="event.preventDefault()" ondrop="dragCursoDrop(event,'${key}')">
       <span style="font-size:18px; color:var(--text3);">⠿</span>
       <span style="font-size:14px; font-weight:500;">${cursos[key].label}</span>
@@ -4059,25 +4059,25 @@ function guardarOrdenCursos() {
 function borrarCurso() {
   const key = document.getElementById('curso-borrar-select')?.value;
   if (!key) return;
-  const restantes = Object.keys(cursos).filter(k => k !== key);
-  if (restantes.length === 0) { toast('No puedes eliminar el único curso'); return; }
   if (!confirm('¿Eliminar el curso "' + cursos[key]?.label + '"? Los ejercicios en Supabase no se borran.')) return;
   delete cursos[key];
   delete unidades[key];
-  // If we deleted the active course, switch to another
+  // If we deleted the active course, switch to another if available
   if (cursoActual === key) {
-    cursoActual = restantes[0];
+    const restantes = Object.keys(cursos);
+    cursoActual = restantes.length > 0 ? restantes[0] : '';
   }
   localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
   guardarUnidades();
   renderCursoSelector();
-  // Re-activate the current course button
-  document.querySelectorAll('.curso-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.curso === cursoActual);
-  });
-  actualizarUnidadesUI();
+  if (cursoActual) {
+    document.querySelectorAll('.curso-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.curso === cursoActual);
+    });
+    actualizarUnidadesUI();
+  }
   renderConfigGeneral();
-  toast('Curso "' + (cursos[restantes[0]]?.label || '') + '" ahora activo');
+  toast('Curso eliminado ✓');
 }
 
 // ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
