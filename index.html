@@ -3451,11 +3451,12 @@ function parsearJSONEjercicio() {
     const descEl = document.getElementById('descripcion-manual');
     if (descEl) descEl.value = data.descripcion || '';
 
-    // Show the fields
+    // Show the fields - use multiple methods to ensure visibility
     const camposEl = document.getElementById('json-campos');
     if (camposEl) {
+      camposEl.removeAttribute('style');
+      camposEl.classList.remove('mf-hidden');
       camposEl.setAttribute('style', 'display:block !important;');
-      camposEl.style.cssText = 'display:block !important;';
     }
     toast('JSON interpretado ✓ — revisa los campos y selecciona la procedencia');
   } catch(err) {
@@ -3866,10 +3867,11 @@ function borrarCurso() {
 // ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
 function _setDisplay(el, val) {
   if (!el) return;
-  // Preserve existing cssText but override display
-  const cur = el.style.cssText || '';
-  const cleaned = cur.replace(/display\s*:[^;]+;?\s*/gi, '').trim();
-  el.style.cssText = (cleaned ? cleaned + '; ' : '') + 'display:' + val + ' !important;';
+  // Get current style without display property
+  const cur = el.getAttribute('style') || '';
+  const cleaned = cur.replace(/display\s*:[^;]+;?\s*/gi, '').trim().replace(/;$/, '');
+  const newStyle = (cleaned ? cleaned + '; ' : '') + 'display:' + val + ' !important;';
+  el.setAttribute('style', newStyle);
 }
 
 function mostrar(id, tipo) { _setDisplay(document.getElementById(id), tipo === 'flex' ? 'flex' : 'block'); }
@@ -3882,28 +3884,34 @@ function abrirModal(id) {
   if (!overlay) { console.error('Modal no encontrado:', id); return; }
   const caja = overlay.querySelector('.modal');
   document.body.appendChild(overlay);
-  overlay.style.cssText = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:99999 !important; padding:16px !important;';
-  if (caja) caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important; pointer-events:auto !important;';
+  const overlayCss = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:99999 !important; padding:16px !important;';
+  overlay.setAttribute('style', overlayCss);
+  if (caja) {
+    const cajaCss = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important; pointer-events:auto !important;';
+    caja.setAttribute('style', cajaCss);
+  }
   document.body.style.overflow = 'hidden';
 }
 
 function cerrarModal(id) {
   const overlay = document.getElementById(id);
   if (!overlay) return;
-  // Nuclear hide: multiple approaches so at least one works
-  overlay.setAttribute('style', 'display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important;');
-  overlay.style.cssText = 'display:none !important; visibility:hidden !important; opacity:0 !important; pointer-events:none !important;';
+  const hideCss = 'display:none !important; visibility:hidden !important; pointer-events:none !important;';
+  overlay.setAttribute('style', hideCss);
   const caja = overlay.querySelector('.modal');
-  if (caja) caja.style.cssText = '';
+  if (caja) caja.removeAttribute('style');
   document.body.style.overflow = '';
-  // Move back to end of body so it's out of the way but still findable by getElementById
-  try { document.body.appendChild(overlay); } catch(e) {}
 }
 
 function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  try {
+    const t = document.getElementById('toast');
+    if (!t) { console.warn('Toast element not found:', msg); return; }
+    t.textContent = msg; t.classList.add('show');
+    // Also force visibility via cssText in case CSS class doesn't work
+    t.style.cssText = 'opacity:1 !important; position:fixed !important; bottom:1.5rem !important; left:50% !important; transform:translateX(-50%) !important; background:var(--text) !important; color:var(--bg) !important; padding:10px 20px !important; border-radius:100px !important; font-size:13px !important; pointer-events:none !important; z-index:999999 !important; white-space:nowrap !important;';
+    setTimeout(() => { t.classList.remove('show'); t.style.cssText = ''; }, 2800);
+  } catch(e) { console.error('Toast error:', e); }
 }
 
 init();
