@@ -267,10 +267,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </div>
             <div>
               <label style="font-size:12px;">Año</label>
-              <select id="proc-pau-anyo" style="font-size:13px;">
-                ${Array.from({length:27},(_,i)=>2000+i).reverse().map(y=>`<option value="${y}">${y}</option>`).join('')}
+              <select id="proc-pau-anyo" onchange="toggleOtroField('proc-pau-anyo','proc-pau-anyo-otro')" style="font-size:13px;">
+                <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+                <option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option>
+                <option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option>
+                <option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option>
+                <option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option>
+                <option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option>
+                <option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option>
+                <option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option>
+                <option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option>
                 <option value="otro">Otro</option>
               </select>
+              <input type="text" id="proc-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
             </div>
           </div>
           <div class="row" style="margin-bottom:8px;">
@@ -289,9 +298,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </div>
             <div>
               <label style="font-size:12px;">Ejercicio nº</label>
-              <select id="proc-pau-ejercicio" style="font-size:13px;">
-                ${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}
+              <select id="proc-pau-ejercicio" onchange="toggleOtroField('proc-pau-ejercicio','proc-pau-ejercicio-otro')" style="font-size:13px;">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option>
+                <option value="otro">Otro</option>
               </select>
+              <input type="text" id="proc-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
             </div>
           </div>
         </div>
@@ -300,10 +312,15 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <div class="row" style="margin-bottom:8px;">
             <div>
               <label style="font-size:12px;">Curso académico</label>
-              <select id="proc-propio-curso" style="font-size:13px;">
-                ${Array.from({length:10},(_,i)=>{const y=2016+i; return `<option value="${y}/${y+1-2000}">${y}/${String(y+1).slice(2)}</option>`;}).reverse().join('')}
+              <select id="proc-propio-curso" onchange="toggleOtroField('proc-propio-curso','proc-propio-curso-otro')" style="font-size:13px;">
+                <option value="2025/26">2025/26</option><option value="2024/25">2024/25</option>
+                <option value="2023/24">2023/24</option><option value="2022/23">2022/23</option>
+                <option value="2021/22">2021/22</option><option value="2020/21">2020/21</option>
+                <option value="2019/20">2019/20</option><option value="2018/19">2018/19</option>
+                <option value="2017/18">2017/18</option><option value="2016/17">2016/17</option>
                 <option value="otro">Otro</option>
               </select>
+              <input type="text" id="proc-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
             </div>
             <div>
               <label style="font-size:12px;">Nivel</label>
@@ -320,15 +337,23 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <div class="row" style="margin-bottom:8px;">
             <div>
               <label style="font-size:12px;">Grupo</label>
-              <select id="proc-propio-grupo" style="font-size:13px;">
-                ${['A','B','C','D','K','L','M'].map(g=>`<option value="${g}">${g}</option>`).join('')}
+              <select id="proc-propio-grupo" onchange="toggleOtroField('proc-propio-grupo','proc-propio-grupo-otro')" style="font-size:13px;">
+                <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                <option value="D">D</option><option value="K">K</option><option value="L">L</option>
+                <option value="M">M</option><option value="otro">Otro</option>
               </select>
+              <input type="text" id="proc-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
             </div>
             <div>
               <label style="font-size:12px;">Ejercicio nº</label>
-              <select id="proc-propio-ejercicio" style="font-size:13px;">
-                ${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+              <select id="proc-propio-ejercicio" onchange="toggleOtroField('proc-propio-ejercicio','proc-propio-ejercicio-otro')" style="font-size:13px;">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                <option value="otro">Otro</option>
               </select>
+              <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
             </div>
           </div>
         </div>
@@ -551,10 +576,19 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </select>
           </div>
           <div><label style="font-size:12px;">Año</label>
-            <select id="proc-modal-pau-anyo" style="font-size:13px;">
-              ${Array.from({length:27},(_,i)=>2000+i).reverse().map(y=>`<option value="${y}">${y}</option>`).join('')}
+            <select id="proc-modal-pau-anyo" onchange="toggleOtroField('proc-modal-pau-anyo','proc-modal-pau-anyo-otro')" style="font-size:13px;">
+              <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+              <option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option>
+              <option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option>
+              <option value="2017">2017</option><option value="2016">2016</option><option value="2015">2015</option>
+              <option value="2014">2014</option><option value="2013">2013</option><option value="2012">2012</option>
+              <option value="2011">2011</option><option value="2010">2010</option><option value="2009">2009</option>
+              <option value="2008">2008</option><option value="2007">2007</option><option value="2006">2006</option>
+              <option value="2005">2005</option><option value="2004">2004</option><option value="2003">2003</option>
+              <option value="2002">2002</option><option value="2001">2001</option><option value="2000">2000</option>
               <option value="otro">Otro</option>
             </select>
+            <input type="text" id="proc-modal-pau-anyo-otro" placeholder="Escribe el año" style="font-size:13px; display:none; margin-top:4px;">
           </div>
         </div>
         <div class="row" style="margin-bottom:8px;">
@@ -566,19 +600,27 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </select>
           </div>
           <div><label style="font-size:12px;">Ejercicio nº</label>
-            <select id="proc-modal-pau-ejercicio" style="font-size:13px;">
-              ${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}
+            <select id="proc-modal-pau-ejercicio" onchange="toggleOtroField('proc-modal-pau-ejercicio','proc-modal-pau-ejercicio-otro')" style="font-size:13px;">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option>
+              <option value="otro">Otro</option>
             </select>
+            <input type="text" id="proc-modal-pau-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
           </div>
         </div>
       </div>
       <div id="proc-modal-propio-fields" style="display:none;">
         <div class="row" style="margin-bottom:8px;">
           <div><label style="font-size:12px;">Curso académico</label>
-            <select id="proc-modal-propio-curso" style="font-size:13px;">
-              ${Array.from({length:10},(_,i)=>{const y=2016+i; return `<option value="${y}/${y+1-2000}">${y}/${String(y+1).slice(2)}</option>`;}).reverse().join('')}
+            <select id="proc-modal-propio-curso" onchange="toggleOtroField('proc-modal-propio-curso','proc-modal-propio-curso-otro')" style="font-size:13px;">
+              <option value="2025/26">2025/26</option><option value="2024/25">2024/25</option>
+              <option value="2023/24">2023/24</option><option value="2022/23">2022/23</option>
+              <option value="2021/22">2021/22</option><option value="2020/21">2020/21</option>
+              <option value="2019/20">2019/20</option><option value="2018/19">2018/19</option>
+              <option value="2017/18">2017/18</option><option value="2016/17">2016/17</option>
               <option value="otro">Otro</option>
             </select>
+            <input type="text" id="proc-modal-propio-curso-otro" placeholder="Ej: 2015/16" style="font-size:13px; display:none; margin-top:4px;">
           </div>
           <div><label style="font-size:12px;">Nivel</label>
             <select id="proc-modal-propio-nivel" style="font-size:13px;">
@@ -589,14 +631,22 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
         <div class="row" style="margin-bottom:8px;">
           <div><label style="font-size:12px;">Grupo</label>
-            <select id="proc-modal-propio-grupo" style="font-size:13px;">
-              ${['A','B','C','D','K','L','M'].map(g=>`<option value="${g}">${g}</option>`).join('')}
+            <select id="proc-modal-propio-grupo" onchange="toggleOtroField('proc-modal-propio-grupo','proc-modal-propio-grupo-otro')" style="font-size:13px;">
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+              <option value="D">D</option><option value="K">K</option><option value="L">L</option>
+              <option value="M">M</option><option value="otro">Otro</option>
             </select>
+            <input type="text" id="proc-modal-propio-grupo-otro" placeholder="Escribe el grupo" style="font-size:13px; display:none; margin-top:4px;">
           </div>
           <div><label style="font-size:12px;">Ejercicio nº</label>
-            <select id="proc-modal-propio-ejercicio" style="font-size:13px;">
-              ${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+            <select id="proc-modal-propio-ejercicio" onchange="toggleOtroField('proc-modal-propio-ejercicio','proc-modal-propio-ejercicio-otro')" style="font-size:13px;">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+              <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              <option value="otro">Otro</option>
             </select>
+            <input type="text" id="proc-modal-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
           </div>
         </div>
       </div>
@@ -1665,6 +1715,12 @@ function toggleProcedenciaOtro() {
   document.getElementById('procedencia-otro').style.display = sel === 'otro' ? 'block' : 'none';
 }
 
+function toggleOtroField(selectId, otroId) {
+  const sel = document.getElementById(selectId);
+  const otro = document.getElementById(otroId);
+  if (sel && otro) otro.style.display = sel.value === 'otro' ? 'block' : 'none';
+}
+
 function toggleProcedenciaModalOtro() {
   const sel = document.getElementById('procedencia-modal-select').value;
   document.getElementById('proc-modal-pau-fields').style.display = sel === 'PAU' ? 'block' : 'none';
@@ -1673,22 +1729,26 @@ function toggleProcedenciaModalOtro() {
 }
 
 function getProcedencia(prefix) {
-  // prefix: '' para el formulario principal, 'modal-' para el modal
-  const sel = document.getElementById(`procedencia-${prefix}select`).value;
-  if (sel === 'otro') return { label: document.getElementById(`procedencia-${prefix}otro`).value.trim() || 'Otro', detalle: {} };
+  const sel = document.getElementById('procedencia-' + prefix + 'select').value;
+  if (sel === 'otro') return { label: document.getElementById('procedencia-' + prefix + 'otro').value.trim() || 'Otro', detalle: {} };
   if (sel === 'PAU') {
-    const ca = document.getElementById(`proc-${prefix}pau-ca`)?.value || 'Andalucía';
-    const anyo = document.getElementById(`proc-${prefix}pau-anyo`)?.value || '';
-    const examen = document.getElementById(`proc-${prefix}pau-examen`)?.value || 'Ordinaria';
-    const ejercicio = document.getElementById(`proc-${prefix}pau-ejercicio`)?.value || '1';
-    return { label: `PAU ${ca} ${anyo} · ${examen} · Ej.${ejercicio}`, detalle: { tipo:'PAU', ca, anyo, examen, ejercicio } };
+    const ca = document.getElementById('proc-' + prefix + 'pau-ca')?.value || 'Andalucía';
+    const anyoSel = document.getElementById('proc-' + prefix + 'pau-anyo')?.value || '';
+    const anyo = anyoSel === 'otro' ? (document.getElementById('proc-' + prefix + 'pau-anyo-otro')?.value.trim() || '') : anyoSel;
+    const examen = document.getElementById('proc-' + prefix + 'pau-examen')?.value || 'Ordinaria';
+    const ejercicioSel = document.getElementById('proc-' + prefix + 'pau-ejercicio')?.value || '1';
+    const ejercicio = ejercicioSel === 'otro' ? (document.getElementById('proc-' + prefix + 'pau-ejercicio-otro')?.value.trim() || '') : ejercicioSel;
+    return { label: 'PAU ' + ca + ' ' + anyo + ' · ' + examen + ' · Ej.' + ejercicio, detalle: { tipo:'PAU', ca, anyo, examen, ejercicio } };
   }
   if (sel === 'Examen propio') {
-    const curso = document.getElementById(`proc-${prefix}propio-curso`)?.value || '';
-    const nivel = document.getElementById(`proc-${prefix}propio-nivel`)?.value || '';
-    const grupo = document.getElementById(`proc-${prefix}propio-grupo`)?.value || '';
-    const ejercicio = document.getElementById(`proc-${prefix}propio-ejercicio`)?.value || '1';
-    return { label: `Propio ${curso} · ${nivel} · Gr.${grupo} · Ej.${ejercicio}`, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
+    const cursoSel = document.getElementById('proc-' + prefix + 'propio-curso')?.value || '';
+    const curso = cursoSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-curso-otro')?.value.trim() || '') : cursoSel;
+    const nivel = document.getElementById('proc-' + prefix + 'propio-nivel')?.value || '';
+    const grupoSel = document.getElementById('proc-' + prefix + 'propio-grupo')?.value || '';
+    const grupo = grupoSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-grupo-otro')?.value.trim() || '') : grupoSel;
+    const ejercicioSel = document.getElementById('proc-' + prefix + 'propio-ejercicio')?.value || '1';
+    const ejercicio = ejercicioSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-ejercicio-otro')?.value.trim() || '') : ejercicioSel;
+    return { label: 'Propio ' + curso + ' · ' + nivel + ' · Gr.' + grupo + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
   }
   return { label: sel, detalle: {} };
 }
