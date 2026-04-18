@@ -364,6 +364,16 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <input type="text" id="proc-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
             </div>
           </div>
+          <div class="row" style="margin-bottom:8px;">
+            <div>
+              <label style="font-size:12px;">Examen nº (si hay varios del mismo grupo)</label>
+              <select id="proc-propio-examn" onchange="toggleOtroField('proc-propio-examn','proc-propio-examn-otro')" style="font-size:13px;">
+                <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>
+                <option value="otro">Otro</option>
+              </select>
+              <input type="text" id="proc-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+            </div>
+          </div>
         </div>
         <!-- Descripción -->
         <div class="field" style="margin-bottom:0; margin-top:4px;">
@@ -417,7 +427,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <option value="">Todas las procedencias</option>
           <option value="IA">Generado por IA</option>
           <option value="PAU">PAU</option>
-          <option value="Examen propio">Examen propio</option>
+          <option value="Propio">Examen propio</option>
           <option value="Libro de texto">Libro de texto</option>
         </select>
       </div>
@@ -697,12 +707,15 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <input type="text" id="proc-modal-propio-ejercicio-otro" placeholder="Escribe el nº" style="font-size:13px; display:none; margin-top:4px;">
           </div>
         </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="confirmarGuardar()">Guardar en banco</button>
-      <button class="btn" onclick="cerrarModal('modal-bloque')">Cancelar</button>
-    </div>
+        <div class="row" style="margin-bottom:8px;">
+          <div><label style="font-size:12px;">Examen nº (si hay varios del mismo grupo)</label>
+            <select id="proc-modal-propio-examn" onchange="toggleOtroField('proc-modal-propio-examn','proc-modal-propio-examn-otro')" style="font-size:13px;">
+              <option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>
+              <option value="otro">Otro</option>
+            </select>
+            <input type="text" id="proc-modal-propio-examn-otro" placeholder="Ej: Recuperación" style="font-size:13px; display:none; margin-top:4px;">
+          </div>
+        </div>
   </div>
 </div>
 
@@ -1668,6 +1681,13 @@ function buildProcHtml(i) {
           '<input type="text" id="masivo-propio-ejercicio-txt-' + i + '" placeholder="Ej: 13" style="font-size:13px;">' +
         '</div>' +
       '</div>' +
+      '<div><label style="font-size:12px;">Examen nº</label>' +
+        '<select id="masivo-propio-examn-' + i + '" style="font-size:13px;">' +
+          '<option value="1">1 (por defecto)</option><option value="2">2</option><option value="3">3</option>' +
+          '<option value="otro">Otro</option>' +
+        '</select>' +
+        '<input type="text" id="masivo-propio-examn-txt-' + i + '" placeholder="Ej: Recuperación" style="font-size:13px; margin-top:4px; display:none;">' +
+      '</div>' +
     '</div>' +
     '<div class="field" style="margin-bottom:0;">' +
       '<label style="font-size:12px;">Descripción del problema (opcional)</label>' +
@@ -1730,7 +1750,10 @@ function getMasivoProc(i) {
     const grupo = grupoSel === 'otro' ? (document.getElementById('masivo-propio-grupo-txt-' + i)?.value.trim() || '') : grupoSel;
     const ejercicioSel = document.getElementById('masivo-propio-ejercicio-' + i)?.value || '1';
     const ejercicio = ejercicioSel === 'otro' ? (document.getElementById('masivo-propio-ejercicio-txt-' + i)?.value.trim() || '') : ejercicioSel;
-    return { label: 'Propio ' + curso + ' · ' + nivel + ' · Gr.' + grupo + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
+    const examNSel = document.getElementById('masivo-propio-examn-' + i)?.value || '1';
+    const examN = examNSel === 'otro' ? (document.getElementById('masivo-propio-examn-txt-' + i)?.value.trim() || '') : examNSel;
+    const examNStr = examN && examN !== '1' ? ' · Examen ' + examN : '';
+    return { label: 'Propio ' + curso + ' · ' + nivel + ' ' + grupo + examNStr + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio, examN } };
   }
   return { label: sel, detalle: {} };
 }
@@ -1816,7 +1839,10 @@ function getProcedencia(prefix) {
     const grupo = grupoSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-grupo-otro')?.value.trim() || '') : grupoSel;
     const ejercicioSel = document.getElementById('proc-' + prefix + 'propio-ejercicio')?.value || '1';
     const ejercicio = ejercicioSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-ejercicio-otro')?.value.trim() || '') : ejercicioSel;
-    return { label: 'Propio ' + curso + ' · ' + nivel + ' · Gr.' + grupo + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
+    const examNSel = document.getElementById('proc-' + prefix + 'propio-examn')?.value || '1';
+    const examN = examNSel === 'otro' ? (document.getElementById('proc-' + prefix + 'propio-examn-otro')?.value.trim() || '') : examNSel;
+    const examNStr = examN && examN !== '1' ? ' · Examen ' + examN : '';
+    return { label: 'Propio ' + curso + ' · ' + nivel + ' ' + grupo + examNStr + ' · Ej.' + ejercicio, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio, examN } };
   }
   return { label: sel, detalle: {} };
 }
