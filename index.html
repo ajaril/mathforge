@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MathForge — Generador de problemas</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+.modal-hidden { display: none !important; }
+.modal-visible { display: flex !important; }
+</style>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
@@ -138,7 +141,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="curso-selector" id="curso-selector">
       <!-- cursos se renderizan dinámicamente -->
     </div>
-    <button class="curso-btn-new" id="btn-nuevo-static" onclick="this.blur(); var m=document.getElementById('modal-nuevo-curso'); m.style.cssText='display:flex !important'; document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''">+ Nuevo</button>
+    <button class="curso-btn-new" onclick="var m=document.getElementById('modal-nuevo-curso'); m.className=m.className.replace('modal-hidden','') + ' modal-visible'; document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''">+ Nuevo</button>
   </div>
 
   <div class="tabs">
@@ -989,7 +992,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 </div>
 
 <!-- Modal nuevo curso -->
-<div id="modal-nuevo-curso" class="modal-overlay" style="display:none;">
+<div id="modal-nuevo-curso" class="modal-overlay modal-hidden">
   <div class="modal">
     <h3>Nuevo curso</h3>
     <p>Añade un nuevo curso al sistema. Podrás definir sus unidades desde Configuración.</p>
@@ -1001,7 +1004,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="crearCurso()">Crear curso</button>
-      <button class="btn" onclick="document.getElementById('modal-nuevo-curso').style.cssText=''">Cancelar</button>
+      <button class="btn" onclick="var m=document.getElementById('modal-nuevo-curso'); m.classList.remove('modal-visible'); m.classList.add('modal-hidden')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1147,7 +1150,9 @@ function crearCurso() {
   unidades[id] = [];
   localStorage.setItem('mf_cursos', JSON.stringify(cursos));
   guardarUnidades();
-  document.getElementById('modal-nuevo-curso').style.cssText = '';
+  const m = document.getElementById('modal-nuevo-curso');
+  m.classList.remove('modal-visible');
+  m.classList.add('modal-hidden');
   document.getElementById('nuevo-curso-nombre').value = '';
   document.getElementById('nuevo-curso-id').value = '';
   renderCursoSelector();
@@ -1458,7 +1463,7 @@ function renderExamSlots() {
           <option value="similar">Similar a uno del banco</option>
           <option value="detallista">Especificar contenido</option>
         </select>
-        <select id="slot-unidad-${i}" style="width:auto; font-size:13px;"></select>
+        <select id="slot-unidad-${i}" onchange="filtrarRefPorUnidad(${i})" style="width:auto; font-size:13px;"></select>
       </div>
       <div id="slot-similar-${i}" style="display:none; margin-top:6px;">
         <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
@@ -1495,6 +1500,20 @@ function renderExamSlots() {
   }
 }
 
+function filtrarRefPorUnidad(i) {
+  const unidadId = document.getElementById('slot-unidad-' + i)?.value || '';
+  const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+  const bancoData = (cursoKey !== cursoActual && examBancoCruzado) ? examBancoCruzado : banco;
+  const unitsData = unidades[cursoKey] || [];
+  const filtered = unidadId
+    ? bancoData.filter(p => p.unidad_id === unidadId || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(unidadId)))
+    : bancoData;
+  const sr = document.getElementById('slot-ref-' + i);
+  if (sr) sr.innerHTML = buildRefOpts(filtered, unitsData);
+  const prev = document.getElementById('slot-preview-' + i);
+  if (prev) prev.style.display = 'none';
+}
+
 function buildRefOpts(bancoData, unitsData) {
   return '<option value="">Sin referencia</option>' + bancoData.map(p => {
     const u = unitsData.find(x => x.id === p.unidad_id);
@@ -1513,13 +1532,17 @@ async function actualizarRefSlot(i) {
   if (!sr) return;
   const prev = document.getElementById('slot-preview-' + i);
   if (prev) prev.style.display = 'none';
+  // Update unidad selector for new course
+  const units = unidades[cursoKey] || [];
+  const su = document.getElementById('slot-unidad-' + i);
+  if (su) su.innerHTML = '<option value="">Cualquier unidad</option>' + units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
   let bancoData = banco;
   if (cursoKey !== cursoActual) {
     const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
     const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
     bancoData = data || [];
   }
-  sr.innerHTML = buildRefOpts(bancoData, unidades[cursoKey] || []);
+  sr.innerHTML = buildRefOpts(bancoData, units);
 }
 
 function actualizarSelectsExamen() {
