@@ -267,7 +267,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div id="resp-modo-json">
         <p style="font-size:12px; color:var(--text2); margin-bottom:8px;">Pide a Claude que responda con un JSON (el prompt ya lo indica). Pégalo aquí — los campos se rellenan automáticamente. Solo deberás revisar la procedencia antes de guardar.</p>
         <textarea id="json-pegado" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:100px; background:var(--surface2); margin-bottom:8px;"></textarea>
-        <button class="btn btn-sm" onclick="parsearJSONEjercicio()" style="margin-bottom:12px;">Interpretar JSON →</button>
+        <button class="btn btn-primary" onclick="parsearJSONEjercicio()" style="margin-bottom:12px; min-width:160px;">✓ Interpretar JSON</button>
 
         <!-- Campos pre-rellenados por JSON (mismos que LaTeX manual) -->
         <div id="json-campos" class="mf-hidden">
@@ -3403,65 +3403,64 @@ function poblarJsonUnidad() {
 }
 
 function parsearJSONEjercicio() {
-  const txt = document.getElementById('json-pegado').value.trim();
-  if (!txt) { toast('Pega el JSON primero'); return; }
-  let data;
   try {
-    // Try to extract JSON — handle mixed LaTeX+JSON output from Claude
-    let clean = txt;
-    // Remove markdown code fences
-    clean = clean.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
-    // If it starts with a { find the first complete JSON object
+    const txtEl = document.getElementById('json-pegado');
+    if (!txtEl) { toast('Error: no se encuentra el campo JSON'); return; }
+    const txt = txtEl.value.trim();
+    if (!txt) { toast('Pega el JSON primero'); return; }
+
+    let data;
+    // Extract JSON from mixed content (Claude might mix LaTeX with JSON)
+    let clean = txt.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
+    // Find first { ... } block
     const jsonStart = clean.indexOf('{');
     const jsonEnd = clean.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      clean = clean.slice(jsonStart, jsonEnd + 1);
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      try { data = JSON.parse(clean.slice(jsonStart, jsonEnd + 1)); }
+      catch(e) { /* try array below */ }
     }
-    data = JSON.parse(clean);
-    if (Array.isArray(data)) data = data[0];
-  } catch(e) {
-    // Try to find JSON array
-    try {
-      const txt2 = document.getElementById('json-pegado').value.trim();
-      const arrStart = txt2.indexOf('[');
-      const arrEnd = txt2.lastIndexOf(']');
-      if (arrStart !== -1 && arrEnd !== -1) {
-        const arr = JSON.parse(txt2.slice(arrStart, arrEnd + 1));
-        data = Array.isArray(arr) ? arr[0] : arr;
-      } else {
-        throw new Error('No JSON found');
+    // Try array
+    if (!data) {
+      const arrStart = txt.indexOf('[');
+      const arrEnd = txt.lastIndexOf(']');
+      if (arrStart !== -1 && arrEnd > arrStart) {
+        try {
+          const arr = JSON.parse(txt.slice(arrStart, arrEnd + 1));
+          data = Array.isArray(arr) ? arr[0] : arr;
+        } catch(e) { /* failed */ }
       }
-    } catch(e2) {
-      toast('JSON no válido — asegúrate de que Claude devolvió solo el JSON');
-      return;
     }
-  }
+    if (!data) { toast('No se encontró JSON válido en el texto pegado'); return; }
+    if (Array.isArray(data)) data = data[0];
 
-  if (!data) { toast('No se pudo interpretar el JSON'); return; }
+    poblarJsonUnidad();
+    const latexEl = document.getElementById('latex-pegado');
+    if (latexEl) latexEl.value = data.latex_enunciado || '';
+    const unidadSel = document.getElementById('json-unidad');
+    if (unidadSel && data.unidad_id) unidadSel.value = data.unidad_id;
+    const tipoSel = document.getElementById('json-tipo');
+    if (tipoSel) tipoSel.value = data.tipo || 'contextualizado';
+    const tematicaEl = document.getElementById('json-tematica');
+    if (tematicaEl) tematicaEl.value = data.tematica || '';
+    const naptEl = document.getElementById('json-napt');
+    if (naptEl) naptEl.value = data.num_apartados || '';
+    const criteriosEl = document.getElementById('criterios-manual');
+    if (criteriosEl) criteriosEl.value = (data.criterios||[]).join(', ');
+    const saberesEl = document.getElementById('saberes-manual');
+    if (saberesEl) saberesEl.value = (data.saberes||[]).join(', ');
+    const descEl = document.getElementById('descripcion-manual');
+    if (descEl) descEl.value = data.descripcion || '';
 
-  poblarJsonUnidad();
-  document.getElementById('latex-pegado').value = data.latex_enunciado || '';
-  const unidadSel = document.getElementById('json-unidad');
-  if (unidadSel && data.unidad_id) {
-    unidadSel.value = data.unidad_id;
-    // If not found, try to match by name
-    if (!unidadSel.value && data.unidad_nombre) {
-      const opts = Array.from(unidadSel.options);
-      const match = opts.find(o => o.text.toLowerCase().includes((data.unidad_nombre||'').toLowerCase().substring(0,8)));
-      if (match) unidadSel.value = match.value;
+    // Show the fields
+    const camposEl = document.getElementById('json-campos');
+    if (camposEl) {
+      camposEl.setAttribute('style', 'display:block !important;');
+      camposEl.style.cssText = 'display:block !important;';
     }
+    toast('JSON interpretado ✓ — revisa los campos y selecciona la procedencia');
+  } catch(err) {
+    toast('Error al interpretar: ' + err.message);
   }
-  const tipoSel = document.getElementById('json-tipo');
-  if (tipoSel) tipoSel.value = data.tipo || 'contextualizado';
-  const tematicaEl = document.getElementById('json-tematica');
-  if (tematicaEl) tematicaEl.value = data.tematica || '';
-  const naptEl = document.getElementById('json-napt');
-  if (naptEl) naptEl.value = data.num_apartados || '';
-  document.getElementById('criterios-manual').value = (data.criterios||[]).join(', ');
-  document.getElementById('saberes-manual').value = (data.saberes||[]).join(', ');
-  document.getElementById('descripcion-manual').value = data.descripcion || '';
-  mostrar('json-campos');
-  toast('JSON interpretado ✓ — revisa los campos y selecciona la procedencia');
 }
 
 function usarLatexManual() {
