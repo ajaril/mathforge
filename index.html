@@ -240,7 +240,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       </div>
       <div class="field">
         <label>Procedencia</label>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
           <select id="procedencia-select" onchange="toggleProcedenciaOtro()" style="flex:1; min-width:160px;">
             <option value="IA">Generado por IA</option>
             <option value="PAU">PAU</option>
@@ -248,8 +248,94 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <option value="Libro de texto">Libro de texto</option>
             <option value="otro">Otro...</option>
           </select>
-          <input type="number" id="procedencia-anyo" placeholder="Año (ej: 2023)" min="1990" max="2099" style="flex:0 0 130px; display:none;">
           <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" style="flex:1; min-width:160px; display:none;">
+        </div>
+        <!-- Campos PAU -->
+        <div id="proc-pau-fields" style="display:none;">
+          <div class="row" style="margin-bottom:8px;">
+            <div>
+              <label style="font-size:12px;">Comunidad Autónoma</label>
+              <select id="proc-pau-ca" style="font-size:13px;">
+                <option value="Andalucía">Andalucía</option>
+                <option value="Madrid">Madrid</option>
+                <option value="Cataluña">Cataluña</option>
+                <option value="Valencia">Valencia</option>
+                <option value="País Vasco">País Vasco</option>
+                <option value="Galicia">Galicia</option>
+                <option value="Otra">Otra CA</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;">Año</label>
+              <select id="proc-pau-anyo" style="font-size:13px;">
+                ${Array.from({length:27},(_,i)=>2000+i).reverse().map(y=>`<option value="${y}">${y}</option>`).join('')}
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom:8px;">
+            <div>
+              <label style="font-size:12px;">Examen</label>
+              <select id="proc-pau-examen" style="font-size:13px;">
+                <option value="Ordinaria">Ordinaria</option>
+                <option value="Extraordinaria">Extraordinaria</option>
+                <option value="Reserva 1">Reserva 1</option>
+                <option value="Reserva 2">Reserva 2</option>
+                <option value="Reserva 3">Reserva 3</option>
+                <option value="Reserva 4">Reserva 4</option>
+                <option value="Reserva 5">Reserva 5</option>
+                <option value="Reserva 6">Reserva 6</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;">Ejercicio nº</label>
+              <select id="proc-pau-ejercicio" style="font-size:13px;">
+                ${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Campos Examen propio -->
+        <div id="proc-propio-fields" style="display:none;">
+          <div class="row" style="margin-bottom:8px;">
+            <div>
+              <label style="font-size:12px;">Curso académico</label>
+              <select id="proc-propio-curso" style="font-size:13px;">
+                ${Array.from({length:10},(_,i)=>{const y=2016+i; return `<option value="${y}/${y+1-2000}">${y}/${String(y+1).slice(2)}</option>`;}).reverse().join('')}
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;">Nivel</label>
+              <select id="proc-propio-nivel" style="font-size:13px;">
+                <option value="1º ESO">1º ESO</option>
+                <option value="2º ESO">2º ESO</option>
+                <option value="3º ESO">3º ESO</option>
+                <option value="4º ESO">4º ESO</option>
+                <option value="1º Bachillerato">1º Bachillerato</option>
+                <option value="2º Bachillerato" selected>2º Bachillerato</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom:8px;">
+            <div>
+              <label style="font-size:12px;">Grupo</label>
+              <select id="proc-propio-grupo" style="font-size:13px;">
+                ${['A','B','C','D','K','L','M'].map(g=>`<option value="${g}">${g}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;">Ejercicio nº</label>
+              <select id="proc-propio-ejercicio" style="font-size:13px;">
+                ${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Descripción -->
+        <div class="field" style="margin-bottom:0; margin-top:4px;">
+          <label style="font-size:12px;">Descripción del problema (opcional)</label>
+          <input type="text" id="descripcion-manual" placeholder="Ej: Probabilidad total + Bayes, Urna sin reemplazamiento, Área con integrales...">
         </div>
       </div>
       <div style="display:flex; gap:8px; margin-top:4px;">
@@ -440,8 +526,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="field"><label>Saberes (opcional, separados por coma)</label>
       <input type="text" id="saberes-modal-input" placeholder="Ej: D.1.1., D.1.2.">
     </div>
+    <div class="field"><label>Descripción del problema (opcional)</label>
+      <input type="text" id="descripcion-modal-input" placeholder="Ej: Probabilidad total + Bayes, Área con integrales...">
+    </div>
     <div class="field"><label>Procedencia</label>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
         <select id="procedencia-modal-select" onchange="toggleProcedenciaModalOtro()" style="flex:1;">
           <option value="IA">Generado por IA</option>
           <option value="PAU">PAU</option>
@@ -449,8 +538,67 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <option value="Libro de texto">Libro de texto</option>
           <option value="otro">Otro...</option>
         </select>
-        <input type="number" id="procedencia-modal-anyo" placeholder="Año (ej: 2023)" min="1990" max="2099" style="flex:0 0 130px; display:none;">
         <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" style="flex:1; display:none;">
+      </div>
+      <div id="proc-modal-pau-fields" style="display:none;">
+        <div class="row" style="margin-bottom:8px;">
+          <div><label style="font-size:12px;">Comunidad Autónoma</label>
+            <select id="proc-modal-pau-ca" style="font-size:13px;">
+              <option value="Andalucía">Andalucía</option><option value="Madrid">Madrid</option>
+              <option value="Cataluña">Cataluña</option><option value="Valencia">Valencia</option>
+              <option value="País Vasco">País Vasco</option><option value="Galicia">Galicia</option>
+              <option value="Otra">Otra CA</option>
+            </select>
+          </div>
+          <div><label style="font-size:12px;">Año</label>
+            <select id="proc-modal-pau-anyo" style="font-size:13px;">
+              ${Array.from({length:27},(_,i)=>2000+i).reverse().map(y=>`<option value="${y}">${y}</option>`).join('')}
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:8px;">
+          <div><label style="font-size:12px;">Examen</label>
+            <select id="proc-modal-pau-examen" style="font-size:13px;">
+              <option>Ordinaria</option><option>Extraordinaria</option>
+              <option>Reserva 1</option><option>Reserva 2</option><option>Reserva 3</option>
+              <option>Reserva 4</option><option>Reserva 5</option><option>Reserva 6</option>
+            </select>
+          </div>
+          <div><label style="font-size:12px;">Ejercicio nº</label>
+            <select id="proc-modal-pau-ejercicio" style="font-size:13px;">
+              ${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="proc-modal-propio-fields" style="display:none;">
+        <div class="row" style="margin-bottom:8px;">
+          <div><label style="font-size:12px;">Curso académico</label>
+            <select id="proc-modal-propio-curso" style="font-size:13px;">
+              ${Array.from({length:10},(_,i)=>{const y=2016+i; return `<option value="${y}/${y+1-2000}">${y}/${String(y+1).slice(2)}</option>`;}).reverse().join('')}
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div><label style="font-size:12px;">Nivel</label>
+            <select id="proc-modal-propio-nivel" style="font-size:13px;">
+              <option>1º ESO</option><option>2º ESO</option><option>3º ESO</option><option>4º ESO</option>
+              <option>1º Bachillerato</option><option value="2º Bachillerato" selected>2º Bachillerato</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:8px;">
+          <div><label style="font-size:12px;">Grupo</label>
+            <select id="proc-modal-propio-grupo" style="font-size:13px;">
+              ${['A','B','C','D','K','L','M'].map(g=>`<option value="${g}">${g}</option>`).join('')}
+            </select>
+          </div>
+          <div><label style="font-size:12px;">Ejercicio nº</label>
+            <select id="proc-modal-propio-ejercicio" style="font-size:13px;">
+              ${Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+            </select>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -736,11 +884,12 @@ function actualizarRefSelect() {
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     banco.map(p => {
       const u = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
-      const unidadNombre = u ? u.nombre.substring(0,20) : '?';
+      const unidadNombre = u ? u.nombre.substring(0,18) : '?';
       const tematica = p.tematica || 'Sin temática';
       const proc = p.procedencia ? ` · ${p.procedencia}` : '';
-      const napt = p.num_apartados ? ` · ${p.num_apartados} apt.` : '';
-      return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}</option>`;
+      const napt = p.num_apartados ? ` · ${p.num_apartados}apt.` : '';
+      const desc = p.descripcion ? ` [${p.descripcion.substring(0,25)}]` : '';
+      return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}${desc}</option>`;
     }).join('');
   document.getElementById('preview-ref').style.display = 'none';
 }
@@ -816,6 +965,7 @@ function renderBanco() {
     const usadoPor = usado ? p.usado_por.map(u => `<span class="badge badge-warn">${u.profesor} (${u.curso||'25-26'})</span>`).join(' ') : '';
     const unidad = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
     const procBadge = p.procedencia ? `<span class="badge" style="background:var(--warn-bg);color:var(--warn-text);">${p.procedencia}</span>` : '';
+    const descBadge = p.descripcion ? `<span class="badge" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);font-style:italic;">${p.descripcion}</span>` : '';
     return `<div class="problem-card">
       <div class="problem-header">
         <div>
@@ -831,7 +981,7 @@ function renderBanco() {
           <button class="btn btn-sm btn-danger" onclick="borrarProblema('${p.id}')">Borrar</button>
         </div>
       </div>
-      <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge}</div>
+      <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge} ${descBadge}</div>
       <div class="problem-preview">${preview}</div>
     </div>`;
   }).join('');
@@ -878,7 +1028,16 @@ function renderExamSlots() {
       <div id="slot-detalle-${i}" style="display:none; margin-top:6px;">
         <input type="text" id="slot-detalle-txt-${i}" placeholder="Qué quieres preguntar (ej: Bayes, integral por partes...)">
       </div>
-      <input type="text" id="slot-tematica-${i}" placeholder="Temática opcional (Claude elige si lo dejas vacío)" style="margin-top:6px; font-size:13px;">
+      <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+        <input type="text" id="slot-tematica-${i}" placeholder="Temática opcional" style="flex:1; font-size:13px;">
+        <select id="slot-napt-${i}" style="width:auto; font-size:13px;" title="Nº de apartados">
+          <option value="">Apt. libre</option>
+          <option value="2">2 apt.</option>
+          <option value="3">3 apt.</option>
+          <option value="4">4 apt.</option>
+          <option value="5">5 apt.</option>
+        </select>
+      </div>
     </div>`).join('');
 
   // Rellenar selects de unidad y referencia
@@ -1035,24 +1194,45 @@ function generarExamen() {
   const conv = document.getElementById('exam-conv').value;
   const desc = document.getElementById('exam-desc').value;
 
+  // Recoger criterios conocidos de referencias del banco para la tabla
+  const criteriosConocidos = new Set();
+  for (let i = 0; i < examSlots; i++) {
+    const tipo = document.getElementById(`slot-tipo-${i}`)?.value || 'libre';
+    if (tipo === 'similar') {
+      const refId = document.getElementById(`slot-ref-${i}`)?.value || '';
+      const ref = banco.find(p => p.id === refId);
+      if (ref && ref.criterios) ref.criterios.forEach(c => criteriosConocidos.add(c));
+    }
+  }
+
   // Construir instrucciones por slot
   const slotsInfo = Array.from({length: examSlots}, (_, i) => {
     const tipo = document.getElementById(`slot-tipo-${i}`)?.value || 'libre';
     const unidadId = document.getElementById(`slot-unidad-${i}`)?.value || '';
     const unidad = (unidades[cursoActual]||[]).find(x => x.id === unidadId);
     const tematica = document.getElementById(`slot-tematica-${i}`)?.value || '';
+    const napt = document.getElementById(`slot-napt-${i}`)?.value || '';
 
     if (tipo === 'similar') {
       const refId = document.getElementById(`slot-ref-${i}`)?.value || '';
       const ref = banco.find(p => p.id === refId);
-      return `Pregunta ${i+1}: SIMILAR al siguiente problema del banco${tematica ? ` (temática: ${tematica})` : ''}:\n${ref ? ref.latex_enunciado : 'Genera uno típico del nivel'}`;
+      const naptStr = napt ? ` — ${napt} apartados` : '';
+      return `Pregunta ${i+1}: SIMILAR al siguiente problema del banco${naptStr}${tematica ? ` — temática: ${tematica}` : ''}:\n${ref ? ref.latex_enunciado : 'Genera uno típico del nivel'}`;
     } else if (tipo === 'detallista') {
       const detalle = document.getElementById(`slot-detalle-txt-${i}`)?.value || '';
-      return `Pregunta ${i+1}: ${unidad ? `Unidad "${unidad.nombre}"` : 'Cualquier unidad'} — Contenido: ${detalle || 'libre'}${tematica ? ` — Temática: ${tematica}` : ''}`;
+      const naptStr = napt ? ` — ${napt} apartados` : '';
+      return `Pregunta ${i+1}: ${unidad ? `Unidad "${unidad.nombre}"` : 'Cualquier unidad'} — Contenido: ${detalle || 'libre'}${naptStr}${tematica ? ` — Temática: ${tematica}` : ''}`;
     } else {
-      return `Pregunta ${i+1}: Libre${unidad ? ` — Unidad preferida: ${unidad.nombre}` : ''}${tematica ? ` — Temática: ${tematica}` : ''}`;
+      const naptStr = napt ? ` — ${napt} apartados` : '';
+      return `Pregunta ${i+1}: Libre${unidad ? ` — Unidad preferida: ${unidad.nombre}` : ''}${naptStr}${tematica ? ` — Temática: ${tematica}` : ''}`;
     }
   }).join('\n\n');
+
+  // Tabla de criterios (placeholder que Claude rellenará)
+  const ceConocidos = [...criteriosConocidos].sort();
+  const tablaPlaceholder = ceConocidos.length > 0
+    ? `% TABLA CRITERIOS CONOCIDOS: ${ceConocidos.map(c=>'CE '+c).join(', ')} — Claude: añade los criterios reales de los problemas generados`
+    : `% Claude: construye la tabla de criterios con los CE reales de todos los problemas del examen`;
 
   const prompt = `MATHFORGE_GENERAR_EXAMEN
 
@@ -1063,7 +1243,22 @@ ${desc ? 'Instrucciones adicionales: '+desc : ''}
 ESTRUCTURA DEL EXAMEN (${examSlots} preguntas):
 ${slotsInfo}
 
-Usa EXACTAMENTE esta plantilla y rellena con los ${examSlots} problemas indicados:
+INSTRUCCIONES IMPORTANTES:
+1. Genera todos los problemas siguiendo el estilo del ejemplo real del centro.
+2. Al final de cada problema incluye: %CRITERIOS_P${'{N}'}: CE X.X, CE Y.Y (con N = número de pregunta)
+3. También incluye al final del documento: %DESCRIPCION_P${'{N}'}: descripción breve del tipo de problema (ej: "Probabilidad total + Bayes", "Área entre curvas")
+4. Construye la tabla de calificación de CE con TODOS los criterios únicos que aparezcan en el examen, ordenados. Formato exacto:
+\\begin{tabular}{| ${'c |'.repeat(Math.max(ceConocidos.length || 4, 2))} }
+\\hline
+\\multicolumn{N}{ |c| }{Calificación de CE} \\\\ \\hline
+ CE X.X & CE Y.Y & ... \\\\ \\hline 
+ & & ... \\\\
+ & & ... \\\\
+ \\hline
+\\end{tabular}
+donde N es el número total de criterios únicos del examen.
+
+Usa EXACTAMENTE esta plantilla:
 
 \`\`\`latex
 ${PLANTILLA_LATEX}
@@ -1073,6 +1268,11 @@ ${PLANTILLA_LATEX}
 \\renewcommand*{\\footrulewidth}{0.1pt}
 
 \\begin{center}
+\\begin{minipage}[c]{3.5cm}
+\\vspace{-1cm}
+\\includegraphics[width=3cm]{logo.png}
+\\vspace{-1cm}
+\\end{minipage}
 \\begin{minipage}[c]{13.5cm}
 \\begin{small}
 \\begin{tabularx}{13.5cm}{lXr}
@@ -1087,15 +1287,30 @@ ${PLANTILLA_LATEX}
 \\end{minipage}
 \\end{center}
 
+\\begin{tabularx}{17cm}{lXr}
+\\begin{tabular}{| c | ... |}
+\\hline
+\\multicolumn{N}{ |c| }{Calificación de CE} \\\\ \\hline
+ CE X.X & CE Y.Y & ... \\\\ \\hline 
+ & & ... \\\\
+ & & ... \\\\
+ \\hline
+\\end{tabular} & &
+\\begin{tabular}{| c |}
+\\multicolumn{1}{c}{\\includegraphics[width=6cm]{logo2.jpg}}
+\\end{tabular}
+\\end{tabularx}
+
+\\noindent $ $
+
 \\begin{enumerate}
-% PROBLEMAS AQUÍ — sigue exactamente este estilo:
-% ${EJEMPLO_PROBLEMA.split('\n').slice(0,3).join('\n% ')}
+${tablaPlaceholder}
 \\end{enumerate}
 
 \\end{document}
 \`\`\`
 
-Toda expresión matemática en $...$ o $$...$$. Criterios en \\textbf{[CE X.X]}. Devuelve el documento LaTeX COMPLETO.`;
+Toda expresión matemática en $...$ o $$...$$. Devuelve el documento LaTeX COMPLETO con la tabla de criterios correctamente construida.`;
 
   navigator.clipboard.writeText(prompt)
     .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
@@ -1268,27 +1483,37 @@ async function guardarMasivo() {
 
 function toggleProcedenciaOtro() {
   const sel = document.getElementById('procedencia-select').value;
-  const conAnyo = ['PAU', 'Examen propio'];
-  document.getElementById('procedencia-anyo').style.display = conAnyo.includes(sel) ? 'block' : 'none';
+  document.getElementById('proc-pau-fields').style.display = sel === 'PAU' ? 'block' : 'none';
+  document.getElementById('proc-propio-fields').style.display = sel === 'Examen propio' ? 'block' : 'none';
   document.getElementById('procedencia-otro').style.display = sel === 'otro' ? 'block' : 'none';
 }
 
 function toggleProcedenciaModalOtro() {
   const sel = document.getElementById('procedencia-modal-select').value;
-  const conAnyo = ['PAU', 'Examen propio'];
-  document.getElementById('procedencia-modal-anyo').style.display = conAnyo.includes(sel) ? 'block' : 'none';
+  document.getElementById('proc-modal-pau-fields').style.display = sel === 'PAU' ? 'block' : 'none';
+  document.getElementById('proc-modal-propio-fields').style.display = sel === 'Examen propio' ? 'block' : 'none';
   document.getElementById('procedencia-modal-otro').style.display = sel === 'otro' ? 'block' : 'none';
 }
 
-function getProcedencia(selectId, otroId, anyoId) {
-  const sel = document.getElementById(selectId).value;
-  if (sel === 'otro') return document.getElementById(otroId).value.trim() || 'Otro';
-  const conAnyo = ['PAU', 'Examen propio'];
-  if (conAnyo.includes(sel)) {
-    const anyo = document.getElementById(anyoId).value.trim();
-    return anyo ? `${sel} ${anyo}` : sel;
+function getProcedencia(prefix) {
+  // prefix: '' para el formulario principal, 'modal-' para el modal
+  const sel = document.getElementById(`procedencia-${prefix}select`).value;
+  if (sel === 'otro') return { label: document.getElementById(`procedencia-${prefix}otro`).value.trim() || 'Otro', detalle: {} };
+  if (sel === 'PAU') {
+    const ca = document.getElementById(`proc-${prefix}pau-ca`)?.value || 'Andalucía';
+    const anyo = document.getElementById(`proc-${prefix}pau-anyo`)?.value || '';
+    const examen = document.getElementById(`proc-${prefix}pau-examen`)?.value || 'Ordinaria';
+    const ejercicio = document.getElementById(`proc-${prefix}pau-ejercicio`)?.value || '1';
+    return { label: `PAU ${ca} ${anyo} · ${examen} · Ej.${ejercicio}`, detalle: { tipo:'PAU', ca, anyo, examen, ejercicio } };
   }
-  return sel;
+  if (sel === 'Examen propio') {
+    const curso = document.getElementById(`proc-${prefix}propio-curso`)?.value || '';
+    const nivel = document.getElementById(`proc-${prefix}propio-nivel`)?.value || '';
+    const grupo = document.getElementById(`proc-${prefix}propio-grupo`)?.value || '';
+    const ejercicio = document.getElementById(`proc-${prefix}propio-ejercicio`)?.value || '1';
+    return { label: `Propio ${curso} · ${nivel} · Gr.${grupo} · Ej.${ejercicio}`, detalle: { tipo:'Examen propio', curso, nivel, grupo, ejercicio } };
+  }
+  return { label: sel, detalle: {} };
 }
 
 // ── GUARDAR ───────────────────────────────────────────────────────────────────
@@ -1299,20 +1524,21 @@ async function guardarProblema() {
   const criterios = criteriosRaw ? criteriosRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
   const saberesRaw = document.getElementById('saberes-manual').value;
   const saberes = saberesRaw ? saberesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
-  const procedencia = getProcedencia('procedencia-select', 'procedencia-otro', 'procedencia-anyo');
+  const proc = getProcedencia('');
+  const descripcion = document.getElementById('descripcion-manual').value.trim();
   const unidadId = currentMode === 'detallista' ? document.getElementById('unidad').value : '';
   const tipoVal = currentMode === 'detallista' ? document.getElementById('tipo').value : '';
   const tematicaVal = currentMode === 'detallista' ? document.getElementById('tematica').value : '';
   const naptVal = currentMode === 'detallista' ? parseInt(document.getElementById('num-apartados').value) : 3;
 
   if (!unidadId) {
-    pendienteGuardar = { latex, criterios, saberes, procedencia };
+    pendienteGuardar = { latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion };
     document.getElementById('tematica-modal-input').value = tematicaVal || '';
     actualizarUnidadesUI();
     document.getElementById('modal-bloque').style.display = 'flex';
     return;
   }
-  await completarGuardar({ latex, criterios, saberes, procedencia, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
+  await completarGuardar({ latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
 }
 
 async function confirmarGuardar() {
@@ -1321,36 +1547,38 @@ async function confirmarGuardar() {
   const tematica = document.getElementById('tematica-modal-input').value;
   const num_apartados = parseInt(document.getElementById('napt-modal-select').value);
   const saberes = (document.getElementById('saberes-modal-input').value || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const procedencia = getProcedencia('procedencia-modal-select', 'procedencia-modal-otro', 'procedencia-modal-anyo');
+  const proc = getProcedencia('modal-');
+  const descripcion = document.getElementById('descripcion-modal-input')?.value.trim() || '';
   cerrarModal('modal-bloque');
-  await completarGuardar({ ...pendienteGuardar, unidad_id, tipo, tematica, num_apartados, saberes, procedencia });
+  await completarGuardar({ ...pendienteGuardar, unidad_id, tipo, tematica, num_apartados, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion });
   pendienteGuardar = null;
 }
 
-async function completarGuardar({ latex, criterios, saberes, procedencia, unidad_id, tipo, tematica, num_apartados }) {
+async function completarGuardar({ latex, criterios, saberes, procedencia, procedencia_detalle, descripcion, unidad_id, tipo, tematica, num_apartados }) {
   const problema = {
     unidad_id, tipo, tematica, num_apartados,
     latex_enunciado: latex,
     criterios: criterios && criterios.length ? criterios : [],
     saberes: saberes && saberes.length ? saberes : [],
     procedencia: procedencia || 'IA',
+    procedencia_detalle: procedencia_detalle || {},
+    descripcion: descripcion || '',
     usado_por: [],
     curso: (cursos[cursoActual]||{}).curso_db || cursoActual,
     created_at: new Date().toISOString()
   };
-  console.log('Guardando problema:', JSON.stringify(problema));
   const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
-  console.log('Respuesta Supabase:', saved);
   if (saved && saved.length) banco.unshift(saved[0]);
   else { banco.unshift({...problema, id: Date.now().toString()}); guardarLocal(); }
   actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
   document.getElementById('latex-pegado').value = '';
   document.getElementById('criterios-manual').value = '';
   document.getElementById('saberes-manual').value = '';
+  document.getElementById('descripcion-manual').value = '';
   document.getElementById('procedencia-select').value = 'IA';
   document.getElementById('procedencia-otro').style.display = 'none';
-  document.getElementById('procedencia-anyo').style.display = 'none';
-  document.getElementById('procedencia-anyo').value = '';
+  document.getElementById('proc-pau-fields').style.display = 'none';
+  document.getElementById('proc-propio-fields').style.display = 'none';
   toast('Problema guardado ✓');
 }
 
