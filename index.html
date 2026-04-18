@@ -2382,12 +2382,10 @@ function generarPromptMasivoLatex() {
 async function importarJSONmasivo() {
   const txt = document.getElementById('masivo-claude-json').value.trim();
   if (!txt) { toast('Pega el JSON primero'); return; }
-  let items;
-  try {
-    const clean = txt.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '').trim();
-    items = JSON.parse(clean);
-  } catch(e) { toast('JSON no válido'); return; }
-  if (!Array.isArray(items) || !items.length) { toast('El JSON debe ser un array'); return; }
+  const items_m = extraerJSONdeClaude(txt);
+  if (!items_m) { toast('JSON no válido'); return; }
+  const items = Array.isArray(items_m) ? items_m : [items_m];
+  if (!items.length) { toast('El JSON debe contener al menos un ejercicio'); return; }
 
   const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
   const units = unidades[cursoActual] || [];
@@ -3313,11 +3311,9 @@ async function importarJSONdePDF() {
   const txt = document.getElementById('pdf-json-input').value.trim();
   if (!txt) { toast('Pega el JSON primero'); return; }
 
-  let items;
-  try {
-    const clean = txt.replace(/^```json?\s*/i, '').replace(/```\s*$/i, '').trim();
-    items = JSON.parse(clean);
-  } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
+  const items_parsed = extraerJSONdeClaude(txt);
+  if (!items_parsed) { toast('JSON no válido — comprueba el formato'); return; }
+  const items = Array.isArray(items_parsed) ? items_parsed : [items_parsed];
 
   if (!Array.isArray(items) || !items.length) { toast('El JSON debe ser un array de ejercicios'); return; }
 
@@ -3407,31 +3403,10 @@ function parsearJSONEjercicio() {
     const txtEl = document.getElementById('json-pegado');
     if (!txtEl) { toast('Error: no se encuentra el campo JSON'); return; }
     const txt = txtEl.value.trim();
-    if (!txt) { toast('Pega el JSON primero'); return; }
+    if (!txt) { toast('Pega el JSON de Claude primero'); return; }
 
-    let data;
-    // Extract JSON from mixed content (Claude might mix LaTeX with JSON)
-    let clean = txt.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
-    // Find first { ... } block
-    const jsonStart = clean.indexOf('{');
-    const jsonEnd = clean.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd > jsonStart) {
-      try { data = JSON.parse(clean.slice(jsonStart, jsonEnd + 1)); }
-      catch(e) { /* try array below */ }
-    }
-    // Try array
-    if (!data) {
-      const arrStart = txt.indexOf('[');
-      const arrEnd = txt.lastIndexOf(']');
-      if (arrStart !== -1 && arrEnd > arrStart) {
-        try {
-          const arr = JSON.parse(txt.slice(arrStart, arrEnd + 1));
-          data = Array.isArray(arr) ? arr[0] : arr;
-        } catch(e) { /* failed */ }
-      }
-    }
-    if (!data) { toast('No se encontró JSON válido en el texto pegado'); return; }
-    if (Array.isArray(data)) data = data[0];
+    const data = extraerJSONdeClaude(txt);
+    if (!data) { toast('No se pudo leer el JSON — asegúrate de pegar la respuesta completa de Claude'); return; }
 
     poblarJsonUnidad();
     const latexEl = document.getElementById('latex-pegado');
@@ -3451,7 +3426,6 @@ function parsearJSONEjercicio() {
     const descEl = document.getElementById('descripcion-manual');
     if (descEl) descEl.value = data.descripcion || '';
 
-    // Show the fields - use multiple methods to ensure visibility
     const camposEl = document.getElementById('json-campos');
     if (camposEl) {
       camposEl.removeAttribute('style');
@@ -3460,8 +3434,41 @@ function parsearJSONEjercicio() {
     }
     toast('JSON interpretado ✓ — revisa los campos y selecciona la procedencia');
   } catch(err) {
-    toast('Error al interpretar: ' + err.message);
+    toast('Error: ' + err.message);
   }
+}
+
+function extraerJSONdeClaude(txt) {
+  // Remove markdown fences
+  let s = txt.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
+
+  // Find JSON object boundaries
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start === -1 || end <= start) {
+    // Try array
+    const aStart = s.indexOf('[');
+    const aEnd = s.lastIndexOf(']');
+    if (aStart !== -1 && aEnd > aStart) {
+      s = s.slice(aStart, aEnd + 1);
+      const arr = tryParseWithFixes(s);
+      return arr && Array.isArray(arr) ? arr[0] : arr;
+    }
+    return null;
+  }
+  s = s.slice(start, end + 1);
+  const result = tryParseWithFixes(s);
+  return Array.isArray(result) ? result[0] : result;
+}
+
+function tryParseWithFixes(s) {
+  // Try 1: direct parse
+  try { return JSON.parse(s); } catch(e) {}
+  // Try 2: fix single backslashes (LaTeX \command → \\command)
+  try { return JSON.parse(s.replace(/\\([^\\/"nrtbfu\d])/g, '\\\\$1')); } catch(e) {}
+  // Try 3: aggressive — escape ALL lone backslashes
+  try { return JSON.parse(s.replace(/\\(?!\\)/g, '\\\\')); } catch(e) {}
+  return null;
 }
 
 function usarLatexManual() {
