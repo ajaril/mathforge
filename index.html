@@ -138,6 +138,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="curso-selector" id="curso-selector">
       <!-- cursos se renderizan dinámicamente -->
     </div>
+    <button class="curso-btn-new" onclick="document.getElementById('nuevo-curso-nombre').value=''; document.getElementById('nuevo-curso-id').value=''; document.getElementById('modal-nuevo-curso').style.display='flex'">+ Nuevo</button>
   </div>
 
   <div class="tabs">
@@ -208,6 +209,10 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div id="modo-similar" style="display:none">
         <div class="field">
           <label>Problema de referencia del banco</label>
+          <div style="display:flex; gap:8px; margin-bottom:6px; align-items:center;">
+            <label style="font-size:12px; color:var(--text2); margin:0; white-space:nowrap;">Mostrar banco de:</label>
+            <select id="ref-curso-select" onchange="actualizarRefSelect()" style="font-size:13px; flex:1;"></select>
+          </div>
           <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
           <div id="preview-ref" class="preview-box" style="display:none;"></div>
         </div>
@@ -1118,16 +1123,12 @@ function init() {
 
 function renderCursoSelector() {
   const sel = document.getElementById('curso-selector');
-  // Use data-key attribute to avoid quote escaping issues in innerHTML onclick
   sel.innerHTML = Object.entries(cursos).map(([key, c]) =>
     '<button class="curso-btn' + (key === cursoActual ? ' active' : '') + '" data-curso="' + key + '">' + c.label + '</button>'
-  ).join('') + '<button class="curso-btn-new" id="btn-nuevo-curso">+ Nuevo</button>';
-  // Attach event listeners properly
+  ).join('');
   sel.querySelectorAll('.curso-btn').forEach(btn => {
     btn.addEventListener('click', function() { setCurso(this.dataset.curso, this); });
   });
-  const btnNuevo = document.getElementById('btn-nuevo-curso');
-  if (btnNuevo) btnNuevo.addEventListener('click', abrirModalNuevoCurso);
 }
 
 function abrirModalNuevoCurso() {
@@ -1265,19 +1266,49 @@ function actualizarStats() {
   document.getElementById('stat-disponibles').textContent = banco.length - usados;
 }
 
+function poblarCursoSelect(selectId, defaultKey) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = Object.entries(cursos).map(([key, c]) =>
+    '<option value="' + key + '"' + (key === (defaultKey || cursoActual) ? ' selected' : '') + '>' + c.label + '</option>'
+  ).join('');
+}
+
+function getBancoParaCurso(cursoKey) {
+  // Returns banco filtered by course key
+  const cursoDB = (cursos[cursoKey]||{}).curso_db || cursoKey;
+  return banco.filter(p => (p.curso||'') === cursoDB || cursoKey === cursoActual);
+}
+
+async function cargarBancoCruzado(cursoKey) {
+  // If same as current, return current banco
+  if (cursoKey === cursoActual) return banco;
+  const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
+  const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
+  return data || [];
+}
+
 function actualizarRefSelect() {
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
-  if (!banco.length) { sel.innerHTML = '<option>No hay problemas en el banco aún</option>'; return; }
+  // Populate curso selector first
+  poblarCursoSelect('ref-curso-select');
+  const cursoKey = document.getElementById('ref-curso-select')?.value || cursoActual;
+  const unitsParaCurso = unidades[cursoKey] || [];
+  const bancoFiltrado = banco.filter(p => {
+    const cursoDB = (cursos[cursoKey]||{}).curso_db || cursoKey;
+    return (p.curso||'') === cursoDB || cursoKey === cursoActual;
+  });
+  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas en el banco de este curso</option>'; document.getElementById('preview-ref').style.display = 'none'; return; }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
-    banco.map(p => {
-      const u = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
+    bancoFiltrado.map(p => {
+      const u = unitsParaCurso.find(x => x.id === p.unidad_id);
       const unidadNombre = u ? u.nombre.substring(0,18) : '?';
       const tematica = p.tematica || 'Sin temática';
-      const proc = p.procedencia ? ` · ${p.procedencia}` : '';
-      const napt = p.num_apartados ? ` · ${p.num_apartados}apt.` : '';
-      const desc = p.descripcion ? ` [${p.descripcion.substring(0,25)}]` : '';
-      return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}${desc}</option>`;
+      const proc = p.procedencia ? ' · ' + p.procedencia : '';
+      const napt = p.num_apartados ? ' · ' + p.num_apartados + 'apt.' : '';
+      const desc = p.descripcion ? ' [' + p.descripcion.substring(0,25) + ']' : '';
+      return '<option value="' + p.id + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
     }).join('');
   document.getElementById('preview-ref').style.display = 'none';
 }
@@ -1429,6 +1460,10 @@ function renderExamSlots() {
         <select id="slot-unidad-${i}" style="width:auto; font-size:13px;"></select>
       </div>
       <div id="slot-similar-${i}" style="display:none; margin-top:6px;">
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
+          <label style="font-size:11px; color:var(--text2); margin:0; white-space:nowrap;">Banco de:</label>
+          <select id="slot-curso-${i}" onchange="actualizarRefSlot(${i})" style="font-size:12px; flex:1;"></select>
+        </div>
         <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" style="font-size:13px; margin-bottom:4px;"></select>
         <div id="slot-preview-${i}" class="preview-box" style="display:none;"></div>
       </div>
@@ -1459,31 +1494,65 @@ function renderExamSlots() {
   }
 }
 
-function actualizarSelectsExamen() {
-  const units = unidades[cursoActual] || [];
-  const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-  const refOpts = '<option value="">Sin referencia</option>' + banco.map(p => {
-    const u = units.find(x => x.id === p.unidad_id);
+function buildRefOpts(bancoData, unitsData) {
+  return '<option value="">Sin referencia</option>' + bancoData.map(p => {
+    const u = unitsData.find(x => x.id === p.unidad_id);
     const unidadNombre = u ? u.nombre.substring(0,20) : '?';
     const tematica = p.tematica || 'Sin temática';
-    const proc = p.procedencia ? ` · ${p.procedencia}` : '';
-    const napt = p.num_apartados ? ` · ${p.num_apartados} apt.` : '';
-    return `<option value="${p.id}">[${unidadNombre}] ${tematica}${napt}${proc}</option>`;
+    const proc = p.procedencia ? ' · ' + p.procedencia : '';
+    const napt = p.num_apartados ? ' · ' + p.num_apartados + ' apt.' : '';
+    const desc = p.descripcion ? ' [' + p.descripcion.substring(0,20) + ']' : '';
+    return '<option value="' + p.id + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
   }).join('');
+}
+
+async function actualizarRefSlot(i) {
+  const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+  const sr = document.getElementById('slot-ref-' + i);
+  if (!sr) return;
+  const prev = document.getElementById('slot-preview-' + i);
+  if (prev) prev.style.display = 'none';
+  let bancoData = banco;
+  if (cursoKey !== cursoActual) {
+    const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
+    const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
+    bancoData = data || [];
+  }
+  sr.innerHTML = buildRefOpts(bancoData, unidades[cursoKey] || []);
+}
+
+function actualizarSelectsExamen() {
+  const units = unidades[cursoActual] || [];
+  const unitOpts = units.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
+  const cursoOpts = Object.entries(cursos).map(([key, c]) =>
+    '<option value="' + key + '"' + (key === cursoActual ? ' selected' : '') + '>' + c.label + '</option>'
+  ).join('');
+  const refOpts = buildRefOpts(banco, units);
 
   for (let i = 0; i < examSlots; i++) {
-    const su = document.getElementById(`slot-unidad-${i}`);
+    const su = document.getElementById('slot-unidad-' + i);
     if (su) su.innerHTML = '<option value="">Cualquier unidad</option>' + unitOpts;
-    const sr = document.getElementById(`slot-ref-${i}`);
+    const sc = document.getElementById('slot-curso-' + i);
+    if (sc) sc.innerHTML = cursoOpts;
+    const sr = document.getElementById('slot-ref-' + i);
     if (sr) sr.innerHTML = refOpts;
   }
 }
 
-function mostrarPreviewSlot(i) {
-  const id = document.getElementById(`slot-ref-${i}`).value;
-  const previewEl = document.getElementById(`slot-preview-${i}`);
+async function mostrarPreviewSlot(i) {
+  const id = document.getElementById('slot-ref-' + i).value;
+  const previewEl = document.getElementById('slot-preview-' + i);
   if (!id) { previewEl.style.display = 'none'; return; }
-  const p = banco.find(x => x.id === id);
+  // Try current banco first, then fetch if needed
+  let p = banco.find(x => x.id === id);
+  if (!p) {
+    const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+    if (cursoKey !== cursoActual) {
+      const cursoDB = encodeURIComponent((cursos[cursoKey]||{}).curso_db || cursoKey);
+      const data = await sbFetch('problemas?id=eq.' + id + '&select=*');
+      p = data && data[0];
+    }
+  }
   renderPreview(previewEl, p ? p.latex_enunciado : null);
 }
 
@@ -1567,6 +1636,10 @@ function selectMode(mode, el) {
   el.classList.add('selected');
   ['detallista','similar','libre'].forEach(m =>
     document.getElementById('modo-'+m).style.display = m === mode ? 'block' : 'none');
+  if (mode === 'similar') {
+    poblarCursoSelect('ref-curso-select');
+    actualizarRefSelect();
+  }
 }
 
 function renderApartados() {
