@@ -1080,8 +1080,56 @@ function mostrarPreviewSlot(i) {
   renderPreview(previewEl, p ? p.latex_enunciado : null);
 }
 
-function añadirSlot() { examSlots++; renderExamSlots(); }
-function quitarSlot() { if (examSlots > 1) { examSlots--; renderExamSlots(); } }
+function leerEstadoSlots() {
+  const estado = [];
+  for (let i = 0; i < examSlots; i++) {
+    estado.push({
+      tipo: document.getElementById(`slot-tipo-${i}`)?.value || 'libre',
+      unidad: document.getElementById(`slot-unidad-${i}`)?.value || '',
+      ref: document.getElementById(`slot-ref-${i}`)?.value || '',
+      detalle: document.getElementById(`slot-detalle-txt-${i}`)?.value || '',
+      tematica: document.getElementById(`slot-tematica-${i}`)?.value || '',
+      napt: document.getElementById(`slot-napt-${i}`)?.value || '',
+    });
+  }
+  return estado;
+}
+
+function restaurarEstadoSlots(estado) {
+  estado.forEach((s, i) => {
+    const tipoEl = document.getElementById(`slot-tipo-${i}`);
+    if (tipoEl) {
+      tipoEl.value = s.tipo;
+      document.getElementById(`slot-similar-${i}`).style.display = s.tipo === 'similar' ? 'block' : 'none';
+      document.getElementById(`slot-detalle-${i}`).style.display = s.tipo === 'detallista' ? 'block' : 'none';
+    }
+    const unidadEl = document.getElementById(`slot-unidad-${i}`);
+    if (unidadEl && s.unidad) unidadEl.value = s.unidad;
+    const refEl = document.getElementById(`slot-ref-${i}`);
+    if (refEl && s.ref) { refEl.value = s.ref; mostrarPreviewSlot(i); }
+    const detalleEl = document.getElementById(`slot-detalle-txt-${i}`);
+    if (detalleEl) detalleEl.value = s.detalle;
+    const tematicaEl = document.getElementById(`slot-tematica-${i}`);
+    if (tematicaEl) tematicaEl.value = s.tematica;
+    const naptEl = document.getElementById(`slot-napt-${i}`);
+    if (naptEl) naptEl.value = s.napt;
+  });
+}
+
+function añadirSlot() {
+  const estado = leerEstadoSlots();
+  examSlots++;
+  renderExamSlots();
+  restaurarEstadoSlots(estado);
+}
+
+function quitarSlot() {
+  if (examSlots <= 1) return;
+  const estado = leerEstadoSlots();
+  examSlots--;
+  renderExamSlots();
+  restaurarEstadoSlots(estado.slice(0, examSlots));
+}
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function showTab(name, el) {
@@ -1599,6 +1647,122 @@ async function guardarExamen() {
   renderExamenes();
   document.getElementById('examen-latex-pegado').value = '';
   toast('Examen guardado ✓');
+
+  // Ofrecer importar los problemas del examen al banco
+  setTimeout(() => {
+    if (confirm('¿Quieres añadir los problemas de este examen al banco de forma individual?')) {
+      document.getElementById('masivo-latex').value = latex;
+      document.getElementById('masivo-paso1').style.display = 'none';
+      document.getElementById('masivo-paso2').style.display = 'none';
+      document.getElementById('modal-importar-masivo').style.display = 'flex';
+      // Parsear directamente
+      parsearMasivoDesdeLatex(latex);
+    }
+  }, 300);
+}
+
+function parsearMasivoDesdeLatex(latex) {
+  const items = [];
+  const lines = latex.split('\n');
+  let current = '';
+  let depth = 0;
+  let dentroEnumerate = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('\\begin{enumerate}') || trimmed.startsWith('\\begin{itemize}')) {
+      depth++;
+      if (depth === 1) { dentroEnumerate = true; continue; }
+    }
+    if (trimmed.startsWith('\\end{enumerate}') || trimmed.startsWith('\\end{itemize}')) {
+      depth--;
+      if (depth === 0) { dentroEnumerate = false; continue; }
+    }
+    if (depth === 1 && trimmed.startsWith('\\item') && current.trim()) {
+      items.push(current.trim());
+      current = line + '\n';
+    } else if (depth >= 1) {
+      current += line + '\n';
+    }
+  }
+  if (current.trim() && depth >= 0) items.push(current.trim());
+
+  masivoItems = items.filter(it => it.length > 20 && !it.startsWith('%'));
+  if (!masivoItems.length) {
+    // Fallback: parseo simple por \item en nivel 0
+    parsearMasivo();
+    return;
+  }
+
+  const units = unidades[cursoActual] || [];
+  const unitOpts = units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+  const procOpts = `<option value="IA">Generado por IA</option>
+    <option value="PAU">PAU</option>
+    <option value="Examen propio">Examen propio</option>
+    <option value="Libro de texto">Libro de texto</option>
+    <option value="otro">Otro...</option>`;
+
+  document.getElementById('masivo-items').innerHTML = masivoItems.map((item, i) => `
+    <div class="masivo-item-card" id="masivo-card-${i}">
+      <div class="masivo-item-header">
+        <span class="masivo-item-num">Problema ${i+1}</span>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;">
+          <input type="checkbox" id="masivo-check-${i}" checked onchange="toggleMasivoCard(${i})"> Incluir
+        </label>
+      </div>
+      <div class="masivo-enunciado" id="masivo-enunciado-${i}" onclick="toggleExpandirEnunciado(${i})" title="Clic para expandir/contraer">
+${item}
+      </div>
+      <small style="font-size:11px;color:var(--text3);display:block;margin-bottom:8px;">↑ Clic para expandir el enunciado completo</small>
+      <div class="masivo-campos" style="grid-template-columns:1fr 1fr 1fr auto;">
+        <div>
+          <label style="font-size:12px;">Unidad</label>
+          <select id="masivo-unidad-${i}" style="font-size:13px;">
+            ${unitOpts || '<option value="">Sin unidades</option>'}
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Tipo</label>
+          <select id="masivo-tipo-${i}" style="font-size:13px;">
+            <option value="contextualizado">Contextualizado</option>
+            <option value="teorico">Teórico</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;">Criterios (coma)</label>
+          <input type="text" id="masivo-criterios-${i}" placeholder="6.1, 8.2" style="font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;">Saberes (coma)</label>
+          <input type="text" id="masivo-saberes-${i}" placeholder="D.1.1., D.1.2." style="font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;">Nº de apartados</label>
+          <select id="masivo-napt-${i}" style="font-size:13px;">
+            <option value="">—</option>
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+        </div>
+      </div>
+      <div class="masivo-campos-full">
+        <div class="row" style="margin-bottom:0;">
+          <div>
+            <label style="font-size:12px;">Procedencia</label>
+            <select id="masivo-proc-${i}" onchange="toggleMasivoProc(${i})" style="font-size:13px;">${procOpts}</select>
+          </div>
+          <div>
+            <label style="font-size:12px;" id="masivo-proc-label-${i}"></label>
+            <input type="text" id="masivo-proc-extra-${i}" placeholder="Año o detalle" style="font-size:13px; display:none;">
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('masivo-paso1').style.display = 'none';
+  document.getElementById('masivo-paso2').style.display = 'block';
+  toast(`${masivoItems.length} problemas detectados del examen`);
 }
 
 async function marcarUsado(id) {
