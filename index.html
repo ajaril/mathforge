@@ -614,8 +614,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
       </details>
 
-      <!-- Importar desde Claude -->
-      <div class="card" style="margin-top:1.25rem; border-style:dashed;">
+      <!-- Normativa guardada -->
+      <div class="card" style="margin-top:1.25rem; background:var(--surface2);">
+        <div class="card-title" style="display:flex; align-items:center; justify-content:space-between;">
+          <span>Normativa guardada para este curso</span>
+          <button class="btn btn-sm btn-danger" onclick="borrarNormativaCurso()" style="font-size:11px;">Borrar</button>
+        </div>
+        <div id="normativa-status" style="font-size:12px; color:var(--text2); white-space:pre-wrap; max-height:150px; overflow-y:auto;"></div>
+      </div>
         <div class="card-title">✨ Importar unidades desde tu programación vía Claude</div>
         <p style="font-size:12px; color:var(--text2); margin-bottom:12px;">
           Pega tu programación didáctica (texto libre con los nombres de las unidades) y el JSON de la normativa (saberes). MathForge genera el prompt → lo llevas a Claude → pegas el JSON que te devuelve.
@@ -1259,7 +1265,7 @@ async function sbFetch(path, opts = {}) {
 }
 
 // ── NORMATIVA ────────────────────────────────────────────────────────────────
-const NORMATIVA = {
+const NORMATIVA_DEFAULT = {
   '2bach': `Saberes y criterios de 2º Bach CCSS:
 - A (Matrices): A.1.1→1.1, A.1.2→1.2, A.1.3→1.2/2.1, A.1.4→4.1, A.2→1.1/4.1
 - B (Cálculo/Prob): B.1.1→3.1/5.1/7.1, B.1.2→1.1/2.1, B.1.3→2.2/7.1/8.1, B.2.1→6.2, B.2.2→5.1/7.2
@@ -1271,6 +1277,35 @@ const NORMATIVA = {
 - C: C.1→3.1/3.2/4.1, C.2.1→5.2/6.1, C.2.2→1.1/5.2, C.3→1.2/2.1, C.4.1→3.2/7.2, C.4.2→5.1/7.1, C.4.3→7.2/8.1/8.2
 - D: D.1.1→7.2/8.1, D.1.2→7.2/8.1, D.1.3→7.2/8.1, D.2.1→6.1/8.2, D.2.2→6.1/8.2, D.3.1→6.1/8.2, D.3.2→1.1/6.2/8.2`
 };
+
+// Stored normativa JSON (raw, from the teacher's official document)
+let normativaGuardada = {};
+
+function cargarNormativaGuardada() {
+  try {
+    const saved = localStorage.getItem('mf_normativa');
+    if (saved) normativaGuardada = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function guardarNormativa(cursoKey, jsonObj, textoResumen) {
+  normativaGuardada[cursoKey] = { json: jsonObj, resumen: textoResumen, guardado: new Date().toISOString() };
+  localStorage.setItem('mf_normativa', JSON.stringify(normativaGuardada));
+  if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
+}
+
+function getNormativa(cursoKey) {
+  // Return saved normativa summary if available, else default
+  const saved = normativaGuardada[cursoKey];
+  if (saved && saved.resumen) return saved.resumen;
+  return NORMATIVA_DEFAULT[cursoKey] || '';
+}
+
+function getNormativaJSON(cursoKey) {
+  const saved = normativaGuardada[cursoKey];
+  if (saved && saved.json) return saved.json;
+  return null;
+}
 
 const PLANTILLA_LATEX = String.raw`\documentclass[12pt,a4paper,twoside]{article}
 \usepackage[utf8]{inputenc}
@@ -1328,31 +1363,129 @@ let masivoItems = [];
 let masivoSeleccionados = new Set();
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-function init() {
-  const savedU = localStorage.getItem('mf_unidades');
-  unidades = savedU ? JSON.parse(savedU) : JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
-  if (!unidades['1bach']) unidades['1bach'] = [];
-  if (!unidades['2bach'] || !unidades['2bach'].length) unidades['2bach'] = JSON.parse(JSON.stringify(UNIDADES_DEFAULT['2bach']));
+// ── CONFIG SUPABASE ───────────────────────────────────────────────────────────
+async function guardarConfigSupabase(id, valor) {
+  // Upsert into configuracion table
+  const res = await sbFetch('configuracion?id=eq.' + id, { method: 'DELETE' });
+  await sbFetch('configuracion', { method: 'POST', body: JSON.stringify({ id, valor, updated_at: new Date().toISOString() }) });
+}
 
-  const savedC = localStorage.getItem('mf_cursos');
-  cursos = savedC ? JSON.parse(savedC) : {
-    '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
-    '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
-  };
+async function cargarConfigSupabase(id) {
+  const data = await sbFetch('configuracion?id=eq.' + id + '&select=valor');
+  if (data && data.length) return data[0].valor;
+  return null;
+}
+
+async function guardarConfigAll() {
+  // Save cursos, unidades, normativa to Supabase + localStorage
+  const config = { cursos, unidades, normativa: normativaGuardada };
+  localStorage.setItem('mf_config', JSON.stringify(config));
+  if (supabaseOK) {
+    await guardarConfigSupabase('cursos', cursos);
+    await guardarConfigSupabase('unidades', unidades);
+    await guardarConfigSupabase('normativa', normativaGuardada);
+  }
+}
+
+async function cargarConfigAll() {
+  let cursosData = null, unidadesData = null, normativaData = null;
+
+  // Try Supabase first
+  const cursosRemote = await cargarConfigSupabase('cursos');
+  if (cursosRemote && Object.keys(cursosRemote).length > 0) {
+    cursosData = cursosRemote;
+    const unidadesRemote = await cargarConfigSupabase('unidades');
+    if (unidadesRemote) unidadesData = unidadesRemote;
+    const normativaRemote = await cargarConfigSupabase('normativa');
+    if (normativaRemote) normativaData = normativaRemote;
+  }
+
+  // Fall back to localStorage
+  if (!cursosData) {
+    const saved = localStorage.getItem('mf_config');
+    if (saved) {
+      try {
+        const cfg = JSON.parse(saved);
+        if (cfg.cursos && Object.keys(cfg.cursos).length > 0) {
+          cursosData = cfg.cursos;
+          unidadesData = cfg.unidades;
+          normativaData = cfg.normativa;
+        }
+      } catch(e) {}
+    }
+    // Legacy fallback
+    if (!cursosData) {
+      const savedC = localStorage.getItem('mf_cursos');
+      if (savedC) try { const c = JSON.parse(savedC); if (Object.keys(c).length > 0) cursosData = c; } catch(e) {}
+    }
+    if (!unidadesData) {
+      const savedU = localStorage.getItem('mf_unidades');
+      if (savedU) try { unidadesData = JSON.parse(savedU); } catch(e) {}
+    }
+  }
+
+  // Apply — NO hardcoded defaults. If empty, show empty state.
+  cursos = cursosData || {};
+  unidades = unidadesData || {};
+  if (normativaData) normativaGuardada = normativaData;
+
+  // First run: if completely empty, seed with defaults and save them
+  if (Object.keys(cursos).length === 0) {
+    cursos = {
+      '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
+      '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
+    };
+    unidades = JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
+    // Save immediately so next load they come from Supabase/localStorage as real data
+    await guardarConfigAll();
+  }
+}
+
+function init() {
+  cargarNormativaGuardada();
 
   renderCursoSelector();
   actualizarUnidadesUI();
   renderApartados();
   renderExamSlots();
 
-  sbFetch('problemas?limit=1&select=id').then(r => {
+  sbFetch('problemas?limit=1&select=id').then(async r => {
     supabaseOK = r !== null;
     const el = document.getElementById('sync-status-text');
-    el.textContent = supabaseOK ? '✓ Sincronizado con Supabase' : 'Guardado local (Supabase no disponible)';
-  });
 
-  cargarBanco();
-  cargarExamenes();
+    if (supabaseOK) {
+      await cargarConfigAll();
+      el.textContent = '✓ Sincronizado con Supabase';
+    } else {
+      // Offline: load from localStorage only, same logic as cargarConfigAll
+      let cursosData = null, unidadesData = null;
+      const saved = localStorage.getItem('mf_config');
+      if (saved) {
+        try { const cfg = JSON.parse(saved); cursosData = cfg.cursos; unidadesData = cfg.unidades; } catch(e) {}
+      }
+      if (!cursosData) { const s = localStorage.getItem('mf_cursos'); if (s) try { cursosData = JSON.parse(s); } catch(e) {} }
+      if (!unidadesData) { const s = localStorage.getItem('mf_unidades'); if (s) try { unidadesData = JSON.parse(s); } catch(e) {} }
+      cursos = cursosData || {};
+      unidades = unidadesData || {};
+      if (Object.keys(cursos).length === 0) {
+        cursos = {
+          '2bach': { label: '2º Bach CCSS', curso_db: '2º Bachillerato CCSS' },
+          '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
+        };
+        unidades = JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
+        localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+        localStorage.setItem('mf_unidades', JSON.stringify(unidades));
+      }
+      el.textContent = 'Guardado local (Supabase no disponible)';
+    }
+
+    renderCursoSelector();
+    actualizarUnidadesUI();
+    renderApartados();
+    renderExamSlots();
+    cargarBanco();
+    cargarExamenes();
+  });
 }
 
 function renderCursoSelector() {
@@ -1397,7 +1530,7 @@ function crearCurso() {
   if (cursos[id]) { toast('Ya existe un curso con ese identificador'); return; }
   cursos[id] = { label: nombre, curso_db: nombre };
   unidades[id] = [];
-  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
   guardarUnidades();
   cerrarNuevoCurso();
   renderCursoSelector();
@@ -1427,7 +1560,10 @@ function guardarLocal() {
   localStorage.setItem('mf_examenes_'+cursoActual, JSON.stringify(examenes));
 }
 
-function guardarUnidades() { localStorage.setItem('mf_unidades', JSON.stringify(unidades)); }
+function guardarUnidades() {
+  localStorage.setItem('mf_unidades', JSON.stringify(unidades));
+  if (supabaseOK) guardarConfigAll();
+}
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 function setCurso(key, el) {
@@ -1458,6 +1594,20 @@ function actualizarUnidadesUI() {
     units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
 
   renderUnidadesList();
+
+  // Show normativa status
+  const normEl = document.getElementById('normativa-status');
+  if (normEl) {
+    const saved = normativaGuardada[cursoActual];
+    if (saved && saved.resumen) {
+      normEl.textContent = saved.resumen + '\n\n(Guardada el ' + new Date(saved.guardado).toLocaleDateString('es-ES') + ')';
+      normEl.style.color = '';
+    } else {
+      const def = NORMATIVA_DEFAULT[cursoActual];
+      normEl.textContent = def ? '(Usando normativa por defecto):\n' + def : 'No hay normativa guardada para este curso. Impórtala desde la sección de abajo.';
+      normEl.style.color = 'var(--text3)';
+    }
+  }
 }
 
 function renderUnidadesList() {
@@ -1993,7 +2143,7 @@ function renderApartados() {
 // ── PROMPTS ──────────────────────────────────────────────────────────────────
 function buildPrompt() {
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
-  const normativa = NORMATIVA[cursoActual] || '';
+  const normativa = getNormativa(cursoActual) || '';
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
   const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
 
@@ -3561,7 +3711,7 @@ function procesarImport(txt) {
       for (const [key, c] of Object.entries(data.cursos)) {
         if (!cursos[key]) cursos[key] = c;
       }
-      localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+      localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
       renderCursoSelector();
     }
     guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); renderExamenes(); actualizarUnidadesUI(); actualizarSelectsExamen();
@@ -3785,8 +3935,10 @@ function importarUnidadesDeClaude() {
   let items;
   try {
     const clean = txt.replace(/^```json?\s*/i,'').replace(/```\s*$/i,'').trim();
-    items = JSON.parse(clean);
-    if (!Array.isArray(items)) throw new Error('No es un array');
+    const parsed = tryParseWithFixes(clean);
+    if (!parsed) throw new Error('No parseable');
+    items = Array.isArray(parsed) ? parsed : [parsed];
+    if (!items.length) throw new Error('Array vacío');
   } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
 
   const modo = document.getElementById('import-unidades-modo').value;
@@ -3799,14 +3951,13 @@ function importarUnidadesDeClaude() {
   if (!nuevas.length) { toast('No se encontraron unidades en el JSON'); return; }
 
   if (modo === 'reemplazar') {
-    // Warn if there are exercises that will become orphaned
     const existentes = unidades[cursoActual] || [];
     const idsViejos = new Set(existentes.map(u => u.id));
     const ejerciciosAfectados = banco.filter(p =>
       idsViejos.has(p.unidad_id) || (Array.isArray(p.unidades_ids) && p.unidades_ids.some(id => idsViejos.has(id)))
     );
     if (ejerciciosAfectados.length > 0) {
-      if (!confirm(`¡Atención! Hay ${ejerciciosAfectados.length} ejercicio(s) clasificados en las unidades actuales.\nAl reemplazar, quedarán desvinculados de sus unidades (no se borran, solo pierden la unidad).\n\n¿Continuar igualmente?`)) return;
+      if (!confirm(`¡Atención! Hay ${ejerciciosAfectados.length} ejercicio(s) clasificados en las unidades actuales.\nAl reemplazar, quedarán desvinculados de sus unidades.\n\n¿Continuar igualmente?`)) return;
     }
     unidades[cursoActual] = nuevas;
   } else {
@@ -3814,11 +3965,59 @@ function importarUnidadesDeClaude() {
     unidades[cursoActual] = [...unidades[cursoActual], ...nuevas];
   }
 
+  // Save normativa JSON if it was provided
+  const normativaRawEl = document.getElementById('import-normativa-json');
+  if (normativaRawEl && normativaRawEl.value.trim()) {
+    try {
+      const normJson = tryParseWithFixes(normativaRawEl.value.trim());
+      if (normJson) {
+        // Build a text summary from the JSON for use in prompts
+        const resumen = construirResumenNormativa(normJson, cursoActual);
+        guardarNormativa(cursoActual, normJson, resumen);
+      }
+    } catch(e) { /* normativa no válida, ignorar */ }
+  }
+
   guardarUnidades();
   actualizarUnidadesUI();
   document.getElementById('import-unidades-json').value = '';
   ocultar('import-unidades-paso2');
-  toast(`${nuevas.length} unidades importadas ✓`);
+  toast(`${nuevas.length} unidades importadas ✓ — normativa guardada para este curso`);
+}
+
+function borrarNormativaCurso() {
+  if (!confirm('¿Borrar la normativa guardada para ' + ((cursos[cursoActual]||{}).label||cursoActual) + '? Se usará la normativa por defecto.')) return;
+  delete normativaGuardada[cursoActual];
+  localStorage.setItem('mf_normativa', JSON.stringify(normativaGuardada));
+  if (supabaseOK) guardarConfigAll();
+  actualizarUnidadesUI();
+  toast('Normativa borrada — usando la normativa por defecto');
+}
+
+function construirResumenNormativa(normJson, cursoKey) {
+  // Build a compact text from the normativa JSON for inclusion in prompts
+  const cursoLabel = (cursos[cursoKey]||{}).label || cursoKey;
+  let lines = [`Normativa de saberes y criterios — ${cursoLabel}:`];
+  try {
+    if (Array.isArray(normJson)) {
+      normJson.forEach(bloque => {
+        const nombre = bloque.nombre || bloque.bloque || '';
+        const saberes = bloque.saberes || [];
+        lines.push(`- ${nombre}: ${Array.isArray(saberes) ? saberes.join(', ') : saberes}`);
+      });
+    } else {
+      Object.entries(normJson).forEach(([clave, bloque]) => {
+        const nombre = typeof bloque === 'object' ? (bloque.nombre || clave) : clave;
+        const saberes = typeof bloque === 'object' ? (bloque.saberes || []) : [];
+        const criterios = typeof bloque === 'object' ? (bloque.criterios || '') : '';
+        let linea = `- ${clave} (${nombre})`;
+        if (Array.isArray(saberes) && saberes.length) linea += `: saberes ${saberes.join(', ')}`;
+        if (criterios) linea += ` → criterios ${criterios}`;
+        lines.push(linea);
+      });
+    }
+  } catch(e) { lines.push(JSON.stringify(normJson).substring(0, 200)); }
+  return lines.join('\n');
 }
 function renderConfigGeneral() {
   const list = document.getElementById('cursos-orden-list');
@@ -3832,11 +4031,10 @@ function renderConfigGeneral() {
       <span style="font-size:12px; color:var(--text3); margin-left:auto;">id: ${key}</span>
     </div>`).join('');
 
-  // Populate borrar select
+  // Populate borrar select — show ALL courses
   const borrarSel = document.getElementById('curso-borrar-select');
   if (borrarSel) borrarSel.innerHTML = claves
-    .filter(k => k !== cursoActual)
-    .map(k => '<option value="' + k + '">' + cursos[k].label + '</option>').join('');
+    .map(k => '<option value="' + k + '">' + cursos[k].label + (k === cursoActual ? ' (activo)' : '') + '</option>').join('');
 }
 
 let draggedCurso = null;
@@ -3853,7 +4051,7 @@ function dragCursoDrop(e, targetKey) {
 }
 
 function guardarOrdenCursos() {
-  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
   renderCursoSelector();
   toast('Orden guardado ✓');
 }
@@ -3861,14 +4059,25 @@ function guardarOrdenCursos() {
 function borrarCurso() {
   const key = document.getElementById('curso-borrar-select')?.value;
   if (!key) return;
+  const restantes = Object.keys(cursos).filter(k => k !== key);
+  if (restantes.length === 0) { toast('No puedes eliminar el único curso'); return; }
   if (!confirm('¿Eliminar el curso "' + cursos[key]?.label + '"? Los ejercicios en Supabase no se borran.')) return;
   delete cursos[key];
   delete unidades[key];
-  localStorage.setItem('mf_cursos', JSON.stringify(cursos));
+  // If we deleted the active course, switch to another
+  if (cursoActual === key) {
+    cursoActual = restantes[0];
+  }
+  localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
   guardarUnidades();
   renderCursoSelector();
+  // Re-activate the current course button
+  document.querySelectorAll('.curso-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.curso === cursoActual);
+  });
+  actualizarUnidadesUI();
   renderConfigGeneral();
-  toast('Curso eliminado');
+  toast('Curso "' + (cursos[restantes[0]]?.label || '') + '" ahora activo');
 }
 
 // ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
