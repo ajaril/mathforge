@@ -594,10 +594,56 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         ⚠️ <strong>Borrar</strong> una unidad con ejercicios te ofrecerá reasignarlos antes de eliminarla.
       </div>
       <div id="unidades-list"></div>
-      <div class="add-unit-form">
-        <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
-        <input type="text" id="nueva-unidad-saberes" placeholder="Saberes opcionales (ej: D.1.1., D.1.2.)">
-        <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
+
+      <!-- Añadir una a una -->
+      <details style="margin-top:1rem;">
+        <summary style="font-size:13px; font-weight:500; cursor:pointer; color:var(--text2); margin-bottom:8px;">+ Añadir unidad manualmente</summary>
+        <div class="add-unit-form" style="margin-top:8px;">
+          <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
+          <input type="text" id="nueva-unidad-saberes" placeholder="Saberes opcionales (ej: D.1.1., D.1.2.)">
+          <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
+        </div>
+      </details>
+
+      <!-- Importar desde Claude -->
+      <div class="card" style="margin-top:1.25rem; border-style:dashed;">
+        <div class="card-title">✨ Importar unidades desde tu programación vía Claude</div>
+        <p style="font-size:12px; color:var(--text2); margin-bottom:12px;">
+          Pega tu programación didáctica (texto libre con los nombres de las unidades) y el JSON de la normativa (saberes). MathForge genera el prompt → lo llevas a Claude → pegas el JSON que te devuelve.
+        </p>
+
+        <!-- Paso 1 -->
+        <div style="font-size:13px; font-weight:500; margin-bottom:6px;">Paso 1 — Tus unidades</div>
+        <textarea id="import-unidades-texto" placeholder="Pega aquí tu programación o lista de unidades. Formato libre, por ejemplo:
+1. Continuidad y derivabilidad
+2. Aplicaciones de la derivada
+3. Integrales y áreas
+4. Probabilidad
+..." style="min-height:120px; margin-bottom:12px;"></textarea>
+
+        <!-- Paso 2 -->
+        <div style="font-size:13px; font-weight:500; margin-bottom:6px;">Paso 2 — Normativa (saberes) — opcional</div>
+        <textarea id="import-normativa-json" placeholder='Pega aquí el JSON de la normativa con los saberes. Ejemplo:
+{
+  "A": { "nombre": "Álgebra", "saberes": ["A.1.1.", "A.1.2.", "A.2.1."] },
+  "B": { "nombre": "Cálculo", "saberes": ["B.1.1.", "B.2.1.", "B.2.2."] },
+  "C": { "nombre": "Estadística", "saberes": ["C.1.1.", "C.1.2."] }
+}' style="min-height:100px; font-family:Courier New,monospace; font-size:11px; background:var(--surface2); margin-bottom:12px;"></textarea>
+
+        <button class="btn btn-primary" onclick="generarPromptUnidades()" style="margin-bottom:12px;">Generar prompt → copiar y abrir Claude</button>
+
+        <!-- Paso 3 -->
+        <div id="import-unidades-paso2" style="display:none; border-top:1px solid var(--border); padding-top:12px; margin-top:4px;">
+          <div style="font-size:13px; font-weight:500; margin-bottom:6px;">Paso 3 — Pega el JSON que te ha devuelto Claude</div>
+          <textarea id="import-unidades-json" placeholder='Pega aquí el JSON de unidades de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:100px; background:var(--surface2); margin-bottom:8px;"></textarea>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <select id="import-unidades-modo" style="font-size:13px;">
+              <option value="reemplazar">Reemplazar todas las unidades del curso</option>
+              <option value="añadir">Añadir a las existentes</option>
+            </select>
+            <button class="btn btn-primary" onclick="importarUnidadesDeClaude()">Importar unidades</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1322,28 +1368,18 @@ function renderCursoSelector() {
 function abrirModalNuevoCurso() {
   document.getElementById('nuevo-curso-nombre').value = '';
   document.getElementById('nuevo-curso-id').value = '';
-  document.getElementById('modal-nuevo-curso').style.display = 'flex';
+  abrirModal('modal-nuevo-curso');
 }
 
 function abrirNuevoCurso() {
-  const overlay = document.getElementById('modal-nuevo-curso');
-  const caja = overlay ? overlay.querySelector('.modal') : null;
   const nombre = document.getElementById('nuevo-curso-nombre');
   const id = document.getElementById('nuevo-curso-id');
-  if (!overlay || !caja || !nombre || !id) { console.error('Modal nuevo curso no encontrado'); return; }
-  nombre.value = '';
-  id.value = '';
-  document.body.appendChild(overlay);
-  overlay.style.cssText = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:999999 !important; padding:16px !important;';
-  caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; width:min(620px,calc(100vw - 32px)) !important; max-width:620px !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important;';
-  document.body.style.overflow = 'hidden';
+  if (nombre) nombre.value = '';
+  if (id) id.value = '';
+  abrirModal('modal-nuevo-curso');
 }
 
-function cerrarNuevoCurso() {
-  const overlay = document.getElementById('modal-nuevo-curso');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
+function cerrarNuevoCurso() { cerrarModal('modal-nuevo-curso'); }
 
 function crearCurso() {
   const nombre = document.getElementById('nuevo-curso-nombre').value.trim();
@@ -1452,7 +1488,7 @@ function editarUnidad(id) {
   document.getElementById('edit-unidad-id').value = id;
   document.getElementById('edit-unidad-nombre').value = u.nombre;
   document.getElementById('edit-unidad-saberes').value = u.saberes || '';
-  document.getElementById('modal-editar-unidad').style.display = 'flex';
+  abrirModal('modal-editar-unidad');
 }
 
 async function guardarEdicionUnidad() {
@@ -1486,7 +1522,7 @@ function borrarUnidad(id) {
     const reasignarSel = document.getElementById('borrar-unidad-reasignar');
     reasignarSel.innerHTML = '<option value="">— Dejarlos sin unidad —</option>' +
       otras.map(x => '<option value="' + x.id + '">' + x.nombre + '</option>').join('');
-    document.getElementById('modal-borrar-unidad').style.display = 'flex';
+    abrirModal('modal-borrar-unidad');
   } else {
     if (!confirm('¿Borrar la unidad "' + u.nombre + '"?' + (afectados.length > 0 ? ' Los ' + afectados.length + ' ejercicios de esta unidad quedarán sin unidad asignada.' : ''))) return;
     confirmarBorrarUnidad(id, '');
@@ -2380,7 +2416,7 @@ function mostrarImportarMasivo() {
   document.getElementById('masivo-paso2').style.display = 'none';
   document.getElementById('masivo-claude-paso2') && (document.getElementById('masivo-claude-paso2').style.display = 'none');
   setMasivoModo('manual');
-  document.getElementById('modal-importar-masivo').style.display = 'flex';
+  abrirModal('modal-importar-masivo');
 }
 
 function parsearMasivo() {
@@ -2748,7 +2784,7 @@ async function guardarProblema() {
     pendienteGuardar = { latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal };
     document.getElementById('tematica-modal-input').value = tematicaVal || '';
     actualizarUnidadesUI();
-    document.getElementById('modal-bloque').style.display = 'flex';
+    abrirModal('modal-bloque');
     return;
   }
   await completarGuardar({ latex, criterios, saberes, procedencia: proc.label, procedencia_detalle: proc.detalle, descripcion, unidad_id: unidadId, tipo: tipoVal, tematica: tematicaVal, num_apartados: naptVal });
@@ -2823,7 +2859,7 @@ async function guardarExamen() {
       document.getElementById('masivo-latex').value = latex;
       document.getElementById('masivo-paso1').style.display = 'none';
       document.getElementById('masivo-paso2').style.display = 'none';
-      document.getElementById('modal-importar-masivo').style.display = 'flex';
+      abrirModal('modal-importar-masivo');
       // Parsear directamente
       parsearMasivoDesdeLatex(latex);
     }
@@ -2941,7 +2977,7 @@ function verEnunciadoModal(id) {
   document.getElementById('modal-enunciado-latex').value = p.latex_enunciado || '';
   const renderEl = document.getElementById('modal-enunciado-render');
   renderPreview(renderEl, p.latex_enunciado);
-  document.getElementById('modal-ver-enunciado').style.display = 'flex';
+  abrirModal('modal-ver-enunciado');
 }
 
 function copiarLatexModal() {
@@ -2962,7 +2998,7 @@ function verLatex(id) {
   // Auto-expand the LaTeX details
   const details = document.querySelector('#modal-ver-enunciado details');
   if (details) details.open = true;
-  document.getElementById('modal-ver-enunciado').style.display = 'flex';
+  abrirModal('modal-ver-enunciado');
 }
 
 // ── EXAMEN DIRECTO DEL BANCO ──────────────────────────────────────────────────
@@ -3180,7 +3216,7 @@ function mostrarImportarPDF() {
   actualizarFiltrosExamBanco();
   document.getElementById('pdf-paso2').style.display = 'none';
   document.getElementById('pdf-json-input').value = '';
-  document.getElementById('modal-importar-pdf').style.display = 'flex';
+  abrirModal('modal-importar-pdf');
 }
 
 function setPdfTipo(tipo, el) {
@@ -3418,7 +3454,7 @@ function exportarJSON() {
   const data = { banco, examenes, unidades, cursos, exportado: new Date().toISOString(), version: '3.1' };
   const jsonStr = JSON.stringify(data, null, 2);
   document.getElementById('json-export-text').value = jsonStr;
-  document.getElementById('modal-exportar').style.display = 'flex';
+  abrirModal('modal-exportar');
   // Intentar descarga directa
   descargarJsonDirecto(jsonStr);
 }
@@ -3453,7 +3489,7 @@ function copiarJsonExport() {
 
 function mostrarImportar() {
   document.getElementById('json-import-text').value = '';
-  document.getElementById('modal-importar').style.display = 'flex';
+  abrirModal('modal-importar');
 }
 
 function importarDesdeTexto() {
@@ -3532,7 +3568,7 @@ function mostrarAddRecurso() {
   document.getElementById('recurso-nombre').value = '';
   document.getElementById('recurso-url').value = '';
   document.getElementById('recurso-desc').value = '';
-  document.getElementById('modal-recurso').style.display = 'flex';
+  abrirModal('modal-recurso');
 }
 
 async function guardarRecurso() {
@@ -3563,7 +3599,6 @@ function editarProblema(id) {
   const p = banco.find(x => x.id === id);
   if (!p) return;
   document.getElementById('edit-prob-id').value = id;
-  // Populate unidad selector
   const units = unidades[cursoActual] || [];
   document.getElementById('edit-prob-unidad').innerHTML =
     units.map(u => '<option value="' + u.id + '"' + (u.id === p.unidad_id ? ' selected' : '') + '>' + u.nombre + '</option>').join('');
@@ -3573,7 +3608,7 @@ function editarProblema(id) {
   document.getElementById('edit-prob-descripcion').value = p.descripcion || '';
   document.getElementById('edit-prob-criterios').value = (p.criterios||[]).join(', ');
   document.getElementById('edit-prob-latex').value = p.latex_enunciado || '';
-  document.getElementById('modal-editar-problema').style.display = 'flex';
+  abrirModal('modal-editar-problema');
 }
 
 async function guardarEdicionProblema() {
@@ -3605,7 +3640,7 @@ function editarRecurso(id) {
   document.getElementById('edit-rec-nombre').value = r.nombre || '';
   document.getElementById('edit-rec-url').value = r.url || '';
   document.getElementById('edit-rec-desc').value = r.descripcion || '';
-  document.getElementById('modal-editar-recurso').style.display = 'flex';
+  abrirModal('modal-editar-recurso');
 }
 
 async function guardarEdicionRecurso() {
@@ -3634,7 +3669,7 @@ function editarExamen(id) {
   document.getElementById('edit-exam-profesor').value = e.profesor || '';
   document.getElementById('edit-exam-conv').value = e.convocatoria || 'Ordinaria';
   document.getElementById('edit-exam-latex').value = e.latex || '';
-  document.getElementById('modal-editar-examen').style.display = 'flex';
+  abrirModal('modal-editar-examen');
 }
 
 async function guardarEdicionExamen() {
@@ -3655,7 +3690,96 @@ async function guardarEdicionExamen() {
   toast('Examen actualizado ✓');
 }
 
-// ── CONFIGURACIÓN GENERAL ─────────────────────────────────────────────────────
+// ── IMPORTAR UNIDADES DESDE CLAUDE ───────────────────────────────────────────
+function generarPromptUnidades() {
+  const texto = document.getElementById('import-unidades-texto').value.trim();
+  if (!texto) { toast('Pega primero tus unidades didácticas'); return; }
+  const normativaRaw = document.getElementById('import-normativa-json').value.trim();
+  const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
+
+  let normativaSeccion = '';
+  if (normativaRaw) {
+    normativaSeccion = `\nNORMATIVA — SABERES POR BLOQUE (un mismo saber puede aparecer en varias unidades):\n${normativaRaw}\n`;
+  }
+
+  const prompt = `MATHFORGE_IMPORTAR_UNIDADES
+
+Curso: ${cursoLabel}
+
+UNIDADES DIDÁCTICAS DE LA PROGRAMACIÓN:
+${texto}
+${normativaSeccion}
+TAREA: Analiza las unidades de la programación y devuelve un array JSON con una entrada por cada unidad. Asigna a cada unidad los saberes de la normativa que correspondan (puede haber saberes compartidos entre unidades). Si no hay normativa, deja "saberes" como cadena vacía.
+
+Devuelve SOLO este JSON (sin texto adicional, sin markdown):
+[
+  {
+    "nombre": "Nombre completo de la unidad tal como aparece en la programación",
+    "saberes": "A.1.1., A.1.2., B.2.1."
+  },
+  {
+    "nombre": "Segunda unidad",
+    "saberes": "B.1.1., C.2.1."
+  }
+]
+
+INSTRUCCIONES:
+- "nombre": exactamente como está en la programación (sin numeración si no la tiene, con numeración si la tiene)
+- "saberes": cadena con los códigos separados por coma y espacio (ej: "A.1.1., A.1.2."), o cadena vacía "" si no hay normativa o no puedes asignar ninguno con seguridad
+- Un mismo saber puede y debe aparecer en múltiples unidades si corresponde
+- Mantén el orden de las unidades tal como aparecen en la programación
+- Devuelve SOLO el JSON array, sin ningún texto antes ni después`;
+
+  navigator.clipboard.writeText(prompt)
+    .then(() => {
+      toast('Prompt copiado ✓ — abriendo Claude...');
+      setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      document.getElementById('import-unidades-paso2').style.display = 'block';
+    })
+    .catch(() => toast('No se pudo copiar — cópialo manualmente'));
+}
+
+function importarUnidadesDeClaude() {
+  const txt = document.getElementById('import-unidades-json').value.trim();
+  if (!txt) { toast('Pega el JSON de Claude primero'); return; }
+  let items;
+  try {
+    const clean = txt.replace(/^```json?\s*/i,'').replace(/```\s*$/i,'').trim();
+    items = JSON.parse(clean);
+    if (!Array.isArray(items)) throw new Error('No es un array');
+  } catch(e) { toast('JSON no válido — comprueba el formato'); return; }
+
+  const modo = document.getElementById('import-unidades-modo').value;
+  const nuevas = items.map(item => ({
+    id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+    nombre: (item.nombre || '').trim(),
+    saberes: (item.saberes || '').trim()
+  })).filter(u => u.nombre);
+
+  if (!nuevas.length) { toast('No se encontraron unidades en el JSON'); return; }
+
+  if (modo === 'reemplazar') {
+    // Warn if there are exercises that will become orphaned
+    const existentes = unidades[cursoActual] || [];
+    const idsViejos = new Set(existentes.map(u => u.id));
+    const ejerciciosAfectados = banco.filter(p =>
+      idsViejos.has(p.unidad_id) || (Array.isArray(p.unidades_ids) && p.unidades_ids.some(id => idsViejos.has(id)))
+    );
+    if (ejerciciosAfectados.length > 0) {
+      if (!confirm(`¡Atención! Hay ${ejerciciosAfectados.length} ejercicio(s) clasificados en las unidades actuales.\nAl reemplazar, quedarán desvinculados de sus unidades (no se borran, solo pierden la unidad).\n\n¿Continuar igualmente?`)) return;
+    }
+    unidades[cursoActual] = nuevas;
+  } else {
+    if (!unidades[cursoActual]) unidades[cursoActual] = [];
+    unidades[cursoActual] = [...unidades[cursoActual], ...nuevas];
+  }
+
+  guardarUnidades();
+  actualizarUnidadesUI();
+  document.getElementById('import-unidades-json').value = '';
+  document.getElementById('import-unidades-paso2').style.display = 'none';
+  toast(`${nuevas.length} unidades importadas ✓`);
+}
 function renderConfigGeneral() {
   const list = document.getElementById('cursos-orden-list');
   if (!list) return;
@@ -3707,7 +3831,21 @@ function borrarCurso() {
   toast('Curso eliminado');
 }
 
-function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+function abrirModal(id) {
+  const overlay = document.getElementById(id);
+  if (!overlay) { console.error('Modal no encontrado:', id); return; }
+  const caja = overlay.querySelector('.modal');
+  document.body.appendChild(overlay);
+  overlay.style.cssText = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:99999 !important; padding:16px !important;';
+  if (caja) caja.style.cssText = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important;';
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal(id) {
+  const overlay = document.getElementById(id);
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
 
 function toast(msg) {
   const t = document.getElementById('toast');
