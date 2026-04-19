@@ -2501,8 +2501,14 @@ function generarPromptMasivoLatex() {
     ? '"procedencia_tipo": "propio", "propio_etiqueta": "' + convVal + '", "propio_ejercicio": "detectar"'
     : '"procedencia_tipo": "relacion", "relacion_nombre": "' + convVal + '"';
 
+  const normativaTextoM = getNormativa(cursoActual);
+  const normativaSeccionM = normativaTextoM
+    ? '\nNORMATIVA — SABERES Y CRITERIOS (usa esto para asignar criterios):\n' + normativaTextoM + '\n'
+    : '';
+
   const prompt = 'MATHFORGE_IMPORTAR_LATEX\n\n' +
-'Contexto: ' + contexto + '\nCurso: ' + cursoLabel + '\n\n' +
+'Contexto: ' + contexto + '\nCurso: ' + cursoLabel + '\n' +
+normativaSeccionM + '\n' +
 'UNIDADES DISPONIBLES:\n' + (unidadesListado || '  (ninguna)') + '\n\n' +
 'A continuación el LaTeX. Extrae cada \\item principal del enumerate raíz, transcríbelo correctamente y devuelve un JSON array:\n\n' +
 '[\n  {\n' +
@@ -2518,7 +2524,7 @@ function generarPromptMasivoLatex() {
 '  }\n]\n\n' +
 'INSTRUCCIONES:\n' +
 '- unidades_ids: todos los ids de unidades presentes (puede ser más de una si hay apartados de distintas unidades)\n' +
-'- criterios: solo números sin "CE"\n' +
+'- criterios: dedúcelos a partir de los saberes de la unidad y la normativa. Devuelve solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
 '- Toda matemática en $...$ o $$...$$\n' +
 '- Devuelve SOLO el JSON, sin texto adicional ni markdown\n\n' +
 'LATEX A PROCESAR:\n' + latex;
@@ -2566,7 +2572,7 @@ async function importarJSONmasivo() {
   }
   guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
   cerrarModal('modal-importar-masivo');
-  toast(guardados + ' problemas importados ✓');
+  setTimeout(() => toast(guardados + ' problemas importados ✓'), 100);
 }
 
 function mostrarImportarMasivo() {
@@ -3425,7 +3431,13 @@ function generarPromptPDF() {
     ? '"procedencia_tipo": "propio",\n    "propio_etiqueta": "' + convVal + '",\n    "propio_ejercicio": "detectar del PDF (número del ejercicio dentro del examen)"'
     : '"procedencia_tipo": "relacion",\n    "relacion_nombre": "' + (document.getElementById('pdf-relacion-nombre')?.value.trim() || 'Relación') + '"';
 
-  const prompt = 'MATHFORGE_IMPORTAR_PDF\n\n' + contexto + '\n\nCurso: ' + cursoLabel + '\n\n' +
+  const normativaTexto = getNormativa(cursoActual);
+  const normativaSeccion = normativaTexto
+    ? '\nNORMATIVA — SABERES Y CRITERIOS DEL CURSO (usa esto para asignar criterios a cada ejercicio):\n' + normativaTexto + '\n'
+    : '';
+
+  const prompt = 'MATHFORGE_IMPORTAR_PDF\n\n' + contexto + '\n\nCurso: ' + cursoLabel + '\n' +
+normativaSeccion + '\n' +
 'UNIDADES DISPONIBLES (clasifica cada ejercicio en una o varias):\n' +
 (unidadesListado || '  (No hay unidades definidas)') + '\n\n' +
 'Para cada ejercicio devuelve un JSON array con este formato EXACTO:\n\n' +
@@ -3446,9 +3458,9 @@ function generarPromptPDF() {
 '- unidad_id: id de la unidad PRINCIPAL (de la lista de arriba)\n' +
 '- unidades_ids: TODOS los ids de unidades del ejercicio. Si hay apartados de distintas unidades, incluye todas\n' +
 '- Si no reconoces la unidad claramente, elige la más probable de la lista\n' +
-'- latex_enunciado: LaTeX válido con \\\\item \\\\textbf{enunciado} y \\\\begin{enumerate}[a)] para apartados\n' +
+'- criterios: dedúcelos a partir de los saberes de la unidad y la normativa de arriba. Devuelve solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
+'- latex_enunciado: LaTeX válido con \\\\item \\\\textbf{enunciado} y \\\\begin{enumerate}[a)] para apartados. Cada apartado: \\\\item \\\\textbf{[CE X.X]} texto\n' +
 '- Toda expresión matemática en $...$ o $$...$$\n' +
-'- criterios: solo los números (ej: "6.1"), sin "CE"\n' +
 '- Devuelve SOLO el JSON, sin texto adicional ni bloques markdown';
 
   navigator.clipboard.writeText(prompt)
@@ -3525,7 +3537,7 @@ async function importarJSONdePDF() {
 
   guardarLocal(); actualizarStats(); actualizarRefSelect(); renderBanco(); actualizarSelectsExamen();
   cerrarModal('modal-importar-pdf');
-  toast(guardados + ' ejercicios importados del PDF ✓');
+  setTimeout(() => toast(guardados + ' ejercicios importados del PDF ✓'), 100);
 }
 
 function verLatexExamen(id) {
