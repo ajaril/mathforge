@@ -3477,7 +3477,8 @@ normativaSeccion + '\n' +
 }
 
 async function importarJSONdePDF() {
-  const txt = document.getElementById('pdf-json-input').value.trim();
+  const txtEl = document.getElementById('pdf-json-input');
+  const txt = txtEl ? txtEl.value.trim() : '';
   if (!txt) { toast('Pega el JSON primero'); return; }
 
   const items_parsed = extraerJSONdeClaude(txt);
@@ -3576,8 +3577,9 @@ function parsearJSONEjercicio() {
     const txt = txtEl.value.trim();
     if (!txt) { toast('Pega el JSON de Claude primero'); return; }
 
-    const data = extraerJSONdeClaude(txt);
+    let data = extraerJSONdeClaude(txt);
     if (!data) { toast('No se pudo leer el JSON — asegúrate de pegar la respuesta completa de Claude'); return; }
+    if (Array.isArray(data)) data = data[0]; // generar ejercicio siempre devuelve un objeto único
 
     poblarJsonUnidad();
     const latexEl = document.getElementById('latex-pegado');
@@ -3613,23 +3615,30 @@ function extraerJSONdeClaude(txt) {
   // Remove markdown fences
   let s = txt.replace(/^```json?\s*/im, '').replace(/```\s*$/im, '').trim();
 
-  // Find JSON object boundaries
-  const start = s.indexOf('{');
-  const end = s.lastIndexOf('}');
-  if (start === -1 || end <= start) {
-    // Try array
-    const aStart = s.indexOf('[');
+  // Determine if it's an array or object by finding outermost bracket
+  const firstBracket = s.indexOf('[');
+  const firstBrace = s.indexOf('{');
+  const isArray = firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace);
+
+  if (isArray) {
     const aEnd = s.lastIndexOf(']');
-    if (aStart !== -1 && aEnd > aStart) {
-      s = s.slice(aStart, aEnd + 1);
-      const arr = tryParseWithFixes(s);
-      return arr && Array.isArray(arr) ? arr[0] : arr;
+    if (aEnd > firstBracket) {
+      const slice = s.slice(firstBracket, aEnd + 1);
+      return tryParseWithFixes(slice); // return full array
     }
-    return null;
   }
-  s = s.slice(start, end + 1);
-  const result = tryParseWithFixes(s);
-  return Array.isArray(result) ? result[0] : result;
+
+  // Try as object
+  if (firstBrace !== -1) {
+    const end = s.lastIndexOf('}');
+    if (end > firstBrace) {
+      const slice = s.slice(firstBrace, end + 1);
+      const result = tryParseWithFixes(slice);
+      return result;
+    }
+  }
+
+  return null;
 }
 
 function tryParseWithFixes(s) {
@@ -3639,6 +3648,23 @@ function tryParseWithFixes(s) {
   try { return JSON.parse(s.replace(/\\([^\\/"nrtbfu\d])/g, '\\\\$1')); } catch(e) {}
   // Try 3: aggressive — escape ALL lone backslashes
   try { return JSON.parse(s.replace(/\\(?!\\)/g, '\\\\')); } catch(e) {}
+  // Try 4: fix literal newlines/tabs inside JSON string values (Claude sometimes does this)
+  try {
+    let fixed = s.replace(/\\([^\\/"nrtbfu\d\n\r\t])/g, '\\\\$1');
+    // Replace literal newlines/carriage returns inside quoted strings
+    fixed = fixed.replace(/"((?:[^"\\]|\\.)*)"/gs, m =>
+      m.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+    );
+    return JSON.parse(fixed);
+  } catch(e) {}
+  // Try 5: same but escape ALL backslashes first, then fix newlines
+  try {
+    let fixed = s.replace(/\\(?!\\)/g, '\\\\');
+    fixed = fixed.replace(/"((?:[^"\\]|\\.)*)"/gs, m =>
+      m.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+    );
+    return JSON.parse(fixed);
+  } catch(e) {}
   return null;
 }
 
@@ -4182,10 +4208,10 @@ function abrirModal(id) {
   if (!overlay) { console.error('Modal no encontrado:', id); return; }
   const caja = overlay.querySelector('.modal');
   document.body.appendChild(overlay);
-  const overlayCss = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:center !important; justify-content:center !important; z-index:99999 !important; padding:16px !important;';
+  const overlayCss = 'display:flex !important; position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.45) !important; align-items:flex-start !important; justify-content:center !important; z-index:99999 !important; padding:24px 16px !important; overflow-y:auto !important; box-sizing:border-box !important;';
   overlay.setAttribute('style', overlayCss);
   if (caja) {
-    const cajaCss = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; max-height:90vh !important; overflow-y:auto !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important; pointer-events:auto !important;';
+    const cajaCss = 'display:block !important; background:#ffffff !important; color:#1a1916 !important; max-width:700px !important; width:min(700px,calc(100vw - 32px)) !important; border:1px solid #e4e2dc !important; border-radius:10px !important; padding:24px !important; box-shadow:0 20px 60px rgba(0,0,0,0.15) !important; pointer-events:auto !important; margin:auto !important; flex-shrink:0 !important;';
     caja.setAttribute('style', cajaCss);
   }
   document.body.style.overflow = 'hidden';
