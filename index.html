@@ -2048,9 +2048,33 @@ function latexAHtml(latex) {
   if (!latex) return '';
   let txt = latex;
 
+  // 0. Helper: extract content of \command{...} handling nested braces
+  function extractCmd(str, cmd) {
+    const re = new RegExp('\\\\' + cmd + '\\{', 'g');
+    let result = str;
+    let m;
+    while ((m = re.exec(result)) !== null) {
+      let depth = 1, i = m.index + m[0].length;
+      while (i < result.length && depth > 0) {
+        if (result[i] === '{') depth++;
+        else if (result[i] === '}') depth--;
+        i++;
+      }
+      const inner = result.slice(m.index + m[0].length, i - 1);
+      let replacement;
+      if (cmd === 'textbf') replacement = '<strong>' + inner + '</strong>';
+      else if (cmd === 'textit' || cmd === 'emph') replacement = '<em>' + inner + '</em>';
+      else if (cmd === 'underline') replacement = '<u>' + inner + '</u>';
+      else replacement = inner;
+      result = result.slice(0, m.index) + replacement + result.slice(i);
+      re.lastIndex = m.index + replacement.length;
+    }
+    return result;
+  }
+
   // 1. Remove preamble/document structure commands
   txt = txt
-    .replace(/\\item\s+/g, '\x00ITEM\x00')  // mark items temporarily
+    .replace(/\\item\s+/g, '\x00ITEM\x00')
     .replace(/\\begin\{enumerate\}\[a\)\]/g, '\x00ENUM_A\x00')
     .replace(/\\begin\{enumerate\}/g, '\x00ENUM\x00')
     .replace(/\\end\{enumerate\}/g, '\x00END_ENUM\x00')
@@ -2071,29 +2095,25 @@ function latexAHtml(latex) {
     .replace(/\\pagestyle\{[^}]*\}/g, '')
     .replace(/\\thispagestyle\{[^}]*\}/g, '');
 
-  // 2. Text formatting — must run BEFORE math extraction to avoid breaking $...$
-  // Handle nested braces for textbf/textit by processing iteratively
-  for (let i = 0; i < 4; i++) {
-    txt = txt
-      .replace(/\\textbf\{([^{}]*)\}/g, '<strong>$1</strong>')
-      .replace(/\\textit\{([^{}]*)\}/g, '<em>$1</em>')
-      .replace(/\\underline\{([^{}]*)\}/g, '<u>$1</u>')
-      .replace(/\\text\{([^{}]*)\}/g, '$1')
-      .replace(/\\emph\{([^{}]*)\}/g, '<em>$1</em>');
-  }
-
-  // 3. Special chars
+  // 2. Special chars (before text formatting)
   txt = txt
     .replace(/\\%/g, '%')
     .replace(/\\&/g, '&amp;')
     .replace(/\\euro\b/g, '€')
-    .replace(/\\\$/g, '\x01DOLLAR\x01')  // escaped dollar
+    .replace(/\\\$/g, '\x01DOLLAR\x01')
     .replace(/\\ldots/g, '…')
     .replace(/~~/g, '\u00A0')
     .replace(/~/g, '\u00A0');
 
+  // 3. Text formatting with nested-brace-aware parser
+  txt = extractCmd(txt, 'textbf');
+  txt = extractCmd(txt, 'textit');
+  txt = extractCmd(txt, 'emph');
+  txt = extractCmd(txt, 'underline');
+  // \text{} inside math — leave for KaTeX, just handle outside math
+  txt = txt.replace(/\\text\{([^{}]*)\}/g, '$1');
+
   // 4. Rebuild structure from markers
-  // Process items: split on ITEM markers and build list items
   txt = txt.replace(/\x00ENUM_A\x00([\s\S]*?)\x00END_ENUM\x00/g, (_, inner) => {
     const items = inner.split('\x00ITEM\x00').filter(s => s.trim());
     return '<ol type="a" style="margin:8px 0 8px 1.5rem; padding:0;">' +
@@ -2124,15 +2144,13 @@ function latexAHtml(latex) {
   // Restore escaped dollar
   txt = txt.replace(/\x01DOLLAR\x01/g, '\\$');
 
-  // 5. Paragraphs: double newline → paragraph break
+  // 5. Paragraphs
   txt = txt
     .replace(/\n{3,}/g, '\n\n')
     .replace(/\n\n/g, '</p><p style="margin:8px 0;">')
     .replace(/\n/g, ' ');
 
   txt = '<p style="margin:0 0 8px;">' + txt.trim() + '</p>';
-
-  // Clean up empty paragraphs
   txt = txt.replace(/<p[^>]*>\s*<\/p>/g, '');
 
   return txt;
