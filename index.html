@@ -2390,19 +2390,17 @@ ${(unidades[cursoActual]||[]).map(u => '  - "' + u.nombre + '" (id: "' + u.id + 
 }
 
 async function guardarExamenYEjercicios() {
-  // 1. Save the exam
-  await guardarExamen();
+  // 1. Save the exam (skip the confirm dialog — we handle exercises below)
+  await guardarExamen(true);
 
-  // 2. Parse and save individual exercises
+  // 2. Parse and save individual exercises from JSON box
   const jsonTxt = document.getElementById('examen-jsons-pegado')?.value.trim();
-  if (!jsonTxt) return;
+  if (!jsonTxt) return; // no JSON — just saved the exam, done
 
-  let items;
-  try {
-    const clean = jsonTxt.replace(/^```json?\s*/i,'').replace(/```\s*$/i,'').trim();
-    items = JSON.parse(clean);
-    if (!Array.isArray(items)) items = [items];
-  } catch(e) { toast('JSON de ejercicios no válido — el examen ya se guardó'); return; }
+  const parsed = extraerJSONdeClaude(jsonTxt);
+  if (!parsed) { toast('JSON de ejercicios no válido — el examen ya se guardó'); return; }
+  const items = Array.isArray(parsed) ? parsed : [parsed];
+  if (!items.length) { toast('No se encontraron ejercicios en el JSON'); return; }
 
   const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
   const cursoAcad = document.getElementById('exam-json-curso')?.value || '2025/26';
@@ -2414,18 +2412,18 @@ async function guardarExamenYEjercicios() {
   let guardados = 0;
   for (let idx = 0; idx < items.length; idx++) {
     const item = items[idx];
-    const ej = idx + 1;
+    const ej = item.pau_ejercicio || (idx + 1);
     const procedencia = 'Propio ' + cursoAcad + ' · ' + nivel + ' ' + grupo + examNStr + ' · Ej.' + ej;
     const problema = {
       unidad_id: item.unidad_id || '',
-      unidades_ids: item.unidades_ids || [],
+      unidades_ids: Array.isArray(item.unidades_ids) ? item.unidades_ids : [item.unidad_id].filter(Boolean),
       tipo: item.tipo || 'contextualizado',
       tematica: item.tematica || '',
       descripcion: item.descripcion || '',
       num_apartados: item.num_apartados || null,
       latex_enunciado: item.latex_enunciado || '',
       criterios: item.criterios || [],
-      saberes: item.saberes || [],
+      saberes: Array.isArray(item.saberes) ? item.saberes : [],
       procedencia,
       procedencia_detalle: { tipo:'Examen propio', curso: cursoAcad, nivel, grupo, ejercicio: String(ej), examN },
       usado_por: [],
@@ -3004,7 +3002,7 @@ async function completarGuardar({ latex, criterios, saberes, procedencia, proced
   toast('Problema guardado ✓');
 }
 
-async function guardarExamen() {
+async function guardarExamen(skipConfirm = false) {
   const latex = document.getElementById('examen-latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del examen'); return; }
   const examen = {
@@ -3020,19 +3018,20 @@ async function guardarExamen() {
   else { examenes.unshift({...examen, id: Date.now().toString()}); guardarLocal(); }
   renderExamenes();
   document.getElementById('examen-latex-pegado').value = '';
-  toast('Examen guardado ✓');
+  if (!skipConfirm) toast('Examen guardado ✓');
 
-  // Ofrecer importar los problemas del examen al banco
-  setTimeout(() => {
-    if (confirm('¿Quieres añadir los problemas de este examen al banco de forma individual?')) {
-      document.getElementById('masivo-latex').value = latex;
-      ocultar('masivo-paso1');
-      ocultar('masivo-paso2');
-      abrirModal('modal-importar-masivo');
-      // Parsear directamente
-      parsearMasivoDesdeLatex(latex);
-    }
-  }, 300);
+  // Solo preguntar si no hay JSON de ejercicios ya
+  if (!skipConfirm) {
+    setTimeout(() => {
+      if (confirm('¿Quieres añadir los problemas de este examen al banco de forma individual?')) {
+        document.getElementById('masivo-latex').value = latex;
+        ocultar('masivo-paso1');
+        ocultar('masivo-paso2');
+        abrirModal('modal-importar-masivo');
+        parsearMasivoDesdeLatex(latex);
+      }
+    }, 300);
+  }
 }
 
 function parsearMasivoDesdeLatex(latex) {
