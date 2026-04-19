@@ -1379,6 +1379,14 @@ async function cargarConfigSupabase(id) {
   return null;
 }
 
+function cursoGuard() {
+  if (!cursoActual || !cursos[cursoActual]) {
+    toast('⚠️ Selecciona un curso primero (botones de arriba)');
+    return false;
+  }
+  return true;
+}
+
 async function guardarConfigAll() {
   // Save cursos, unidades, normativa to Supabase + localStorage
   const config = { cursos, unidades, normativa: normativaGuardada };
@@ -1439,8 +1447,12 @@ async function cargarConfigAll() {
       '1bach': { label: '1º Bach CCSS', curso_db: '1º Bachillerato CCSS' }
     };
     unidades = JSON.parse(JSON.stringify(UNIDADES_DEFAULT));
-    // Save immediately so next load they come from Supabase/localStorage as real data
     await guardarConfigAll();
+  }
+
+  // Always ensure cursoActual points to an existing course
+  if (!cursos[cursoActual]) {
+    cursoActual = Object.keys(cursos)[0] || '';
   }
 }
 
@@ -1480,6 +1492,11 @@ function init() {
         localStorage.setItem('mf_unidades', JSON.stringify(unidades));
       }
       el.textContent = 'Guardado local (Supabase no disponible)';
+    }
+
+    // Always ensure cursoActual points to an existing course
+    if (!cursos[cursoActual]) {
+      cursoActual = Object.keys(cursos)[0] || '';
     }
 
     renderCursoSelector();
@@ -2145,6 +2162,7 @@ function renderApartados() {
 
 // ── PROMPTS ──────────────────────────────────────────────────────────────────
 function buildPrompt() {
+  if (!cursoGuard()) return;
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const normativa = getNormativa(cursoActual) || '';
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
@@ -2309,7 +2327,7 @@ INSTRUCCIONES IMPORTANTES:
 \\end{tabular}
 donde N es el número total de criterios únicos del examen.
 
-Usa EXACTAMENTE esta plantilla:
+Usa EXACTAMENTE esta plantilla (copia el preámbulo tal cual, sin cambiar ni un solo nombre de paquete):
 
 \`\`\`latex
 ${PLANTILLA_LATEX}
@@ -2576,6 +2594,7 @@ async function importarJSONmasivo() {
 }
 
 function mostrarImportarMasivo() {
+  if (!cursoGuard()) return;
   document.getElementById('masivo-latex').value = '';
   document.getElementById('masivo-claude-latex') && (document.getElementById('masivo-claude-latex').value = '');
   mostrar('masivo-paso1');
@@ -2931,6 +2950,7 @@ function getProcedencia(prefix) {
 
 // ── GUARDAR ───────────────────────────────────────────────────────────────────
 async function guardarProblema() {
+  if (!cursoGuard()) return;
   const latex = document.getElementById('latex-pegado').value.trim();
   if (!latex) { toast('Pega primero el LaTeX del problema'); return; }
   const criteriosRaw = document.getElementById('criterios-manual').value;
@@ -3003,7 +3023,8 @@ async function completarGuardar({ latex, criterios, saberes, procedencia, proced
 }
 
 async function guardarExamen(skipConfirm = false) {
-  const latex = document.getElementById('examen-latex-pegado').value.trim();
+  if (!cursoGuard()) return;
+  const latex = fixLatexExamen(document.getElementById('examen-latex-pegado').value.trim());
   if (!latex) { toast('Pega primero el LaTeX del examen'); return; }
   const examen = {
     titulo: document.getElementById('exam-titulo').value || 'Examen',
@@ -3359,15 +3380,30 @@ async function guardarExamenBanco() {
   toast('Examen guardado ✓');
 }
 
+function fixLatexExamen(latex) {
+  // Fix known Claude typos in LaTeX preamble
+  return latex
+    .replace(/\\usepackage\{amsmath,amssymb,dsfons,/g, '\\usepackage{amsmath,amssymb,dsfont,')
+    .replace(/dsfons/g, 'dsfont');
+}
+
+function copiarExamen() {
+  const txt = document.getElementById('examen-latex-pegado')?.value.trim();
+  if (!txt) { toast('No hay LaTeX del examen para copiar'); return; }
+  navigator.clipboard.writeText(fixLatexExamen(txt)).then(() => toast('Copiado — pégalo en Overleaf ✓'));
+}
+
 function copiarExamenBanco() {
-  const txt = document.getElementById('exam-banco-latex-result').value;
-  navigator.clipboard.writeText(txt).then(() => toast('Copiado — pégalo en Overleaf ✓'));
+  const txt = document.getElementById('exam-banco-latex-result')?.value;
+  if (!txt) { toast('No hay LaTeX para copiar'); return; }
+  navigator.clipboard.writeText(fixLatexExamen(txt)).then(() => toast('Copiado — pégalo en Overleaf ✓'));
 }
 
 // ── IMPORTAR DESDE PDF ────────────────────────────────────────────────────────
 let pdfTipo = 'examen';
 
 function mostrarImportarPDF() {
+  if (!cursoGuard()) return;
   actualizarFiltrosExamBanco();
   ocultar('pdf-paso2');
   document.getElementById('pdf-json-input').value = '';
