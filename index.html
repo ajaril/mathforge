@@ -14,6 +14,7 @@
 
 .modal-visible { display: flex !important; }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
@@ -104,7 +105,14 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .add-unit-form { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .add-unit-form input { flex: 1; min-width: 180px; }
 .preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.8; max-height: 260px; overflow-y: auto; margin-top: 8px; color: var(--text); }
-.preview-box .katex { font-size: 1em; }
+.preview-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 14px; line-height: 1.8; overflow-x: auto; }
+.preview-box p { margin: 0 0 8px; }
+.preview-box p:last-child { margin-bottom: 0; }
+.preview-box ol, .preview-box ul { margin: 6px 0 6px 1.5rem; padding: 0; }
+.preview-box li { margin-bottom: 6px; }
+.preview-box strong { font-weight: 600; }
+.preview-box .katex { font-size: 1.05em; }
+.preview-box .katex-display { margin: 8px 0; overflow-x: auto; overflow-y: hidden; }
 .examen-slot { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); }
 .examen-slot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .slot-num { font-size: 13px; font-weight: 500; min-width: 24px; }
@@ -2038,31 +2046,105 @@ async function actualizarRefSelect() {
 
 function latexAHtml(latex) {
   if (!latex) return '';
-  // Limpiar comandos LaTeX de estructura que no renderiza KaTeX
-  let txt = latex
-    .replace(/\\item\s*/g, '')
-    .replace(/\\begin\{enumerate\}\[a\)\]/g, '<ol type="a" style="padding-left:1.5rem;">')
-    .replace(/\\begin\{enumerate\}/g, '<ol style="padding-left:1.5rem;">')
-    .replace(/\\end\{enumerate\}/g, '</ol>')
-    .replace(/\\begin\{itemize\}/g, '<ul style="padding-left:1.5rem;">')
-    .replace(/\\end\{itemize\}/g, '</ul>')
-    .replace(/\\textbf\{([^}]*)\}/g, '<strong>$1</strong>')
-    .replace(/\\textit\{([^}]*)\}/g, '<em>$1</em>')
-    .replace(/\\underline\{([^}]*)\}/g, '<u>$1</u>')
-    .replace(/\\newpage/g, '<hr style="margin:8px 0;">')
+  let txt = latex;
+
+  // 1. Remove preamble/document structure commands
+  txt = txt
+    .replace(/\\item\s+/g, '\x00ITEM\x00')  // mark items temporarily
+    .replace(/\\begin\{enumerate\}\[a\)\]/g, '\x00ENUM_A\x00')
+    .replace(/\\begin\{enumerate\}/g, '\x00ENUM\x00')
+    .replace(/\\end\{enumerate\}/g, '\x00END_ENUM\x00')
+    .replace(/\\begin\{itemize\}/g, '\x00UL\x00')
+    .replace(/\\end\{itemize\}/g, '\x00END_UL\x00')
+    .replace(/\\begin\{center\}/g, '\x00CENTER\x00')
+    .replace(/\\end\{center\}/g, '\x00END_CENTER\x00')
+    .replace(/\\begin\{tabular\}\{[^}]*\}/g, '\x00TABLE\x00')
+    .replace(/\\end\{tabular\}/g, '\x00END_TABLE\x00')
+    .replace(/\\hline/g, '')
+    .replace(/\\newpage/g, '<hr style="margin:12px 0; border-color:var(--border);">')
     .replace(/\\vspace\{[^}]*\}/g, '')
-    .replace(/\\hspace\{[^}]*\}/g, ' ')
+    .replace(/\\hspace\{[^}]*\}/g, '\u2003')
     .replace(/\\noindent\s*/g, '')
+    .replace(/\\medskip|\\bigskip|\\smallskip/g, '')
+    .replace(/\\setlength\{[^}]*\}\{[^}]*\}/g, '')
+    .replace(/\\renewcommand\*?\{[^}]*\}\{[^}]*\}/g, '')
+    .replace(/\\pagestyle\{[^}]*\}/g, '')
+    .replace(/\\thispagestyle\{[^}]*\}/g, '');
+
+  // 2. Text formatting — must run BEFORE math extraction to avoid breaking $...$
+  // Handle nested braces for textbf/textit by processing iteratively
+  for (let i = 0; i < 4; i++) {
+    txt = txt
+      .replace(/\\textbf\{([^{}]*)\}/g, '<strong>$1</strong>')
+      .replace(/\\textit\{([^{}]*)\}/g, '<em>$1</em>')
+      .replace(/\\underline\{([^{}]*)\}/g, '<u>$1</u>')
+      .replace(/\\text\{([^{}]*)\}/g, '$1')
+      .replace(/\\emph\{([^{}]*)\}/g, '<em>$1</em>');
+  }
+
+  // 3. Special chars
+  txt = txt
+    .replace(/\\%/g, '%')
+    .replace(/\\&/g, '&amp;')
+    .replace(/\\euro\b/g, '€')
+    .replace(/\\\$/g, '\x01DOLLAR\x01')  // escaped dollar
+    .replace(/\\ldots/g, '…')
+    .replace(/~~/g, '\u00A0')
+    .replace(/~/g, '\u00A0');
+
+  // 4. Rebuild structure from markers
+  // Process items: split on ITEM markers and build list items
+  txt = txt.replace(/\x00ENUM_A\x00([\s\S]*?)\x00END_ENUM\x00/g, (_, inner) => {
+    const items = inner.split('\x00ITEM\x00').filter(s => s.trim());
+    return '<ol type="a" style="margin:8px 0 8px 1.5rem; padding:0;">' +
+      items.map(s => '<li style="margin-bottom:4px;">' + s.trim() + '</li>').join('') +
+      '</ol>';
+  });
+  txt = txt.replace(/\x00ENUM\x00([\s\S]*?)\x00END_ENUM\x00/g, (_, inner) => {
+    const items = inner.split('\x00ITEM\x00').filter(s => s.trim());
+    return '<ol style="margin:8px 0 8px 1.5rem; padding:0;">' +
+      items.map(s => '<li style="margin-bottom:4px;">' + s.trim() + '</li>').join('') +
+      '</ol>';
+  });
+  txt = txt.replace(/\x00UL\x00([\s\S]*?)\x00END_UL\x00/g, (_, inner) => {
+    const items = inner.split('\x00ITEM\x00').filter(s => s.trim());
+    return '<ul style="margin:8px 0 8px 1.5rem; padding:0;">' +
+      items.map(s => '<li style="margin-bottom:4px;">' + s.trim() + '</li>').join('') +
+      '</ul>';
+  });
+  txt = txt.replace(/\x00CENTER\x00([\s\S]*?)\x00END_CENTER\x00/g,
+    '<div style="text-align:center;">$1</div>');
+
+  // Clean up remaining markers
+  txt = txt
+    .replace(/\x00ITEM\x00/g, '<br>')
+    .replace(/\x00TABLE\x00[\s\S]*?\x00END_TABLE\x00/g, '<em>[tabla]</em>')
+    .replace(/\x00[^]+?\x00/g, '');
+
+  // Restore escaped dollar
+  txt = txt.replace(/\x01DOLLAR\x01/g, '\\$');
+
+  // 5. Paragraphs: double newline → paragraph break
+  txt = txt
     .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/\n\n/g, '</p><p style="margin:8px 0;">')
+    .replace(/\n/g, ' ');
+
+  txt = '<p style="margin:0 0 8px;">' + txt.trim() + '</p>';
+
+  // Clean up empty paragraphs
+  txt = txt.replace(/<p[^>]*>\s*<\/p>/g, '');
+
   return txt;
 }
 
 function renderPreview(el, latex) {
   if (!latex) { ocultarEl(el); return; }
   mostrarEl(el);
+  el.style.fontFamily = 'var(--font-sans, sans-serif)';
+  el.style.fontSize = '14px';
+  el.style.lineHeight = '1.7';
   el.innerHTML = latexAHtml(latex);
-  // Renderizar matemáticas con KaTeX auto-render si está disponible
   if (window.renderMathInElement) {
     renderMathInElement(el, {
       delimiters: [
@@ -2071,7 +2153,19 @@ function renderPreview(el, latex) {
         { left: '\\[', right: '\\]', display: true },
         { left: '\\(', right: '\\)', display: false }
       ],
-      throwOnError: false
+      throwOnError: false,
+      strict: false,
+      trust: true,
+      macros: {
+        '\\R': '\\mathbb{R}',
+        '\\N': '\\mathbb{N}',
+        '\\Z': '\\mathbb{Z}',
+        '\\Q': '\\mathbb{Q}',
+        '\\sen': '\\sin',
+        '\\tg': '\\tan',
+        '\\arctg': '\\arctan',
+        '\\arcsen': '\\arcsin',
+      }
     });
   }
 }
