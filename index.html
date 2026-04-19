@@ -147,6 +147,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <!-- cursos se renderizan dinámicamente -->
       <button class="curso-btn-new" id="btn-nuevo-curso" onclick="abrirNuevoCurso()">+ Nuevo</button>
     </div>
+    <button id="btn-login" class="btn" style="margin-left:8px; font-size:13px; white-space:nowrap;" onclick="abrirModal('modal-login')">Entrar</button>
   </div>
 
   <div style="margin-bottom:1.5rem;">
@@ -383,7 +384,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             </div>
           </div>
           <div style="display:flex; gap:8px; margin-top:4px;">
-            <button class="btn btn-primary" onclick="guardarProblema()">Guardar en banco</button>
+            <button class="btn btn-primary" onclick="guardarProblema()" class="btn btn-primary solo-profesor">Guardar en banco</button>
             <button class="btn" onclick="copiarLatex()">Copiar LaTeX</button>
           </div>
         </div>
@@ -533,8 +534,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
 
         <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="guardarExamenYEjercicios()">Guardar examen + ejercicios</button>
-          <button class="btn" onclick="guardarExamen()">Solo guardar examen</button>
+          <button class="btn btn-primary" onclick="guardarExamenYEjercicios()" class="btn btn-primary solo-profesor">Guardar examen + ejercicios</button>
+          <button class="btn" onclick="guardarExamen()" class="btn solo-profesor">Solo guardar examen</button>
           <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
         </div>
       </div>
@@ -685,6 +686,28 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     </div>
   </div>
 </div>
+<!-- Modal login -->
+<div id="modal-login" style="display:none;" class="modal-overlay">
+  <div class="modal" style="max-width:380px;">
+    <h3>Acceso de profesores</h3>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">El banco es público — solo necesitas entrar para guardar o editar ejercicios.</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="tu@email.com" style="font-size:14px;">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-password" placeholder="••••••••" style="font-size:14px;"
+        onkeydown="if(event.key==='Enter') hacerLogin()">
+    </div>
+    <div id="login-error" style="display:none; color:#c0392b; font-size:13px; margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="hacerLogin()">Entrar</button>
+      <button class="btn" onclick="cerrarModal('modal-login')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-recurso" style="display:none;" class="modal-overlay">
   <div class="modal">
     <h3>Añadir enlace de recursos</h3>
@@ -832,7 +855,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Paso 2: Pega el JSON que te ha devuelto Claude</p>
       <textarea id="pdf-json-input" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:150px; background:var(--surface2); margin-bottom:8px;"></textarea>
       <div class="modal-actions">
-        <button class="btn btn-primary" onclick="importarJSONdePDF()">Importar al banco</button>
+        <button class="btn btn-primary" onclick="importarJSONdePDF()" class="btn btn-primary solo-profesor">Importar al banco</button>
       </div>
     </div>
   </div>
@@ -984,7 +1007,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Pega el JSON que te ha devuelto Claude</p>
           <textarea id="masivo-claude-json" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:120px; background:var(--surface2); margin-bottom:8px;"></textarea>
           <div class="modal-actions">
-            <button class="btn btn-primary" onclick="importarJSONmasivo()">Importar al banco</button>
+            <button class="btn btn-primary" onclick="importarJSONmasivo()" class="btn btn-primary solo-profesor">Importar al banco</button>
           </div>
         </div>
       </div>
@@ -1146,7 +1169,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="field"><label>Criterios (separados por coma)</label><input type="text" id="edit-prob-criterios" placeholder="Ej: 6.1, 8.2"></div>
     <div class="field"><label>LaTeX del enunciado</label><textarea id="edit-prob-latex" style="min-height:180px; font-family:Courier New,monospace; font-size:12px;"></textarea></div>
     <div class="modal-actions">
-      <button class="btn btn-primary" onclick="guardarEdicionProblema()">Guardar cambios</button>
+      <button class="btn btn-primary" onclick="guardarEdicionProblema()" class="btn btn-primary solo-profesor">Guardar cambios</button>
       <button class="btn" onclick="cerrarModal('modal-editar-problema')">Cancelar</button>
     </div>
   </div>
@@ -1255,16 +1278,120 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 const SUPABASE_URL = 'https://fgopvmzryyckxjnyyxjk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnb3B2bXpyeXlja3hqbnl5eGprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzY3MTksImV4cCI6MjA5MTk1MjcxOX0.daoKaeFA6mdizU-mChSBpzgkn_rQej-ZoE15utU1qac';
 let supabaseOK = false;
+let authSession = null; // { access_token, user: { email } }
+
+function getAuthToken() {
+  return authSession?.access_token || SUPABASE_KEY;
+}
+
+function esProfesor() {
+  return authSession !== null;
+}
 
 async function sbFetch(path, opts = {}) {
   try {
-    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    const token = getAuthToken();
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
     if (opts.method === 'POST') headers['Prefer'] = 'return=representation';
     const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
     const text = await res.text();
     if (!res.ok) { console.error('SB:', res.status, text); return null; }
     return text ? JSON.parse(text) : [];
   } catch(e) { console.error('SB error:', e); return null; }
+}
+
+async function sbAuth(endpoint, body) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/' + endpoint, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Error de autenticación');
+    return data;
+  } catch(e) { throw e; }
+}
+
+async function login(email, password) {
+  const data = await sbAuth('token?grant_type=password', { email, password });
+  authSession = { access_token: data.access_token, user: data.user };
+  localStorage.setItem('mf_session', JSON.stringify(authSession));
+  aplicarEstadoAuth();
+}
+
+async function logout() {
+  try {
+    await fetch(SUPABASE_URL + '/auth/v1/logout', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (authSession?.access_token || '') }
+    });
+  } catch(e) {}
+  authSession = null;
+  localStorage.removeItem('mf_session');
+  aplicarEstadoAuth();
+  toast('Sesión cerrada');
+}
+
+async function restaurarSesion() {
+  // Try to restore from localStorage
+  try {
+    const saved = localStorage.getItem('mf_session');
+    if (!saved) return;
+    const session = JSON.parse(saved);
+    if (!session?.access_token) return;
+    // Verify token is still valid
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (res.ok) {
+      authSession = session;
+    } else {
+      localStorage.removeItem('mf_session');
+    }
+  } catch(e) {}
+}
+
+function aplicarEstadoAuth() {
+  const profesor = esProfesor();
+  const email = authSession?.user?.email || '';
+
+  // Update login button
+  const btnLogin = document.getElementById('btn-login');
+  if (btnLogin) {
+    if (profesor) {
+      btnLogin.textContent = email.split('@')[0] + ' · Salir';
+      btnLogin.classList.add('active');
+      btnLogin.onclick = logout;
+    } else {
+      btnLogin.textContent = 'Entrar';
+      btnLogin.classList.remove('active');
+      btnLogin.onclick = () => abrirModal('modal-login');
+    }
+  }
+
+  // Show/hide edit controls based on auth
+  document.querySelectorAll('.solo-profesor').forEach(el => {
+    if (profesor) {
+      el.removeAttribute('style');
+      el.classList.remove('mf-hidden');
+    } else {
+      el.setAttribute('style', 'display:none !important;');
+    }
+  });
+
+  // Update sync status
+  const syncEl = document.getElementById('sync-status-text');
+  if (syncEl && supabaseOK) {
+    syncEl.textContent = profesor
+      ? '✓ Conectado como ' + email
+      : '✓ Conectado (solo lectura)';
+  }
 }
 
 // ── NORMATIVA ────────────────────────────────────────────────────────────────
@@ -1379,9 +1506,35 @@ async function cargarConfigSupabase(id) {
   return null;
 }
 
-function cursoGuard() {
+async function hacerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !pwd) { errEl.textContent = 'Rellena email y contraseña'; errEl.style.display = 'block'; return; }
+  const btn = document.querySelector('#modal-login .btn-primary');
+  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
+  try {
+    await login(email, pwd);
+    cerrarModal('modal-login');
+    document.getElementById('login-password').value = '';
+    toast('¡Bienvenido, ' + (authSession?.user?.email?.split('@')[0] || '') + '! ✓');
+  } catch(e) {
+    errEl.textContent = 'Email o contraseña incorrectos';
+    errEl.style.display = 'block';
+  } finally {
+    if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+  }
+}
+
+function cursoGuard(requireAuth = true) {
   if (!cursoActual || !cursos[cursoActual]) {
     toast('⚠️ Selecciona un curso primero (botones de arriba)');
+    return false;
+  }
+  if (requireAuth && !esProfesor()) {
+    toast('🔒 Entra con tu cuenta de profesor para guardar');
+    setTimeout(() => abrirModal('modal-login'), 500);
     return false;
   }
   return true;
@@ -1464,13 +1617,19 @@ function init() {
   renderApartados();
   renderExamSlots();
 
+  // Restore auth session and connect to Supabase
+  restaurarSesion().then(() => {
+    aplicarEstadoAuth();
+  });
+
   sbFetch('problemas?limit=1&select=id').then(async r => {
     supabaseOK = r !== null;
     const el = document.getElementById('sync-status-text');
 
     if (supabaseOK) {
       await cargarConfigAll();
-      el.textContent = '✓ Sincronizado con Supabase';
+      aplicarEstadoAuth();
+      el.textContent = esProfesor() ? '✓ Conectado como ' + (authSession?.user?.email||'') : '✓ Conectado (solo lectura)';
     } else {
       // Offline: load from localStorage only, same logic as cargarConfigAll
       let cursosData = null, unidadesData = null;
@@ -1643,8 +1802,8 @@ function renderUnidadesList() {
         <div class="unit-saberes">${u.saberes ? 'Saberes: '+u.saberes : 'Claude deduce los saberes por el nombre'}</div>
       </div>
       <div class="unit-actions">
-        <button class="btn btn-sm" onclick="editarUnidad('${u.id}')">Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="borrarUnidad('${u.id}')">Borrar</button>
+        <button class="btn btn-sm solo-profesor" onclick="editarUnidad('${u.id}')">Editar</button>
+        <button class="btn btn-sm btn-danger solo-profesor" onclick="borrarUnidad('${u.id}')">Borrar</button>
       </div>
     </div>`).join('');
 }
@@ -1760,12 +1919,13 @@ async function cargarBancoCruzado(cursoKey) {
   return data || [];
 }
 
-function actualizarRefSelect() {
+async function actualizarRefSelect() {
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
   poblarCursoSelect('ref-curso-select');
   const cursoKey = document.getElementById('ref-curso-select')?.value || cursoActual;
   const unitsParaCurso = unidades[cursoKey] || [];
+
   // Populate unidad selector for this course
   const unidadSel = document.getElementById('ref-unidad-select');
   if (unidadSel) {
@@ -1774,15 +1934,24 @@ function actualizarRefSelect() {
       unitsParaCurso.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
     if (currentUnidad) unidadSel.value = currentUnidad;
   }
+
   const filtroUnidad = unidadSel?.value || '';
-  const cursoDB = (cursos[cursoKey]||{}).curso_db || cursoKey;
-  let bancoFiltrado = banco.filter(p => (p.curso||'') === cursoDB || cursoKey === cursoActual);
+
+  // Load banco for selected course (may be different from current)
+  sel.innerHTML = '<option value="">Cargando...</option>';
+  const bancoParaCurso = await cargarBancoCruzado(cursoKey);
+
+  let bancoFiltrado = bancoParaCurso;
   if (filtroUnidad) {
     bancoFiltrado = bancoFiltrado.filter(p =>
       p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad))
     );
   }
-  if (!bancoFiltrado.length) { sel.innerHTML = '<option>No hay problemas con estos filtros</option>'; ocultar('preview-ref'); return; }
+  if (!bancoFiltrado.length) {
+    sel.innerHTML = '<option>No hay problemas con estos filtros</option>';
+    ocultar('preview-ref');
+    return;
+  }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     bancoFiltrado.map(p => {
       const u = unitsParaCurso.find(x => x.id === p.unidad_id);
@@ -1791,7 +1960,7 @@ function actualizarRefSelect() {
       const proc = p.procedencia ? ' · ' + p.procedencia : '';
       const napt = p.num_apartados ? ' · ' + p.num_apartados + 'apt.' : '';
       const desc = p.descripcion ? ' [' + p.descripcion.substring(0,25) + ']' : '';
-      return '<option value="' + p.id + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+      return '<option value="' + p.id + '" data-latex="' + (p.latex_enunciado||'').replace(/"/g,'&quot;') + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
     }).join('');
   ocultar('preview-ref');
 }
@@ -1837,11 +2006,13 @@ function renderPreview(el, latex) {
 }
 
 function mostrarPreviewRef() {
-  const id = document.getElementById('ref-problema').value;
+  const sel = document.getElementById('ref-problema');
   const previewEl = document.getElementById('preview-ref');
-  if (!id) { ocultarEl(previewEl); return; }
-  const p = banco.find(x => x.id === id);
-  renderPreview(previewEl, p ? p.latex_enunciado : null);
+  if (!sel || !sel.value) { ocultarEl(previewEl); return; }
+  // Try banco first, then fall back to data-latex attribute (cross-course)
+  const p = banco.find(x => x.id === sel.value);
+  const latex = p ? p.latex_enunciado : (sel.selectedOptions[0]?.dataset.latex || null);
+  renderPreview(previewEl, latex);
 }
 
 function renderBanco() {
@@ -1892,9 +2063,9 @@ function renderBanco() {
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verEnunciadoModal('${p.id}')">Ver</button>
           <button class="btn btn-sm" onclick="verLatex('${p.id}')">LaTeX</button>
-          <button class="btn btn-sm" onclick="editarProblema('${p.id}')">Editar</button>
-          <button class="btn btn-sm" onclick="marcarUsado('${p.id}')">Marcar usado</button>
-          <button class="btn btn-sm btn-danger" onclick="borrarProblema('${p.id}')">Borrar</button>
+          <button class="btn btn-sm solo-profesor" onclick="editarProblema('${p.id}')">Editar</button>
+          <button class="btn btn-sm solo-profesor" onclick="marcarUsado('${p.id}')">Marcar usado</button>
+          <button class="btn btn-sm btn-danger solo-profesor" onclick="borrarProblema('${p.id}')">Borrar</button>
         </div>
       </div>
       <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge} ${descBadge}</div>
@@ -2162,7 +2333,7 @@ function renderApartados() {
 
 // ── PROMPTS ──────────────────────────────────────────────────────────────────
 function buildPrompt() {
-  if (!cursoGuard()) return;
+  if (!cursoGuard(false)) return;
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const normativa = getNormativa(cursoActual) || '';
   const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
@@ -2203,9 +2374,11 @@ ${normativa}${formato}`;
   }
 
   if (currentMode === 'similar') {
-    const refId = document.getElementById('ref-problema').value;
+    const refSel = document.getElementById('ref-problema');
+    const refId = refSel?.value;
     const ref = banco.find(p => p.id === refId);
-    const refLatex = ref ? ref.latex_enunciado : 'Genera uno típico del nivel';
+    const refLatex = ref ? ref.latex_enunciado
+      : (refSel?.selectedOptions[0]?.dataset.latex || 'Genera uno típico del nivel');
     const tematica = document.getElementById('similar-tematica').value;
     const napts = document.getElementById('similar-apartados').value;
     const obs = document.getElementById('observaciones-similar').value.trim();
@@ -2594,7 +2767,7 @@ async function importarJSONmasivo() {
 }
 
 function mostrarImportarMasivo() {
-  if (!cursoGuard()) return;
+  if (!cursoGuard(false)) return;
   document.getElementById('masivo-latex').value = '';
   document.getElementById('masivo-claude-latex') && (document.getElementById('masivo-claude-latex').value = '');
   mostrar('masivo-paso1');
@@ -3403,7 +3576,7 @@ function copiarExamenBanco() {
 let pdfTipo = 'examen';
 
 function mostrarImportarPDF() {
-  if (!cursoGuard()) return;
+  if (!cursoGuard(false)) return;
   actualizarFiltrosExamBanco();
   ocultar('pdf-paso2');
   document.getElementById('pdf-json-input').value = '';
