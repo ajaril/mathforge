@@ -2151,7 +2151,7 @@ function buildPrompt() {
   const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
 
   const units = unidades[cursoActual] || [];
-  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n');
+  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")' + (u.saberes ? ' — saberes: ' + u.saberes : '')).join('\n');
 
   const formato = `
 FORMATO DE RESPUESTA OBLIGATORIO — devuelve SOLO un objeto JSON con esta estructura exacta (sin texto antes ni después, sin bloques markdown):
@@ -2468,7 +2468,7 @@ function generarPromptMasivoLatex() {
 
   const units = unidades[cursoActual] || [];
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
-  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n');
+  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")' + (u.saberes ? ' — saberes: ' + u.saberes : '')).join('\n');
   const proc = document.getElementById('masivo-claude-proc').value;
 
   let contexto = '', anyoVal = '', convVal = '';
@@ -2520,11 +2520,13 @@ normativaSeccionM + '\n' +
 '    "descripcion": "tipo en 3-5 palabras",\n' +
 '    "num_apartados": 3,\n' +
 '    "criterios": ["6.1","8.2"],\n' +
+'    "saberes": ["D.1.1.", "D.1.2."],\n' +
 '    ' + procedenciaInstruccion + '\n' +
 '  }\n]\n\n' +
 'INSTRUCCIONES:\n' +
 '- unidades_ids: todos los ids de unidades presentes (puede ser más de una si hay apartados de distintas unidades)\n' +
-'- criterios: dedúcelos a partir de los saberes de la unidad y la normativa. Devuelve solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
+'- saberes: elige SOLO los saberes que realmente trabaja este ejercicio concreto, como subconjunto de los saberes de su unidad. No todos los ejercicios de una unidad usan todos sus saberes.\n' +
+'- criterios: para cada saber elegido, consulta la normativa y añade sus criterios. Solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
 '- Toda matemática en $...$ o $$...$$\n' +
 '- Devuelve SOLO el JSON, sin texto adicional ni markdown\n\n' +
 'LATEX A PROCESAR:\n' + latex;
@@ -2564,7 +2566,7 @@ async function importarJSONmasivo() {
     } else if (item.procedencia_tipo === 'relacion') {
       procedencia = item.relacion_nombre || 'Relación';
     }
-    const problema = { unidad_id: unidadId, unidades_ids: unidadesIds, tipo: item.tipo||'contextualizado', tematica: item.tematica||'', descripcion: item.descripcion||'', num_apartados: item.num_apartados||null, latex_enunciado: item.latex_enunciado||'', criterios: item.criterios||[], saberes:[], procedencia, procedencia_detalle, usado_por:[], curso: cursoDB, created_at: new Date().toISOString() };
+    const problema = { unidad_id: unidadId, unidades_ids: unidadesIds, tipo: item.tipo||'contextualizado', tematica: item.tematica||'', descripcion: item.descripcion||'', num_apartados: item.num_apartados||null, latex_enunciado: item.latex_enunciado||'', criterios: item.criterios||[], saberes: Array.isArray(item.saberes) ? item.saberes : [], procedencia, procedencia_detalle, usado_por:[], curso: cursoDB, created_at: new Date().toISOString() };
     const saved = await sbFetch('problemas', { method:'POST', body: JSON.stringify(problema) });
     if (saved && saved.length) banco.unshift(saved[0]);
     else banco.unshift({...problema, id: Date.now().toString() + Math.random()});
@@ -3393,7 +3395,7 @@ function setPdfTipo(tipo, el) {
 function generarPromptPDF() {
   const units = unidades[cursoActual] || [];
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
-  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n');
+  const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")' + (u.saberes ? ' — saberes: ' + u.saberes : '')).join('\n');
 
   let contexto = '';
   let anyoVal = '', convVal = '';
@@ -3451,14 +3453,16 @@ normativaSeccion + '\n' +
 '    "descripcion": "tipo en 3-5 palabras (ej: Probabilidad total + Bayes)",\n' +
 '    "num_apartados": 3,\n' +
 '    "criterios": ["6.1", "8.2"],\n' +
+'    "saberes": ["D.1.1.", "D.1.2."],\n' +
 '    ' + procedenciaInstruccion + '\n' +
 '  }\n' +
 ']\n\n' +
 'INSTRUCCIONES:\n' +
-'- unidad_id: id de la unidad PRINCIPAL (de la lista de arriba)\n' +
+'- unidad_id: id de la unidad PRINCIPAL (de la lista de arriba, con sus saberes indicados)\n' +
 '- unidades_ids: TODOS los ids de unidades del ejercicio. Si hay apartados de distintas unidades, incluye todas\n' +
 '- Si no reconoces la unidad claramente, elige la más probable de la lista\n' +
-'- criterios: dedúcelos a partir de los saberes de la unidad y la normativa de arriba. Devuelve solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
+'- saberes: elige SOLO los saberes que realmente trabaja este ejercicio concreto (subconjunto de los saberes de su unidad). No todos los ejercicios de una unidad trabajan todos sus saberes.\n' +
+'- criterios: para cada saber elegido, consulta la normativa y añade sus criterios correspondientes. Devuelve solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
 '- latex_enunciado: LaTeX válido con \\\\item \\\\textbf{enunciado} y \\\\begin{enumerate}[a)] para apartados. Cada apartado: \\\\item \\\\textbf{[CE X.X]} texto\n' +
 '- Toda expresión matemática en $...$ o $$...$$\n' +
 '- Devuelve SOLO el JSON, sin texto adicional ni bloques markdown';
@@ -3521,7 +3525,7 @@ async function importarJSONdePDF() {
       num_apartados: item.num_apartados || null,
       latex_enunciado: item.latex_enunciado || '',
       criterios: item.criterios || [],
-      saberes: [],
+      saberes: Array.isArray(item.saberes) ? item.saberes : [],
       procedencia,
       procedencia_detalle,
       usado_por: [],
@@ -4010,28 +4014,87 @@ function borrarNormativaCurso() {
 }
 
 function construirResumenNormativa(normJson, cursoKey) {
-  // Build a compact text from the normativa JSON for inclusion in prompts
   const cursoLabel = (cursos[cursoKey]||{}).label || cursoKey;
-  let lines = [`Normativa de saberes y criterios — ${cursoLabel}:`];
+  let lines = [`NORMATIVA DE SABERES Y CRITERIOS — ${cursoLabel}`];
+
   try {
+    // FORMAT 1: JSON with relacion_saberes_criterios array (official normativa format)
+    // { relacion_saberes_criterios: [{saber_id, saber_descripcion, criterios_asociados}], criterios_evaluacion: [...] }
+    if (normJson.relacion_saberes_criterios && Array.isArray(normJson.relacion_saberes_criterios)) {
+      // Build criterios lookup: id -> short number (e.g. "MACS.2.1.1" -> "1.1")
+      const critLookup = {};
+      if (normJson.criterios_evaluacion) {
+        normJson.criterios_evaluacion.forEach(c => {
+          // Extract short form: "MACS.2.1.1" -> "1.1", "MACS.2.6.2" -> "6.2"
+          const m = c.id.match(/\.(\d+)\.(\d+)$/);
+          critLookup[c.id] = m ? `${m[1]}.${m[2]}` : c.id;
+        });
+      }
+
+      lines.push('');
+      lines.push('Cada saber y sus criterios de evaluación asociados:');
+
+      // Skip top-level grouping saberes (those with empty criterios_asociados)
+      const saberes = normJson.relacion_saberes_criterios.filter(s =>
+        s.criterios_asociados && s.criterios_asociados.length > 0
+      );
+
+      saberes.forEach(s => {
+        const crits = s.criterios_asociados.map(cid => {
+          // Try to shorten: "1.1" stays "1.1", full id gets shortened
+          if (cid.match(/^\d+\.\d+$/)) return cid; // already short
+          return critLookup[cid] || cid;
+        });
+        lines.push(`· ${s.saber_id} ${s.saber_descripcion} → CE ${crits.join(', ')}`);
+      });
+
+      lines.push('');
+      lines.push('Nota: los criterios abreviados (ej: 6.1) corresponden a MACS.2.6.1');
+      return lines.join('\n');
+    }
+
+    // FORMAT 2: Array of blocks [{nombre, saberes:[{codigo,descripcion,criterios}]}]
     if (Array.isArray(normJson)) {
       normJson.forEach(bloque => {
         const nombre = bloque.nombre || bloque.bloque || '';
         const saberes = bloque.saberes || [];
-        lines.push(`- ${nombre}: ${Array.isArray(saberes) ? saberes.join(', ') : saberes}`);
+        if (Array.isArray(saberes) && saberes.length && typeof saberes[0] === 'object') {
+          lines.push(`Bloque ${nombre}:`);
+          saberes.forEach(s => {
+            const desc = s.descripcion ? ` — ${s.descripcion}` : '';
+            const crit = s.criterios ? ` → CE ${Array.isArray(s.criterios) ? s.criterios.join(', ') : s.criterios}` : '';
+            lines.push(`  · ${s.codigo || s.id || '?'}${desc}${crit}`);
+          });
+        } else {
+          lines.push(`- ${nombre}: ${Array.isArray(saberes) ? saberes.join(', ') : saberes}`);
+        }
       });
-    } else {
-      Object.entries(normJson).forEach(([clave, bloque]) => {
-        const nombre = typeof bloque === 'object' ? (bloque.nombre || clave) : clave;
-        const saberes = typeof bloque === 'object' ? (bloque.saberes || []) : [];
-        const criterios = typeof bloque === 'object' ? (bloque.criterios || '') : '';
-        let linea = `- ${clave} (${nombre})`;
-        if (Array.isArray(saberes) && saberes.length) linea += `: saberes ${saberes.join(', ')}`;
-        if (criterios) linea += ` → criterios ${criterios}`;
-        lines.push(linea);
-      });
+      return lines.join('\n');
     }
-  } catch(e) { lines.push(JSON.stringify(normJson).substring(0, 200)); }
+
+    // FORMAT 3: Object {A: {nombre, saberes:[...]}, B: {...}}
+    Object.entries(normJson).forEach(([clave, bloque]) => {
+      if (typeof bloque !== 'object' || !bloque) return;
+      const nombre = bloque.nombre || clave;
+      const saberes = bloque.saberes || [];
+      lines.push(`Bloque ${clave} — ${nombre}:`);
+      if (Array.isArray(saberes)) {
+        saberes.forEach(s => {
+          if (typeof s === 'object') {
+            const desc = s.descripcion ? ` — ${s.descripcion}` : '';
+            const crit = s.criterios ? ` → CE ${Array.isArray(s.criterios) ? s.criterios.join(', ') : s.criterios}` : '';
+            lines.push(`  · ${s.codigo || s.id || '?'}${desc}${crit}`);
+          } else {
+            lines.push(`  · ${s}`);
+          }
+        });
+      }
+    });
+
+  } catch(e) {
+    lines.push('(Error al procesar normativa: ' + e.message + ')');
+  }
+
   return lines.join('\n');
 }
 function renderConfigGeneral() {
