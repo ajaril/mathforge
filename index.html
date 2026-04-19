@@ -1430,6 +1430,11 @@ function aplicarEstadoAuth() {
     else if (authSession) syncEl.textContent = '✓ Conectado: ' + email;
     else syncEl.textContent = '✓ Conectado (solo lectura)';
   }
+
+  // Re-render dynamic lists so buttons appear/disappear correctly
+  if (typeof renderBanco === 'function') renderBanco();
+  if (typeof renderExamenesBanco === 'function') renderExamenesBanco();
+  if (typeof cargarRecursos === 'function' && document.getElementById('tab-pdfs')?.classList.contains('active')) cargarRecursos();
 }
 
 // ── NORMATIVA ────────────────────────────────────────────────────────────────
@@ -2246,9 +2251,11 @@ function renderBanco() {
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verEnunciadoModal('${p.id}')">Ver</button>
           <button class="btn btn-sm" onclick="verLatex('${p.id}')">LaTeX</button>
+          ${esAdmin() ? `
           <button class="btn btn-sm solo-profesor" onclick="editarProblema('${p.id}')">Editar</button>
           <button class="btn btn-sm solo-profesor" onclick="marcarUsado('${p.id}')">Marcar usado</button>
           <button class="btn btn-sm btn-danger solo-profesor" onclick="borrarProblema('${p.id}')">Borrar</button>
+          ` : ''}
         </div>
       </div>
       <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge} ${descBadge}</div>
@@ -2276,8 +2283,10 @@ function renderExamenesBanco() {
         </div>
         <div class="problem-actions">
           <button class="btn btn-sm" onclick="verLatexExamen('${e.id}')">Ver LaTeX</button>
+          ${esAdmin() ? `
           <button class="btn btn-sm" onclick="editarExamen('${e.id}')">Editar</button>
           <button class="btn btn-sm btn-danger" onclick="borrarExamen('${e.id}')">Borrar</button>
+          ` : ''}
         </div>
       </div>
     </div>`).join('');
@@ -4186,8 +4195,10 @@ function renderRecursos() {
       </div>
       <div style="display:flex; gap:4px; flex-shrink:0;">
         <a class="btn btn-sm btn-primary" href="${r.url||'#'}" target="_blank" rel="noopener">Abrir</a>
+        ${esAdmin() ? `
         <button class="btn btn-sm" onclick="editarRecurso('${r.id}')">Editar</button>
         <button class="btn btn-sm btn-danger" onclick="borrarRecurso('${r.id}')">Borrar</button>
+        ` : ''}
       </div>
     </div>`).join('');
 }
