@@ -304,7 +304,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
                 <option value="Libro de texto">Libro de texto</option>
                 <option value="otro">Otro...</option>
               </select>
-              <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" class="mf-hidden"style="flex:1; min-width:160px; ">
+              <input type="text" id="procedencia-otro" placeholder="Especifica la procedencia" class="mf-hidden" style="flex:1; min-width:160px; ">
             </div>
             <div id="proc-pau-fields" class="mf-hidden">
               <div class="row" style="margin-bottom:8px;">
@@ -828,7 +828,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <button class="btn" onclick="cerrarModal('modal-importar-pdf')">Cancelar</button>
     </div>
 
-    <div id="pdf-paso2" class="mf-hidden"style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem;">
+    <div id="pdf-paso2" class="mf-hidden" style="margin-top:1.5rem; border-top:1px solid var(--border); padding-top:1.25rem;">
       <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Paso 2: Pega el JSON que te ha devuelto Claude</p>
       <textarea id="pdf-json-input" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:150px; background:var(--surface2); margin-bottom:8px;"></textarea>
       <div class="modal-actions">
@@ -980,7 +980,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
         </div>
 
-        <div id="masivo-claude-paso2" class="mf-hidden"style="margin-top:1.25rem; border-top:1px solid var(--border); padding-top:1rem;">
+        <div id="masivo-claude-paso2" class="mf-hidden" style="margin-top:1.25rem; border-top:1px solid var(--border); padding-top:1rem;">
           <p style="font-weight:500; color:var(--text); margin-bottom:6px;">Pega el JSON que te ha devuelto Claude</p>
           <textarea id="masivo-claude-json" placeholder='Pega aquí el JSON de Claude...' style="font-family:Courier New,monospace; font-size:11px; min-height:120px; background:var(--surface2); margin-bottom:8px;"></textarea>
           <div class="modal-actions">
@@ -1039,7 +1039,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
           <option value="Libro de texto">Libro de texto</option>
           <option value="otro">Otro...</option>
         </select>
-        <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" class="mf-hidden"style="flex:1; ">
+        <input type="text" id="procedencia-modal-otro" placeholder="Especifica la procedencia" class="mf-hidden" style="flex:1; ">
       </div>
       <div id="proc-modal-pau-fields" class="mf-hidden">
         <div class="row" style="margin-bottom:8px;">
@@ -3481,10 +3481,12 @@ async function importarJSONdePDF() {
   if (!txt) { toast('Pega el JSON primero'); return; }
 
   const items_parsed = extraerJSONdeClaude(txt);
-  if (!items_parsed) { toast('JSON no válido — comprueba el formato'); return; }
+  if (!items_parsed) {
+    toast('JSON no válido — comprueba el formato');
+    return;
+  }
   const items = Array.isArray(items_parsed) ? items_parsed : [items_parsed];
-
-  if (!Array.isArray(items) || !items.length) { toast('El JSON debe ser un array de ejercicios'); return; }
+  if (!items.length) { toast('El JSON debe ser un array de ejercicios'); return; }
 
   const cursoDB = (cursos[cursoActual]||{}).curso_db || cursoActual;
   const units = unidades[cursoActual] || [];
@@ -4161,7 +4163,9 @@ function borrarCurso() {
 // ── SHOW/HIDE HELPERS (class-based para máxima compatibilidad) ───────────────
 function _setDisplay(el, val) {
   if (!el) return;
-  // Get current style without display property
+  // Remove mf-hidden class, add appropriate show class
+  el.classList.remove('mf-hidden', 'mf-show-block', 'mf-show-flex');
+  // Also set via setAttribute for maximum compatibility
   const cur = el.getAttribute('style') || '';
   const cleaned = cur.replace(/display\s*:[^;]+;?\s*/gi, '').trim().replace(/;$/, '');
   const newStyle = (cleaned ? cleaned + '; ' : '') + 'display:' + val + ' !important;';
