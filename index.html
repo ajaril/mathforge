@@ -1290,8 +1290,8 @@ function getAuthToken() {
 
 // Emails con acceso admin — modifica estos con los emails reales de Supabase Auth
 const ADMIN_EMAILS = [
-  'jarillo@iespoeta.com',   // ← pon aquí tu email
-  'luisyeste@iespoeta.com'  // ← pon aquí el de tu compañero
+  'jarillo@iespoeta.com',
+  'luisyeste@iespoeta.com'
 ];
 
 function esAdmin() {
@@ -2007,6 +2007,16 @@ async function actualizarRefSelect() {
       p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad))
     );
   }
+  // Sort: by unidad index (same order as unidades list), then alphabetically by tematica
+  const unidadOrder = {};
+  unitsParaCurso.forEach((u, i) => { unidadOrder[u.id] = i; });
+  bancoFiltrado = [...bancoFiltrado].sort((a, b) => {
+    const ua = unidadOrder[a.unidad_id] ?? 999;
+    const ub = unidadOrder[b.unidad_id] ?? 999;
+    if (ua !== ub) return ua - ub;
+    return (a.tematica||'').localeCompare(b.tematica||'', 'es');
+  });
+
   if (!bancoFiltrado.length) {
     sel.innerHTML = '<option value="">No hay problemas con estos filtros</option>';
     ocultar('preview-ref');
