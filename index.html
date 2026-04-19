@@ -255,7 +255,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <button class="btn btn-primary" onclick="generarProblema()">Generar → copiar prompt y abrir Claude</button>
     </div>
 
-    <div class="card" style="border-style:dashed;">
+    <div class="card solo-profesor" style="border-style:dashed;">
       <div class="card-title">Respuesta de Claude</div>
 
       <!-- Mode selector -->
@@ -406,10 +406,12 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="sync-bar">
       💾 <strong id="sync-status-text">Conectando...</strong>
       <div style="display:flex; gap:6px; margin-left:auto; flex-wrap:wrap;">
+        <div class="solo-profesor" style="display:contents;">
         <button class="btn btn-sm" onclick="mostrarImportarMasivo()">Importar LaTeX masivo</button>
         <button class="btn btn-sm" onclick="mostrarImportarPDF()">Importar desde PDF</button>
         <button class="btn btn-sm" onclick="exportarJSON()">Exportar JSON</button>
         <button class="btn btn-sm" onclick="mostrarImportar()">Importar JSON</button>
+        </div>
       </div>
     </div>
 
@@ -488,7 +490,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
         <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
       </div>
-      <div class="card" style="border-style:dashed;">
+      <div class="card solo-profesor" style="border-style:dashed;">
         <div class="card-title">Respuesta de Claude</div>
         <p style="font-size:12px; color:var(--text2); margin-bottom:12px;">Claude te dará el LaTeX del examen completo y un JSON por cada ejercicio. Pégalos en sus áreas correspondientes — al guardar, el examen va al banco de exámenes y los ejercicios al banco individual.</p>
 
@@ -534,8 +536,10 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
 
         <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="guardarExamenYEjercicios()" class="btn btn-primary solo-profesor">Guardar examen + ejercicios</button>
-          <button class="btn" onclick="guardarExamen()" class="btn solo-profesor">Solo guardar examen</button>
+          <div class="solo-profesor" style="display:contents;">
+          <button class="btn btn-primary" onclick="guardarExamenYEjercicios()">Guardar examen + ejercicios</button>
+          <button class="btn" onclick="guardarExamen()">Solo guardar examen</button>
+          </div>
           <button class="btn" onclick="copiarExamen()">Copiar para Overleaf</button>
         </div>
       </div>
