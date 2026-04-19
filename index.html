@@ -611,7 +611,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div class="add-unit-form" style="margin-top:8px;">
           <input type="text" id="nueva-unidad-nombre" placeholder="Nombre de la unidad (ej: Probabilidad condicionada)">
           <input type="text" id="nueva-unidad-saberes" placeholder="Saberes opcionales (ej: D.1.1., D.1.2.)">
-          <button class="btn btn-primary" onclick="añadirUnidad()">Añadir</button>
+          <button class="btn btn-primary" onclick="añadirUnidad()" class="btn btn-primary solo-profesor">Añadir</button>
         </div>
       </details>
 
@@ -619,7 +619,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <div class="card" style="margin-top:1.25rem; background:var(--surface2);">
         <div class="card-title" style="display:flex; align-items:center; justify-content:space-between;">
           <span>Normativa guardada para este curso</span>
-          <button class="btn btn-sm btn-danger" onclick="borrarNormativaCurso()" style="font-size:11px;">Borrar</button>
+          <button class="btn btn-sm btn-danger" onclick="borrarNormativaCurso()" class="btn btn-sm btn-danger solo-profesor" style="font-size:11px;">Borrar</button>
         </div>
         <div id="normativa-status" style="font-size:12px; color:var(--text2); white-space:pre-wrap; max-height:150px; overflow-y:auto;"></div>
       </div>
@@ -649,7 +649,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
   "C": { "nombre": "Estadística", "saberes": ["C.1.1.", "C.1.2."] }
 }' style="min-height:100px; font-family:Courier New,monospace; font-size:11px; background:var(--surface2); margin-bottom:12px;"></textarea>
 
-        <button class="btn btn-primary" onclick="generarPromptUnidades()" style="margin-bottom:12px;">Generar prompt → copiar y abrir Claude</button>
+        <button class="btn btn-primary" onclick="generarPromptUnidades()" class="btn btn-primary solo-profesor" style="margin-bottom:12px;">Generar prompt → copiar y abrir Claude</button>
 
         <!-- Paso 3 -->
         <div id="import-unidades-paso2" class="mf-hidden" style="border-top:1px solid var(--border); padding-top:12px; margin-top:4px;">
@@ -660,7 +660,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="reemplazar">Reemplazar todas las unidades del curso</option>
               <option value="añadir">Añadir a las existentes</option>
             </select>
-            <button class="btn btn-primary" onclick="importarUnidadesDeClaude()">Importar unidades</button>
+            <button class="btn btn-primary" onclick="importarUnidadesDeClaude()" class="btn btn-primary solo-profesor">Importar unidades</button>
           </div>
         </div>
       </div>
@@ -673,7 +673,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <h3>Orden de cursos</h3>
       <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Arrastra los cursos para reordenarlos. El orden se refleja en los botones de la cabecera.</p>
       <div id="cursos-orden-list" style="margin-bottom:1rem; max-width:600px;"></div>
-      <button class="btn btn-primary" onclick="guardarOrdenCursos()">Guardar orden</button>
+      <button class="btn btn-primary" onclick="guardarOrdenCursos()" class="btn btn-primary solo-profesor">Guardar orden</button>
     </div>
 
     <div class="config-section" style="margin-top:1.5rem;">
@@ -681,7 +681,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <p style="font-size:13px; color:var(--text2); margin-bottom:1rem;">Elimina un curso del sistema (no borra los ejercicios de Supabase).</p>
       <div style="display:flex; gap:8px; align-items:center; max-width:600px;">
         <select id="curso-borrar-select" style="flex:1;"></select>
-        <button class="btn btn-danger" onclick="borrarCurso()">Eliminar curso</button>
+        <button class="btn btn-danger" onclick="borrarCurso()" class="btn btn-danger solo-profesor">Eliminar curso</button>
       </div>
     </div>
   </div>
@@ -689,8 +689,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 <!-- Modal login -->
 <div id="modal-login" style="display:none;" class="modal-overlay">
   <div class="modal" style="max-width:380px;">
-    <h3>Acceso de profesores</h3>
-    <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">El banco es público — solo necesitas entrar para guardar o editar ejercicios.</p>
+    <h3>Acceso de administrador</h3>
+    <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">El banco es público. Entra con tu cuenta para guardar, editar y configurar.</p>
     <div class="field">
       <label>Email</label>
       <input type="email" id="login-email" placeholder="tu@email.com" style="font-size:14px;">
@@ -1228,7 +1228,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
       <input type="text" id="edit-unidad-saberes" placeholder="Ej: D.1.1., D.1.2.">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-primary" onclick="guardarEdicionUnidad()">Guardar cambios</button>
+      <button class="btn btn-primary" onclick="guardarEdicionUnidad()" class="btn btn-primary solo-profesor">Guardar cambios</button>
       <button class="btn" onclick="cerrarModal('modal-editar-unidad')">Cancelar</button>
     </div>
   </div>
@@ -1284,9 +1284,19 @@ function getAuthToken() {
   return authSession?.access_token || SUPABASE_KEY;
 }
 
-function esProfesor() {
-  return authSession !== null;
+// Emails con acceso admin — modifica estos con los emails reales de Supabase Auth
+const ADMIN_EMAILS = [
+  'jarillo@iespoeta.com',   // ← pon aquí tu email
+  'luisyeste@iespoeta.com'  // ← pon aquí el de tu compañero
+];
+
+function esAdmin() {
+  if (!authSession) return false;
+  return ADMIN_EMAILS.includes((authSession.user?.email || '').toLowerCase());
 }
+
+// Alias para compatibilidad — todo lo que antes era "esProfesor" ahora es esAdmin
+function esProfesor() { return esAdmin(); }
 
 async function sbFetch(path, opts = {}) {
   try {
@@ -1358,14 +1368,15 @@ async function restaurarSesion() {
 }
 
 function aplicarEstadoAuth() {
-  const profesor = esProfesor();
+  const admin = esAdmin();
   const email = authSession?.user?.email || '';
 
   // Update login button
   const btnLogin = document.getElementById('btn-login');
   if (btnLogin) {
-    if (profesor) {
-      btnLogin.textContent = email.split('@')[0] + ' · Salir';
+    if (authSession) {
+      const nombre = email.split('@')[0];
+      btnLogin.textContent = (admin ? '⚙ ' : '') + nombre + ' · Salir';
       btnLogin.classList.add('active');
       btnLogin.onclick = logout;
     } else {
@@ -1375,9 +1386,9 @@ function aplicarEstadoAuth() {
     }
   }
 
-  // Show/hide edit controls based on auth
+  // Show/hide elements that require admin
   document.querySelectorAll('.solo-profesor').forEach(el => {
-    if (profesor) {
+    if (admin) {
       el.removeAttribute('style');
       el.classList.remove('mf-hidden');
     } else {
@@ -1385,12 +1396,27 @@ function aplicarEstadoAuth() {
     }
   });
 
+  // Hide + Nuevo curso button and config tabs if not admin
+  const btnNuevo = document.getElementById('btn-nuevo-curso');
+  if (btnNuevo) btnNuevo.setAttribute('style', admin ? '' : 'display:none !important;');
+
+  const tabConfig = document.querySelector('[onclick*="showTab(\'config\'"]');
+  const tabConfigGeneral = document.querySelector('[onclick*="showTab(\'config-general\'"]');
+  if (tabConfig) tabConfig.setAttribute('style', admin ? '' : 'display:none !important;');
+  if (tabConfigGeneral) tabConfigGeneral.setAttribute('style', admin ? '' : 'display:none !important;');
+
+  // If not admin and on a config tab, switch to generar
+  if (!admin && (document.getElementById('tab-config')?.classList.contains('active') ||
+      document.getElementById('tab-config-general')?.classList.contains('active'))) {
+    showTab('generar', document.querySelector('[onclick*="showTab(\'generar\'"]'));
+  }
+
   // Update sync status
   const syncEl = document.getElementById('sync-status-text');
   if (syncEl && supabaseOK) {
-    syncEl.textContent = profesor
-      ? '✓ Conectado como ' + email
-      : '✓ Conectado (solo lectura)';
+    if (admin) syncEl.textContent = '⚙ Admin: ' + email;
+    else if (authSession) syncEl.textContent = '✓ Conectado: ' + email;
+    else syncEl.textContent = '✓ Conectado (solo lectura)';
   }
 }
 
@@ -1527,13 +1553,22 @@ async function hacerLogin() {
   }
 }
 
+function adminGuard() {
+  if (!esAdmin()) {
+    toast('🔒 Solo los administradores pueden hacer esto');
+    if (!authSession) setTimeout(() => abrirModal('modal-login'), 500);
+    return false;
+  }
+  return true;
+}
+
 function cursoGuard(requireAuth = true) {
   if (!cursoActual || !cursos[cursoActual]) {
     toast('⚠️ Selecciona un curso primero (botones de arriba)');
     return false;
   }
-  if (requireAuth && !esProfesor()) {
-    toast('🔒 Entra con tu cuenta de profesor para guardar');
+  if (requireAuth && !esAdmin()) {
+    toast('🔒 Entra con tu cuenta de administrador para guardar');
     setTimeout(() => abrirModal('modal-login'), 500);
     return false;
   }
@@ -1693,6 +1728,7 @@ function abrirModalNuevoCurso() {
 }
 
 function abrirNuevoCurso() {
+  if (!adminGuard()) return;
   const nombre = document.getElementById('nuevo-curso-nombre');
   const id = document.getElementById('nuevo-curso-id');
   if (nombre) nombre.value = '';
@@ -1809,6 +1845,7 @@ function renderUnidadesList() {
 }
 
 function añadirUnidad() {
+  if (!adminGuard()) return;
   const nombre = document.getElementById('nueva-unidad-nombre').value.trim();
   if (!nombre) { toast('Escribe el nombre de la unidad'); return; }
   const saberes = document.getElementById('nueva-unidad-saberes').value.trim();
@@ -1830,6 +1867,7 @@ function editarUnidad(id) {
 }
 
 async function guardarEdicionUnidad() {
+  if (!adminGuard()) return;
   const id = document.getElementById('edit-unidad-id').value;
   const u = (unidades[cursoActual]||[]).find(x => x.id === id);
   if (!u) return;
@@ -1922,8 +1960,23 @@ async function cargarBancoCruzado(cursoKey) {
 async function actualizarRefSelect() {
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
-  poblarCursoSelect('ref-curso-select');
-  const cursoKey = document.getElementById('ref-curso-select')?.value || cursoActual;
+
+  // Populate curso selector preserving current selection
+  const cursoSel = document.getElementById('ref-curso-select');
+  if (cursoSel) {
+    const valorActual = cursoSel.value; // preserve before repopulating
+    cursoSel.innerHTML = Object.entries(cursos).map(([key, c]) =>
+      '<option value="' + key + '">' + c.label + '</option>'
+    ).join('');
+    // Restore previous selection if valid, else use cursoActual
+    if (valorActual && cursos[valorActual]) {
+      cursoSel.value = valorActual;
+    } else {
+      cursoSel.value = cursoActual;
+    }
+  }
+
+  const cursoKey = cursoSel?.value || cursoActual;
   const unitsParaCurso = unidades[cursoKey] || [];
 
   // Populate unidad selector for this course
@@ -1932,7 +1985,10 @@ async function actualizarRefSelect() {
     const currentUnidad = unidadSel.value;
     unidadSel.innerHTML = '<option value="">Todas las unidades</option>' +
       unitsParaCurso.map(u => '<option value="' + u.id + '">' + u.nombre + '</option>').join('');
-    if (currentUnidad) unidadSel.value = currentUnidad;
+    // Only restore unidad if it belongs to the same course
+    if (currentUnidad && unitsParaCurso.find(u => u.id === currentUnidad)) {
+      unidadSel.value = currentUnidad;
+    }
   }
 
   const filtroUnidad = unidadSel?.value || '';
@@ -1948,19 +2004,20 @@ async function actualizarRefSelect() {
     );
   }
   if (!bancoFiltrado.length) {
-    sel.innerHTML = '<option>No hay problemas con estos filtros</option>';
+    sel.innerHTML = '<option value="">No hay problemas con estos filtros</option>';
     ocultar('preview-ref');
     return;
   }
   sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
     bancoFiltrado.map(p => {
       const u = unitsParaCurso.find(x => x.id === p.unidad_id);
-      const unidadNombre = u ? u.nombre.substring(0,18) : '?';
+      const unidadNombre = u ? u.nombre.substring(0,18) : (p.tematica ? '' : '?');
       const tematica = p.tematica || 'Sin temática';
       const proc = p.procedencia ? ' · ' + p.procedencia : '';
       const napt = p.num_apartados ? ' · ' + p.num_apartados + 'apt.' : '';
       const desc = p.descripcion ? ' [' + p.descripcion.substring(0,25) + ']' : '';
-      return '<option value="' + p.id + '" data-latex="' + (p.latex_enunciado||'').replace(/"/g,'&quot;') + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+      const prefix = unidadNombre ? '[' + unidadNombre + '] ' : '';
+      return '<option value="' + p.id + '" data-latex="' + (p.latex_enunciado||'').replace(/"/g,'&quot;') + '">' + prefix + tematica + napt + proc + desc + '</option>';
     }).join('');
   ocultar('preview-ref');
 }
@@ -4137,6 +4194,7 @@ async function guardarEdicionExamen() {
 
 // ── IMPORTAR UNIDADES DESDE CLAUDE ───────────────────────────────────────────
 function generarPromptUnidades() {
+  if (!adminGuard()) return;
   const texto = document.getElementById('import-unidades-texto').value.trim();
   if (!texto) { toast('Pega primero tus unidades didácticas'); return; }
   const normativaRaw = document.getElementById('import-normativa-json').value.trim();
@@ -4185,6 +4243,7 @@ INSTRUCCIONES:
 }
 
 function importarUnidadesDeClaude() {
+  if (!adminGuard()) return;
   const txt = document.getElementById('import-unidades-json').value.trim();
   if (!txt) { toast('Pega el JSON de Claude primero'); return; }
   let items;
@@ -4241,6 +4300,7 @@ function importarUnidadesDeClaude() {
 }
 
 function borrarNormativaCurso() {
+  if (!adminGuard()) return;
   if (!confirm('¿Borrar la normativa guardada para ' + ((cursos[cursoActual]||{}).label||cursoActual) + '? Se usará la normativa por defecto.')) return;
   delete normativaGuardada[cursoActual];
   localStorage.setItem('mf_normativa', JSON.stringify(normativaGuardada));
@@ -4365,12 +4425,14 @@ function dragCursoDrop(e, targetKey) {
 }
 
 function guardarOrdenCursos() {
+  if (!adminGuard()) return;
   localStorage.setItem('mf_cursos', JSON.stringify(cursos)); if (typeof supabaseOK !== 'undefined' && supabaseOK) guardarConfigAll();
   renderCursoSelector();
   toast('Orden guardado ✓');
 }
 
 function borrarCurso() {
+  if (!adminGuard()) return;
   const key = document.getElementById('curso-borrar-select')?.value;
   if (!key) return;
   if (!confirm('¿Eliminar el curso "' + cursos[key]?.label + '"? Los ejercicios en Supabase no se borran.')) return;
