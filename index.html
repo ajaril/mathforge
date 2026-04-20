@@ -178,7 +178,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- GENERAR -->
   <div id="tab-generar" class="panel active">
-    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude.</div>
+    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude. Pega el prompt, espera la respuesta y pega el LaTeX abajo.</div>
     <div class="card">
       <div class="field">
         <label>Modo de generación</label>
@@ -447,6 +447,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
       </div>
       <div class="filter-bar">
+        <input type="text" id="filtro-texto" placeholder="🔍 Buscar en enunciados..." oninput="renderBanco()" style="font-size:13px; flex:2; min-width:180px;">
         <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
         <select id="filtro-tipo" onchange="renderBanco()">
           <option value="">Todos los tipos</option>
@@ -2233,6 +2234,7 @@ function renderBanco() {
   const fus = document.getElementById('filtro-usado').value;
   const fp = document.getElementById('filtro-procedencia').value;
   const fd = document.getElementById('filtro-dificil')?.value || '';
+  const ftxt = (document.getElementById('filtro-texto')?.value || '').trim().toLowerCase();
   let filtrados = banco.filter(p => {
     if (fu) {
       const enPrincipal = p.unidad_id === fu;
@@ -2245,6 +2247,10 @@ function renderBanco() {
     if (fd === 'si' && !p.dificil) return false;
     if (fd === 'no' && p.dificil) return false;
     if (fp && !(p.procedencia||'').includes(fp)) return false;
+    if (ftxt) {
+      const haystack = ((p.latex_enunciado||'') + ' ' + (p.tematica||'') + ' ' + (p.descripcion||'')).toLowerCase();
+      if (!ftxt.split(/\s+/).every(word => haystack.includes(word))) return false;
+    }
     return true;
   });
   if (!filtrados.length) { container.innerHTML = '<div class="empty">No hay problemas con estos filtros.</div>'; return; }
