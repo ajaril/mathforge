@@ -74,6 +74,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 .badge-warn { background: var(--warn-bg); color: var(--warn-text); }
 .problem-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 10px; transition: border 0.15s; }
 .problem-card:hover { border-color: var(--border2); }
+.problem-card.es-dificil { border-left: 3px solid #e67e22; }
+.badge-dificil { background: #fef3e2; color: #b7590a; border: 1px solid #f0a04b; font-size: 11px; padding: 2px 7px; border-radius: 100px; font-weight: 500; }
+.btn-toggle-dificil { font-size: 16px; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; cursor: pointer; line-height: 1; transition: background 0.15s, border 0.15s; }
+.btn-toggle-dificil:hover { background: #fef3e2; border-color: #f0a04b; }
+.btn-toggle-dificil.activo { background: #fef3e2; border-color: #e67e22; }
 .problem-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px; }
 .problem-title { font-size: 14px; font-weight: 500; margin-bottom: 3px; line-height: 1.4; }
 .problem-meta { font-size: 12px; color: var(--text2); }
@@ -236,6 +241,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <select id="ref-curso-select" onchange="actualizarRefSelect()" style="font-size:13px; flex:1;"></select>
             <select id="ref-unidad-select" onchange="actualizarRefSelect()" style="font-size:13px; flex:1;">
               <option value="">Todas las unidades</option>
+            </select>
+            <select id="ref-dificil-select" onchange="actualizarRefSelect()" style="font-size:13px;">
+              <option value="">Todos los niveles</option>
+              <option value="no">Sin difíciles</option>
+              <option value="si">Solo difíciles ⚡</option>
             </select>
           </div>
           <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
@@ -447,6 +457,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <select id="filtro-usado" onchange="renderBanco()">
           <option value="">Todos</option><option value="no">Disponibles</option><option value="si">Ya usados</option>
         </select>
+        <select id="filtro-dificil" onchange="renderBanco()">
+          <option value="">Todos los niveles</option>
+          <option value="no">Sin marcar difícil</option>
+          <option value="si">Difíciles ⚡</option>
+        </select>
         <select id="filtro-procedencia" onchange="renderBanco()">
           <option value="">Todas las procedencias</option>
           <option value="IA">Generado por IA</option>
@@ -573,6 +588,11 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
             <select id="exam-banco-curso" onchange="cambiarCursoExamBanco()" style="font-size:13px; font-weight:500; border-color:var(--accent); flex:0 0 auto;"></select>
             <select id="exam-banco-filtro-unidad" onchange="actualizarSlotsBancoFiltro()" style="font-size:13px; flex:1;">
               <option value="">Todas las unidades</option>
+            </select>
+            <select id="exam-banco-filtro-dificil" onchange="actualizarSlotsBancoFiltro()" style="font-size:13px;">
+              <option value="">Todos los niveles</option>
+              <option value="no">Sin difíciles</option>
+              <option value="si">Solo difíciles ⚡</option>
             </select>
           </div>
           <div id="exam-banco-slots"></div>
@@ -2009,6 +2029,7 @@ async function actualizarRefSelect() {
   }
 
   const filtroUnidad = unidadSel?.value || '';
+  const filtroDificil = document.getElementById('ref-dificil-select')?.value || '';
 
   // Load banco for selected course (may be different from current)
   sel.innerHTML = '<option value="">Cargando...</option>';
@@ -2020,6 +2041,8 @@ async function actualizarRefSelect() {
       p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad))
     );
   }
+  if (filtroDificil === 'si') bancoFiltrado = bancoFiltrado.filter(p => p.dificil);
+  if (filtroDificil === 'no') bancoFiltrado = bancoFiltrado.filter(p => !p.dificil);
   // Sort: by unidad index (same order as unidades list), then alphabetically by tematica
   const unidadOrder = {};
   unitsParaCurso.forEach((u, i) => { unidadOrder[u.id] = i; });
@@ -2209,9 +2232,9 @@ function renderBanco() {
   const ft = document.getElementById('filtro-tipo').value;
   const fus = document.getElementById('filtro-usado').value;
   const fp = document.getElementById('filtro-procedencia').value;
+  const fd = document.getElementById('filtro-dificil')?.value || '';
   let filtrados = banco.filter(p => {
     if (fu) {
-      // Busca en unidad_id (campo principal) Y en unidades_ids (array)
       const enPrincipal = p.unidad_id === fu;
       const enArray = Array.isArray(p.unidades_ids) && p.unidades_ids.includes(fu);
       if (!enPrincipal && !enArray) return false;
@@ -2219,17 +2242,19 @@ function renderBanco() {
     if (ft && p.tipo !== ft) return false;
     if (fus === 'no' && p.usado_por && p.usado_por.length > 0) return false;
     if (fus === 'si' && (!p.usado_por || !p.usado_por.length)) return false;
+    if (fd === 'si' && !p.dificil) return false;
+    if (fd === 'no' && p.dificil) return false;
     if (fp && !(p.procedencia||'').includes(fp)) return false;
     return true;
   });
   if (!filtrados.length) { container.innerHTML = '<div class="empty">No hay problemas con estos filtros.</div>'; return; }
   container.innerHTML = filtrados.map(p => {
     const usado = p.usado_por && p.usado_por.length > 0;
+    const dificil = !!p.dificil;
     const preview = (p.latex_enunciado || '').substring(0, 160) + '...';
     const ces = (p.criterios||[]).map(c => `<span class="badge badge-info">CE ${c}</span>`).join('');
     const sabs = (p.saberes||[]).map(s => `<span class="badge" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);">${s}</span>`).join('');
     const usadoPor = usado ? p.usado_por.map(u => `<span class="badge badge-warn">${u.profesor} (${u.curso||'25-26'})</span>`).join(' ') : '';
-    // Unidades: principal + array adicionales
     const todasUnidades = [];
     const uPrin = (unidades[cursoActual]||[]).find(x => x.id === p.unidad_id);
     if (uPrin) todasUnidades.push(uPrin.nombre);
@@ -2239,7 +2264,8 @@ function renderBanco() {
     const unidadLabel = todasUnidades.length ? todasUnidades.join(' + ') : '[Sin unidad]';
     const procBadge = p.procedencia ? `<span class="badge" style="background:var(--warn-bg);color:var(--warn-text);">${p.procedencia}</span>` : '';
     const descBadge = p.descripcion ? `<span class="badge" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);font-style:italic;">${p.descripcion}</span>` : '';
-    return `<div class="problem-card">
+    const dificilBadge = dificil ? `<span class="badge-dificil">⚡ Difícil</span>` : '';
+    return `<div class="problem-card${dificil ? ' es-dificil' : ''}">
       <div class="problem-header">
         <div>
           <div class="problem-title">
@@ -2252,13 +2278,14 @@ function renderBanco() {
           <button class="btn btn-sm" onclick="verEnunciadoModal('${p.id}')">Ver</button>
           <button class="btn btn-sm" onclick="verLatex('${p.id}')">LaTeX</button>
           ${esAdmin() ? `
+          <button class="btn-toggle-dificil${dificil ? ' activo' : ''}" title="${dificil ? 'Quitar marca difícil' : 'Marcar como difícil'}" onclick="toggleDificil('${p.id}')">⚡</button>
           <button class="btn btn-sm solo-profesor" onclick="editarProblema('${p.id}')">Editar</button>
           <button class="btn btn-sm solo-profesor" onclick="marcarUsado('${p.id}')">Marcar usado</button>
           <button class="btn btn-sm btn-danger solo-profesor" onclick="borrarProblema('${p.id}')">Borrar</button>
           ` : ''}
         </div>
       </div>
-      <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge} ${descBadge}</div>
+      <div style="margin-bottom:4px;">${ces} ${sabs} ${procBadge} ${descBadge} ${dificilBadge}</div>
       <div class="problem-preview">${preview}</div>
     </div>`;
   }).join('');
@@ -2528,7 +2555,7 @@ function buildPrompt() {
   if (!cursoGuard(false)) return;
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const normativa = getNormativa(cursoActual) || '';
-  const bancoPrev = banco.slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
+  const bancoPrev = banco.filter(p => !p.dificil).slice(0,2).map(p=>p.latex_enunciado||'').filter(Boolean).join('\n\n---\n\n');
   const nivelRef = bancoPrev ? `Calibra el nivel de dificultad según estos problemas reales del banco:\n${bancoPrev}\n\n` : '';
 
   const units = unidades[cursoActual] || [];
@@ -3494,6 +3521,20 @@ function parsearMasivoDesdeLatex(latex) {
   toast(masivoItems.length + ' problemas detectados del examen');
 }
 
+async function toggleDificil(id) {
+  if (!adminGuard()) return;
+  const p = banco.find(x => x.id === id);
+  if (!p) return;
+  const nuevoDificil = !p.dificil;
+  const res = await sbFetch('problemas?id=eq.' + id, { method: 'PATCH', body: JSON.stringify({ dificil: nuevoDificil }) });
+  if (res !== null) {
+    p.dificil = nuevoDificil;
+    guardarLocal();
+    renderBanco();
+    toast(nuevoDificil ? '⚡ Marcado como difícil' : 'Marca de difícil eliminada');
+  }
+}
+
 async function marcarUsado(id) {
   const p = banco.find(x => x.id === id);
   if (!p) return;
@@ -3583,9 +3624,12 @@ function getBancoRefOpts() {
   const { data, cursoKey } = getBancoParaExamBanco();
   const units = unidades[cursoKey] || [];
   const filtroUnidad = document.getElementById('exam-banco-filtro-unidad')?.value || '';
-  const filtered = filtroUnidad
+  const filtroDificil = document.getElementById('exam-banco-filtro-dificil')?.value || '';
+  let filtered = filtroUnidad
     ? data.filter(p => p.unidad_id === filtroUnidad || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(filtroUnidad)))
     : data;
+  if (filtroDificil === 'si') filtered = filtered.filter(p => p.dificil);
+  if (filtroDificil === 'no') filtered = filtered.filter(p => !p.dificil);
   return { opts: buildRefOpts(filtered, units), units };
 }
 
@@ -3660,6 +3704,7 @@ async function cambiarCursoExamBanco() {
 
 // Keep for compatibility
 function renderExamBancoSelector() { renderExamBancoSlots(); }
+function actualizarSlotsBancoFiltro() { renderExamBancoSlots(); }
 
 function generarExamenDesdeBanco() {
   const allBanco = [...banco, ...(examBancoCruzado || [])];
