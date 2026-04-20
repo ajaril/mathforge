@@ -2335,9 +2335,14 @@ function renderExamSlots() {
         <select id="slot-unidad-${i}" onchange="filtrarRefPorUnidad(${i})" style="width:auto; font-size:13px;"></select>
       </div>
       <div id="slot-similar-${i}" class="mf-hidden" style="margin-top:6px;">
-        <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px;">
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
           <label style="font-size:11px; color:var(--text2); margin:0; white-space:nowrap;">Banco de:</label>
           <select id="slot-curso-${i}" onchange="actualizarRefSlot(${i})" style="font-size:12px; flex:1;"></select>
+          <select id="slot-dificil-${i}" onchange="filtrarRefPorUnidad(${i})" style="font-size:12px;" title="Nivel de dificultad">
+            <option value="">Todos</option>
+            <option value="no">Sin difíciles</option>
+            <option value="si">Solo ⚡</option>
+          </select>
         </div>
         <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" style="font-size:13px; margin-bottom:4px;"></select>
         <div id="slot-preview-${i}" class="preview-box mf-hidden"></div>
@@ -2372,11 +2377,14 @@ function renderExamSlots() {
 function filtrarRefPorUnidad(i) {
   const unidadId = document.getElementById('slot-unidad-' + i)?.value || '';
   const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+  const filtroDificil = document.getElementById('slot-dificil-' + i)?.value || '';
   const bancoData = (cursoKey !== cursoActual && examBancoCruzado) ? examBancoCruzado : banco;
   const unitsData = unidades[cursoKey] || [];
-  const filtered = unidadId
+  let filtered = unidadId
     ? bancoData.filter(p => p.unidad_id === unidadId || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(unidadId)))
     : bancoData;
+  if (filtroDificil === 'si') filtered = filtered.filter(p => p.dificil);
+  if (filtroDificil === 'no') filtered = filtered.filter(p => !p.dificil);
   const sr = document.getElementById('slot-ref-' + i);
   if (sr) sr.innerHTML = buildRefOpts(filtered, unitsData);
   const prev = document.getElementById('slot-preview-' + i);
@@ -2397,6 +2405,7 @@ function buildRefOpts(bancoData, unitsData) {
 
 async function actualizarRefSlot(i) {
   const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+  const filtroDificil = document.getElementById('slot-dificil-' + i)?.value || '';
   const sr = document.getElementById('slot-ref-' + i);
   if (!sr) return;
   const prev = document.getElementById('slot-preview-' + i);
@@ -2411,7 +2420,10 @@ async function actualizarRefSlot(i) {
     const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
     bancoData = data || [];
   }
-  sr.innerHTML = buildRefOpts(bancoData, units);
+  let filtered = bancoData;
+  if (filtroDificil === 'si') filtered = filtered.filter(p => p.dificil);
+  if (filtroDificil === 'no') filtered = filtered.filter(p => !p.dificil);
+  sr.innerHTML = buildRefOpts(filtered, units);
 }
 
 function actualizarSelectsExamen() {
