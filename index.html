@@ -178,7 +178,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- GENERAR -->
   <div id="tab-generar" class="panel active">
-    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude.</div>
+    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude. Pega el prompt, espera la respuesta y pega el LaTeX abajo.</div>
     <div class="card">
       <div class="field">
         <label>Modo de generación</label>
@@ -270,7 +270,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
       </div>
 
-      <button class="btn btn-primary" onclick="generarProblema()">Generar → copiar prompt y abrir Claude</button>
+      <button class="btn btn-primary" onclick="generarProblema()">Generar → Copiar prompt → Abrir Claude</button>
+      <button class="btn" onclick="solocopiarPromptEjercicio()">Generar → Copiar prompt</button>
     </div>
 
     <div class="card solo-profesor" style="border-style:dashed;">
@@ -512,7 +513,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div class="field"><label>Instrucciones adicionales para Claude (opcional)</label>
           <textarea id="exam-desc" placeholder="Ej: temática sevillana, mezcla de tipos..."></textarea>
         </div>
-        <button class="btn btn-primary" onclick="generarExamen()">Generar examen → copiar prompt y abrir Claude</button>
+        <button class="btn btn-primary" onclick="generarExamen()">Generar → Copiar prompt → Abrir Claude</button>
+        <button class="btn" onclick="solocopiarPromptExamen()">Generar → Copiar prompt</button>
       </div>
       <div class="card solo-profesor" style="border-style:dashed;">
         <div class="card-title">Respuesta de Claude</div>
@@ -2616,15 +2618,25 @@ ${normativa}${formato}`;
     const ref = banco.find(p => p.id === refId);
     const refLatex = ref ? ref.latex_enunciado
       : (refSel?.selectedOptions[0]?.dataset.latex || 'Genera uno típico del nivel');
+    const refTipo = ref?.tipo || 'contextualizado';
     const tematica = document.getElementById('similar-tematica').value;
     const napts = document.getElementById('similar-apartados').value;
     const obs = document.getElementById('observaciones-similar').value.trim();
+
+    const tipoDesc = {
+      'teorico': 'TEÓRICO — trabaja directamente con objetos matemáticos (funciones, ecuaciones, expresiones...) SIN historia ni situación contextualizada. No incluyas personajes, empresas, situaciones reales ni narrativa. Solo matemáticas puras.',
+      'contextualizado': 'CONTEXTUALIZADO — plantea una situación real o cercana a jóvenes (economía, deporte, ciencia, cotidianeidad) como marco del problema.',
+      'mixto': 'MIXTO — combina una parte teórica con una parte contextualizada.'
+    };
+
     return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}.
-Genera un problema SIMILAR en estructura, tipo y dificultad al siguiente:
+Genera un problema SIMILAR en estructura y dificultad al siguiente ejemplo:
 ${refLatex}
-${tematica ? 'Temática: '+tematica : 'Elige una temática original y cercana a jóvenes de 17-18 años.'}
-${napts ? 'Número de apartados: '+napts : 'Mismo número de apartados.'}
-${obs ? 'Observaciones importantes a tener en cuenta: '+obs : ''}
+
+TIPO OBLIGATORIO: ${tipoDesc[refTipo] || tipoDesc['contextualizado']}
+${tematica ? 'Temática: ' + tematica : (refTipo === 'teorico' ? '' : 'Elige una temática original y cercana a jóvenes de 17-18 años.')}
+${napts ? 'Número de apartados: ' + napts : 'Mismo número de apartados que el ejemplo.'}
+${obs ? `\nREQUISITOS DE OBLIGADO CUMPLIMIENTO — aplícalos sin excepción:\n${obs}` : ''}
 ${normativa}${formato}`;
   }
 
@@ -2645,27 +2657,42 @@ ${normativa}${formato}`;
     ? `Unidad: "${unidad.nombre}"${unidad.saberes ? ` — saberes: ${unidad.saberes}` : ' — deduce saberes por el nombre'}`
     : 'Unidad: no especificada';
 
+  const tipoDesc = {
+    'teorico': 'TEÓRICO — trabaja directamente con objetos matemáticos (funciones, ecuaciones, expresiones...) SIN historia ni situación contextualizada. No incluyas personajes, empresas, situaciones reales ni narrativa. Solo matemáticas puras.',
+    'contextualizado': 'CONTEXTUALIZADO — plantea una situación real o cercana a jóvenes como marco del problema.',
+    'mixto': 'MIXTO — combina una parte teórica (pura) con una parte contextualizada.'
+  };
+
   return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
 Genera un problema con estas características:
 - ${unidadInfo}
-- Tipo: ${tipo}
-- Temática: ${tematica || 'Elige una temática original y cercana a jóvenes de 17-18 años'}
+- TIPO OBLIGATORIO: ${tipoDesc[tipo] || tipo}
+- Temática: ${tipo === 'teorico' ? '(no aplica — es teórico, sin contexto)' : (tematica || 'Elige una temática original y cercana a jóvenes de 17-18 años')}
 - Número de apartados: ${numApt}
 - Contenido por apartado:
 ${apts}
 - Dificultad: ${dificultad === 'igual' ? 'similar al banco' : dificultad === 'mas' ? 'un poco más difícil' : 'un poco más fácil (recuperación)'}
-${obs ? '- Observaciones importantes: '+obs : ''}
+${obs ? `\nREQUISITOS DE OBLIGADO CUMPLIMIENTO — aplícalos sin excepción:\n${obs}` : ''}
 ${normativa}${formato}`;
 }
 
 function generarProblema() {
   const prompt = 'MATHFORGE_GENERAR_PROBLEMA\n\n' + buildPrompt();
+  if (!prompt) return;
   navigator.clipboard.writeText(prompt)
     .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
     .catch(() => toast('No se pudo copiar automáticamente'));
 }
 
-function generarExamen() {
+function solocopiarPromptEjercicio() {
+  const prompt = 'MATHFORGE_GENERAR_PROBLEMA\n\n' + buildPrompt();
+  if (!prompt) return;
+  navigator.clipboard.writeText(prompt)
+    .then(() => toast('Prompt copiado ✓'))
+    .catch(() => toast('No se pudo copiar'));
+}
+
+function generarExamen(openClaude = true) {
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const titulo = document.getElementById('exam-titulo').value || 'Examen';
   const fecha = document.getElementById('exam-fecha').value || new Date().toLocaleDateString('es-ES');
@@ -2813,7 +2840,14 @@ UNIDADES DEL CURSO para el JSON:
 ${(unidades[cursoActual]||[]).map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")').join('\n')}`;
 
   navigator.clipboard.writeText(prompt)
-    .then(() => { toast('Prompt copiado ✓ — abriendo Claude...'); setTimeout(() => window.open('https://claude.ai', '_blank'), 600); })
+    .then(() => {
+      if (openClaude) {
+        toast('Prompt copiado ✓ — abriendo Claude...');
+        setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      } else {
+        toast('Prompt del examen copiado ✓');
+      }
+    })
     .catch(() => toast('No se pudo copiar automáticamente'));
 }
 
