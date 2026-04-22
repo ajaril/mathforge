@@ -2417,7 +2417,7 @@ function filtrarSlotBusqueda(i) {
   if (!sel) return;
   Array.from(sel.options).forEach(opt => {
     if (!opt.value) return;
-    const texto = normSearch(opt.text);
+    const texto = normSearch(opt.text) + ' ' + normSearch(opt.dataset.latex || '');
     opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
   });
   const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
@@ -2460,7 +2460,8 @@ function buildRefOpts(bancoData, unitsData) {
     const proc = p.procedencia ? ' · ' + p.procedencia : '';
     const napt = p.num_apartados ? ' · ' + p.num_apartados + ' apt.' : '';
     const desc = p.descripcion ? ' [' + p.descripcion.substring(0,20) + ']' : '';
-    return '<option value="' + p.id + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+    const latexAttr = (p.latex_enunciado || '').replace(/"/g, '&quot;').substring(0, 500);
+    return '<option value="' + p.id + '" data-latex="' + latexAttr + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
   }).join('');
 }
 
