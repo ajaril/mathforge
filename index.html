@@ -2243,7 +2243,7 @@ function renderBanco() {
   const fus = document.getElementById('filtro-usado').value;
   const fp = document.getElementById('filtro-procedencia').value;
   const fd = document.getElementById('filtro-dificil')?.value || '';
-  const ftxt = (document.getElementById('filtro-texto')?.value || '').trim().toLowerCase();
+  const ftxt = normSearch(document.getElementById('filtro-texto')?.value || '');
   let filtrados = banco.filter(p => {
     if (fu) {
       const enPrincipal = p.unidad_id === fu;
@@ -2257,8 +2257,8 @@ function renderBanco() {
     if (fd === 'no' && p.dificil) return false;
     if (fp && !(p.procedencia||'').includes(fp)) return false;
     if (ftxt) {
-      const haystack = ((p.latex_enunciado||'') + ' ' + (p.tematica||'') + ' ' + (p.descripcion||'') + ' ' + (p.procedencia||'')).toLowerCase();
-      if (!ftxt.split(/\s+/).every(word => haystack.includes(word))) return false;
+      const haystack = normSearch((p.latex_enunciado||'') + ' ' + (p.tematica||'') + ' ' + (p.descripcion||'') + ' ' + (p.procedencia||''));
+      if (!normSearch(ftxt).split(/\s+/).every(word => haystack.includes(word))) return false;
     }
     return true;
   });
@@ -2390,14 +2390,18 @@ function renderExamSlots() {
   }
 }
 
+function normSearch(str) {
+  return (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
 function filtrarRefBusqueda() {
-  const q = (document.getElementById('ref-buscar')?.value || '').trim().toLowerCase();
+  const q = normSearch(document.getElementById('ref-buscar')?.value || '');
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
   Array.from(sel.options).forEach(opt => {
     if (!opt.value) return; // keep placeholder
-    const texto = opt.text.toLowerCase() + ' ' + (opt.dataset.latex || '').toLowerCase().substring(0, 200);
-    opt.style.display = (!q || texto.includes(q) || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
+    const texto = normSearch(opt.text) + ' ' + normSearch((opt.dataset.latex || '').substring(0, 200));
+    opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
   });
   // Auto-select first visible match if there is one
   const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
@@ -2408,12 +2412,12 @@ function filtrarRefBusqueda() {
 }
 
 function filtrarSlotBusqueda(i) {
-  const q = (document.getElementById('slot-buscar-' + i)?.value || '').trim().toLowerCase();
+  const q = normSearch(document.getElementById('slot-buscar-' + i)?.value || '');
   const sel = document.getElementById('slot-ref-' + i);
   if (!sel) return;
   Array.from(sel.options).forEach(opt => {
     if (!opt.value) return;
-    const texto = opt.text.toLowerCase();
+    const texto = normSearch(opt.text);
     opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
   });
   const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
