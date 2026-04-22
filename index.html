@@ -2431,7 +2431,15 @@ function filtrarRefPorUnidad(i) {
   const unidadId = document.getElementById('slot-unidad-' + i)?.value || '';
   const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
   const filtroDificil = document.getElementById('slot-dificil-' + i)?.value || '';
-  const bancoData = (cursoKey !== cursoActual && examBancoCruzado) ? examBancoCruzado : banco;
+  // Use per-slot cache if available, fall back to shared or current banco
+  let bancoData;
+  if (slotBancoCache[i] && slotBancoCache[i].cursoKey === cursoKey) {
+    bancoData = slotBancoCache[i].data;
+  } else if (cursoKey !== cursoActual && examBancoCruzado) {
+    bancoData = examBancoCruzado;
+  } else {
+    bancoData = banco;
+  }
   const unitsData = unidades[cursoKey] || [];
   let filtered = unidadId
     ? bancoData.filter(p => p.unidad_id === unidadId || (Array.isArray(p.unidades_ids) && p.unidades_ids.includes(unidadId)))
@@ -2473,6 +2481,8 @@ async function actualizarRefSlot(i) {
     const data = await sbFetch('problemas?curso=eq.' + cursoDB + '&order=created_at.desc&select=*');
     bancoData = data || [];
   }
+  // Cache per slot
+  slotBancoCache[i] = { cursoKey, data: bancoData };
   let filtered = bancoData;
   if (filtroDificil === 'si') filtered = filtered.filter(p => p.dificil);
   if (filtroDificil === 'no') filtered = filtered.filter(p => !p.dificil);
@@ -3719,6 +3729,7 @@ function setExamModo(modo) {
 let examBancoSlots = 4;
 let examBancoCruzado = null;
 let examBancoCruzadoCurso = null;
+const slotBancoCache = {}; // per-slot banco cache: { slotIndex: { cursoKey, data } }
 
 function getBancoParaExamBanco() {
   const cursoKey = document.getElementById('exam-banco-curso')?.value || cursoActual;
