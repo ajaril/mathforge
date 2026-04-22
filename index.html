@@ -449,7 +449,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
       </div>
       <div class="filter-bar">
-        <input type="text" id="filtro-texto" placeholder="🔍 Buscar en enunciados..." oninput="renderBanco()" style="font-size:13px; flex:2; min-width:180px;">
+        <input type="text" id="filtro-texto" placeholder="🔍 Buscar..." oninput="renderBanco()" style="font-size:13px; flex:2; min-width:180px;">
         <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
         <select id="filtro-tipo" onchange="renderBanco()">
           <option value="">Todos los tipos</option>
@@ -3836,6 +3836,8 @@ function getBancoParaExamBanco() {
   return { data: banco, cursoKey: cursoActual };
 }
 
+let examBancoData = { data: [], units: [] }; // stored for search
+
 function getBancoRefOpts() {
   const { data, cursoKey } = getBancoParaExamBanco();
   const units = unidades[cursoKey] || [];
@@ -3846,7 +3848,41 @@ function getBancoRefOpts() {
     : data;
   if (filtroDificil === 'si') filtered = filtered.filter(p => p.dificil);
   if (filtroDificil === 'no') filtered = filtered.filter(p => !p.dificil);
+  examBancoData = { data: filtered, units };
   return { opts: buildRefOpts(filtered, units), units };
+}
+
+function filtrarExamBancoBusqueda(i) {
+  const q = normSearch(document.getElementById('exam-banco-buscar-' + i)?.value || '');
+  const sel = document.getElementById('exam-banco-ref-' + i);
+  if (!sel) return;
+  const { data, units } = examBancoData;
+  const filtrados = q
+    ? data.filter(p => {
+        const texto = normSearch(
+          (p.tematica || '') + ' ' + (p.descripcion || '') + ' ' +
+          (p.procedencia || '') + ' ' + (p.latex_enunciado || '').substring(0, 600)
+        );
+        return q.split(/\s+/).every(w => texto.includes(w));
+      })
+    : data;
+  sel.innerHTML = '<option value="">Sin ejercicio</option>' +
+    filtrados.map(p => {
+      const u = units.find(x => x.id === p.unidad_id);
+      const unidadNombre = u ? u.nombre.substring(0, 20) : '?';
+      const tematica = p.tematica || 'Sin temática';
+      const proc = p.procedencia ? ' · ' + p.procedencia : '';
+      const napt = p.num_apartados ? ' · ' + p.num_apartados + ' apt.' : '';
+      const desc = p.descripcion ? ' [' + p.descripcion.substring(0, 20) + ']' : '';
+      const latexAttr = (p.latex_enunciado || '').replace(/"/g, '&quot;').substring(0, 500);
+      return '<option value="' + p.id + '" data-latex="' + latexAttr + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+    }).join('');
+  if (filtrados.length > 0 && q) {
+    sel.value = filtrados[0].id;
+    mostrarPreviewExamBanco(i);
+  } else if (!q) {
+    sel.innerHTML = buildRefOpts(data, units);
+  }
 }
 
 function renderExamBancoSlots(savedVals) {
@@ -3860,7 +3896,8 @@ function renderExamBancoSlots(savedVals) {
   c.innerHTML = Array.from({length: examBancoSlots}, (_, i) =>
     '<div class="examen-slot" style="margin-bottom:8px;">' +
     '<span style="font-size:13px; font-weight:500; display:block; margin-bottom:4px;">Ejercicio ' + (i+1) + '</span>' +
-    '<select id="exam-banco-ref-' + i + '" onchange="mostrarPreviewExamBanco(' + i + ')" style="font-size:13px; margin-bottom:4px;">' + opts + '</select>' +
+    '<input type="text" id="exam-banco-buscar-' + i + '" placeholder="🔍 Buscar..." oninput="filtrarExamBancoBusqueda(' + i + ')" style="font-size:12px; margin-bottom:4px; width:100%;">' +
+    '<select id="exam-banco-ref-' + i + '" onchange="mostrarPreviewExamBanco(' + i + ')" onkeyup="mostrarPreviewExamBanco(' + i + ')" size="4" style="font-size:13px; margin-bottom:4px; width:100%; min-height:88px;">' + opts + '</select>' +
     '<div id="exam-banco-preview-' + i + '" class="preview-box mf-hidden"></div>' +
     '</div>'
   ).join('');
