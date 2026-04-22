@@ -882,7 +882,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
     <div class="info-box" style="margin-top:8px; margin-bottom:4px;">Claude clasificará automáticamente cada ejercicio en la unidad correcta de tu lista del curso actual.</div>
 
     <div class="modal-actions" style="margin-top:8px;">
-      <button class="btn btn-primary" onclick="generarPromptPDF()">Generar prompt → copiar y abrir Claude</button>
+      <button class="btn btn-primary" onclick="generarPromptPDF()">Generar → Copiar prompt → Abrir Claude</button>
+      <button class="btn" onclick="generarPromptPDF(false)">Generar → Copiar prompt</button>
       <button class="btn" onclick="cerrarModal('modal-importar-pdf')">Cancelar</button>
     </div>
 
@@ -1034,7 +1035,8 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         </div>
 
         <div class="modal-actions">
-          <button class="btn btn-primary" onclick="generarPromptMasivoLatex()">Generar prompt → copiar y abrir Claude</button>
+          <button class="btn btn-primary" onclick="generarPromptMasivoLatex()">Generar → Copiar prompt → Abrir Claude</button>
+          <button class="btn" onclick="generarPromptMasivoLatex(false)">Generar → Copiar prompt</button>
           <button class="btn" onclick="cerrarModal('modal-importar-masivo')">Cancelar</button>
         </div>
 
@@ -2250,7 +2252,7 @@ function renderBanco() {
     if (fd === 'no' && p.dificil) return false;
     if (fp && !(p.procedencia||'').includes(fp)) return false;
     if (ftxt) {
-      const haystack = ((p.latex_enunciado||'') + ' ' + (p.tematica||'') + ' ' + (p.descripcion||'')).toLowerCase();
+      const haystack = ((p.latex_enunciado||'') + ' ' + (p.tematica||'') + ' ' + (p.descripcion||'') + ' ' + (p.procedencia||'')).toLowerCase();
       if (!ftxt.split(/\s+/).every(word => haystack.includes(word))) return false;
     }
     return true;
@@ -2607,7 +2609,7 @@ ${EJEMPLO_PROBLEMA}
 - unidades_ids: incluye TODAS las unidades del problema si hay varias`;
 
   if (currentMode === 'libre') {
-    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
+    return `Eres profesor de Matemáticas de ${cursoLabel}. ${nivelRef}
 Genera un problema: ${document.getElementById('libre-prompt').value}
 ${normativa}${formato}`;
   }
@@ -2629,7 +2631,7 @@ ${normativa}${formato}`;
       'mixto': 'MIXTO — combina una parte teórica con una parte contextualizada.'
     };
 
-    return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}.
+    return `Eres profesor de Matemáticas de ${cursoLabel}.
 Genera un problema SIMILAR en estructura y dificultad al siguiente ejemplo:
 ${refLatex}
 
@@ -2663,7 +2665,7 @@ ${normativa}${formato}`;
     'mixto': 'MIXTO — combina una parte teórica (pura) con una parte contextualizada.'
   };
 
-  return `Eres profesor de Matemáticas Aplicadas a CCSS de ${cursoLabel}. ${nivelRef}
+  return `Eres profesor de Matemáticas de ${cursoLabel}. ${nivelRef}
 Genera un problema con estas características:
 - ${unidadInfo}
 - TIPO OBLIGATORIO: ${tipoDesc[tipo] || tipo}
@@ -2690,6 +2692,10 @@ function solocopiarPromptEjercicio() {
   navigator.clipboard.writeText(prompt)
     .then(() => toast('Prompt copiado ✓'))
     .catch(() => toast('No se pudo copiar'));
+}
+
+function solocopiarPromptExamen() {
+  generarExamen(false);
 }
 
 function generarExamen(openClaude = true) {
@@ -2922,7 +2928,7 @@ function toggleMasivoClaude() {
   });
 }
 
-function generarPromptMasivoLatex() {
+function generarPromptMasivoLatex(openClaude = true) {
   const latex = document.getElementById('masivo-claude-latex').value.trim();
   if (!latex) { toast('Pega primero el LaTeX'); return; }
 
@@ -2993,8 +2999,12 @@ normativaSeccionM + '\n' +
 
   navigator.clipboard.writeText(prompt)
     .then(() => {
-      toast('Prompt copiado ✓ — abriendo Claude...');
-      setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      if (openClaude) {
+        toast('Prompt copiado ✓ — abriendo Claude...');
+        setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      } else {
+        toast('Prompt copiado ✓');
+      }
       mostrar('masivo-claude-paso2');
     })
     .catch(() => toast('No se pudo copiar'));
@@ -3889,7 +3899,7 @@ function setPdfTipo(tipo, el) {
   if (examnSel) examnSel.onchange = function() { toggleOtroField('pdf-propio-examn', 'pdf-propio-examn-otro'); };
 }
 
-function generarPromptPDF() {
+function generarPromptPDF(openClaude = true) {
   const units = unidades[cursoActual] || [];
   const cursoLabel = (cursos[cursoActual]||{}).label || cursoActual;
   const unidadesListado = units.map(u => '  - "' + u.nombre + '" (id: "' + u.id + '")' + (u.saberes ? ' — saberes: ' + u.saberes : '')).join('\n');
@@ -3966,8 +3976,12 @@ normativaSeccion + '\n' +
 
   navigator.clipboard.writeText(prompt)
     .then(() => {
-      toast('Prompt copiado ✓ — abriendo Claude...');
-      setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      if (openClaude) {
+        toast('Prompt copiado ✓ — abriendo Claude...');
+        setTimeout(() => window.open('https://claude.ai', '_blank'), 600);
+      } else {
+        toast('Prompt copiado ✓');
+      }
       mostrar('pdf-paso2');
     })
     .catch(() => toast('No se pudo copiar'));
