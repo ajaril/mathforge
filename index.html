@@ -2063,6 +2063,9 @@ async function actualizarRefSelect() {
     return (a.tematica||'').localeCompare(b.tematica||'', 'es');
   });
 
+  // Store for search rebuilding
+  refBancoActual = { data: bancoFiltrado, units: unitsParaCurso };
+
   if (!bancoFiltrado.length) {
     sel.innerHTML = '<option value="">No hay problemas con estos filtros</option>';
     ocultar('preview-ref');
@@ -2398,16 +2401,38 @@ function filtrarRefBusqueda() {
   const q = normSearch(document.getElementById('ref-buscar')?.value || '');
   const sel = document.getElementById('ref-problema');
   if (!sel) return;
-  Array.from(sel.options).forEach(opt => {
-    if (!opt.value) return; // keep placeholder
-    const texto = normSearch(opt.text) + ' ' + normSearch((opt.dataset.latex || '').substring(0, 200));
-    opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
-  });
-  // Auto-select first visible match if there is one
-  const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
-  if (firstMatch && q) {
-    sel.value = firstMatch.value;
+
+  const { data = [], units = [] } = refBancoActual || {};
+
+  const filtrados = q
+    ? data.filter(p => {
+        const texto = normSearch(
+          (p.tematica || '') + ' ' + (p.descripcion || '') + ' ' +
+          (p.procedencia || '') + ' ' + (p.latex_enunciado || '').substring(0, 600)
+        );
+        return q.split(/\s+/).every(w => texto.includes(w));
+      })
+    : data;
+
+  // Rebuild select with only matching options
+  sel.innerHTML = '<option value="">Selecciona un problema...</option>' +
+    filtrados.map(p => {
+      const u = units.find(x => x.id === p.unidad_id);
+      const unidadNombre = u ? u.nombre.substring(0, 18) : '?';
+      const tematica = p.tematica || 'Sin temática';
+      const proc = p.procedencia ? ' · ' + p.procedencia : '';
+      const napt = p.num_apartados ? ' · ' + p.num_apartados + 'apt.' : '';
+      const desc = p.descripcion ? ' [' + p.descripcion.substring(0, 25) + ']' : '';
+      const latexAttr = (p.latex_enunciado || '').replace(/"/g, '&quot;').substring(0, 500);
+      return '<option value="' + p.id + '" data-latex="' + latexAttr + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+    }).join('');
+
+  // Auto-select first match
+  if (filtrados.length > 0 && q) {
+    sel.value = filtrados[0].id;
     mostrarPreviewRef();
+  } else {
+    ocultar('preview-ref');
   }
 }
 
@@ -2415,15 +2440,41 @@ function filtrarSlotBusqueda(i) {
   const q = normSearch(document.getElementById('slot-buscar-' + i)?.value || '');
   const sel = document.getElementById('slot-ref-' + i);
   if (!sel) return;
-  Array.from(sel.options).forEach(opt => {
-    if (!opt.value) return;
-    const texto = normSearch(opt.text) + ' ' + normSearch(opt.dataset.latex || '');
-    opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
-  });
-  const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
-  if (firstMatch && q) {
-    sel.value = firstMatch.value;
+
+  const cursoKey = document.getElementById('slot-curso-' + i)?.value || cursoActual;
+  const bancoData = (slotBancoCache[i] && slotBancoCache[i].cursoKey === cursoKey)
+    ? slotBancoCache[i].data
+    : (cursoKey === cursoActual ? banco : []);
+  const unitsData = unidades[cursoKey] || [];
+
+  const filtrados = q
+    ? bancoData.filter(p => {
+        const texto = normSearch(
+          (p.tematica || '') + ' ' + (p.descripcion || '') + ' ' +
+          (p.procedencia || '') + ' ' + (p.latex_enunciado || '').substring(0, 600)
+        );
+        return q.split(/\s+/).every(w => texto.includes(w));
+      })
+    : bancoData;
+
+  sel.innerHTML = '<option value="">Sin referencia</option>' +
+    filtrados.map(p => {
+      const u = unitsData.find(x => x.id === p.unidad_id);
+      const unidadNombre = u ? u.nombre.substring(0, 20) : '?';
+      const tematica = p.tematica || 'Sin temática';
+      const proc = p.procedencia ? ' · ' + p.procedencia : '';
+      const napt = p.num_apartados ? ' · ' + p.num_apartados + ' apt.' : '';
+      const desc = p.descripcion ? ' [' + p.descripcion.substring(0, 20) + ']' : '';
+      const latexAttr = (p.latex_enunciado || '').replace(/"/g, '&quot;').substring(0, 500);
+      return '<option value="' + p.id + '" data-latex="' + latexAttr + '">[' + unidadNombre + '] ' + tematica + napt + proc + desc + '</option>';
+    }).join('');
+
+  if (filtrados.length > 0 && q) {
+    sel.value = filtrados[0].id;
     mostrarPreviewSlot(i);
+  } else if (!q) {
+    // Reset to full list via filtrarRefPorUnidad
+    filtrarRefPorUnidad(i);
   }
 }
 
@@ -3775,6 +3826,7 @@ function setExamModo(modo) {
 // ── EXAM BANCO DIRECTO (slot-based) ──────────────────────────────────────────
 let examBancoSlots = 4;
 let examBancoCruzado = null;
+let refBancoActual = []; // full banco data for "Similar a uno" ref selector
 let examBancoCruzadoCurso = null;
 const slotBancoCache = {}; // per-slot banco cache: { slotIndex: { cursoKey, data } }
 
