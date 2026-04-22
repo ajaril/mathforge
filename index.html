@@ -2530,7 +2530,11 @@ function leerEstadoSlots() {
     estado.push({
       tipo: document.getElementById(`slot-tipo-${i}`)?.value || 'libre',
       unidad: document.getElementById(`slot-unidad-${i}`)?.value || '',
+      curso: document.getElementById(`slot-curso-${i}`)?.value || cursoActual,
+      dificil: document.getElementById(`slot-dificil-${i}`)?.value || '',
       ref: document.getElementById(`slot-ref-${i}`)?.value || '',
+      refText: document.getElementById(`slot-ref-${i}`)?.selectedOptions[0]?.text || '',
+      buscar: document.getElementById(`slot-buscar-${i}`)?.value || '',
       detalle: document.getElementById(`slot-detalle-txt-${i}`)?.value || '',
       tematica: document.getElementById(`slot-tematica-${i}`)?.value || '',
       napt: document.getElementById(`slot-napt-${i}`)?.value || '',
@@ -2539,40 +2543,70 @@ function leerEstadoSlots() {
   return estado;
 }
 
-function restaurarEstadoSlots(estado) {
-  estado.forEach((s, i) => {
+async function restaurarEstadoSlots(estado) {
+  for (let i = 0; i < estado.length; i++) {
+    const s = estado[i];
     const tipoEl = document.getElementById(`slot-tipo-${i}`);
     if (tipoEl) {
       tipoEl.value = s.tipo;
-      ((s.tipo === 'similar') ? mostrarEl(document.getElementById(`slot-similar-${i}`)) : ocultarEl(document.getElementById(`slot-similar-${i}`)  ));
-      ((s.tipo === 'detallista') ? mostrarEl(document.getElementById(`slot-detalle-${i}`)) : ocultarEl(document.getElementById(`slot-detalle-${i}`)  ));
+      ((s.tipo === 'similar') ? mostrarEl(document.getElementById(`slot-similar-${i}`)) : ocultarEl(document.getElementById(`slot-similar-${i}`)));
+      ((s.tipo === 'detallista') ? mostrarEl(document.getElementById(`slot-detalle-${i}`)) : ocultarEl(document.getElementById(`slot-detalle-${i}`)));
     }
-    const unidadEl = document.getElementById(`slot-unidad-${i}`);
-    if (unidadEl && s.unidad) unidadEl.value = s.unidad;
-    const refEl = document.getElementById(`slot-ref-${i}`);
-    if (refEl && s.ref) { refEl.value = s.ref; mostrarPreviewSlot(i); }
+    const cursoEl = document.getElementById(`slot-curso-${i}`);
+    if (cursoEl && s.curso) cursoEl.value = s.curso;
+    const dificilEl = document.getElementById(`slot-dificil-${i}`);
+    if (dificilEl) dificilEl.value = s.dificil;
+    const buscarEl = document.getElementById(`slot-buscar-${i}`);
+    if (buscarEl) buscarEl.value = s.buscar;
+
+    // If there was a ref selected, reload the banco for this slot first
+    if (s.ref && s.tipo === 'similar') {
+      await actualizarRefSlot(i);
+      // Restore unidad filter
+      const unidadEl = document.getElementById(`slot-unidad-${i}`);
+      if (unidadEl && s.unidad) {
+        unidadEl.value = s.unidad;
+        filtrarRefPorUnidad(i);
+      }
+      // Now restore the ref value
+      const refEl = document.getElementById(`slot-ref-${i}`);
+      if (refEl) {
+        refEl.value = s.ref;
+        if (refEl.value === s.ref) {
+          mostrarPreviewSlot(i);
+        } else {
+          // Option not found (banco may have changed) — show text as placeholder
+          refEl.innerHTML = `<option value="${s.ref}">${s.refText}</option>` + refEl.innerHTML;
+          refEl.value = s.ref;
+        }
+      }
+    } else {
+      const unidadEl = document.getElementById(`slot-unidad-${i}`);
+      if (unidadEl && s.unidad) unidadEl.value = s.unidad;
+    }
+
     const detalleEl = document.getElementById(`slot-detalle-txt-${i}`);
     if (detalleEl) detalleEl.value = s.detalle;
     const tematicaEl = document.getElementById(`slot-tematica-${i}`);
     if (tematicaEl) tematicaEl.value = s.tematica;
     const naptEl = document.getElementById(`slot-napt-${i}`);
     if (naptEl) naptEl.value = s.napt;
-  });
+  }
 }
 
-function añadirSlot() {
+async function añadirSlot() {
   const estado = leerEstadoSlots();
   examSlots++;
   renderExamSlots();
-  restaurarEstadoSlots(estado);
+  await restaurarEstadoSlots(estado);
 }
 
-function quitarSlot() {
+async function quitarSlot() {
   if (examSlots <= 1) return;
   const estado = leerEstadoSlots();
   examSlots--;
   renderExamSlots();
-  restaurarEstadoSlots(estado.slice(0, examSlots));
+  await restaurarEstadoSlots(estado.slice(0, examSlots));
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
@@ -2765,7 +2799,10 @@ function generarExamen(openClaude = true) {
     const tipo = document.getElementById(`slot-tipo-${i}`)?.value || 'libre';
     if (tipo === 'similar') {
       const refId = document.getElementById(`slot-ref-${i}`)?.value || '';
-      const ref = banco.find(p => p.id === refId);
+      const cursoSlot = document.getElementById(`slot-curso-${i}`)?.value || cursoActual;
+      const bancoSlot = (slotBancoCache[i] && slotBancoCache[i].cursoKey === cursoSlot)
+        ? slotBancoCache[i].data : banco;
+      const ref = banco.find(p => p.id === refId) || bancoSlot.find(p => p.id === refId);
       if (ref && ref.criterios) ref.criterios.forEach(c => criteriosConocidos.add(c));
     }
   }
@@ -2774,15 +2811,24 @@ function generarExamen(openClaude = true) {
   const slotsInfo = Array.from({length: examSlots}, (_, i) => {
     const tipo = document.getElementById(`slot-tipo-${i}`)?.value || 'libre';
     const unidadId = document.getElementById(`slot-unidad-${i}`)?.value || '';
-    const unidad = (unidades[cursoActual]||[]).find(x => x.id === unidadId);
+    const cursoSlot = document.getElementById(`slot-curso-${i}`)?.value || cursoActual;
+    const unidad = (unidades[cursoSlot]||unidades[cursoActual]||[]).find(x => x.id === unidadId);
     const tematica = document.getElementById(`slot-tematica-${i}`)?.value || '';
     const napt = document.getElementById(`slot-napt-${i}`)?.value || '';
 
     if (tipo === 'similar') {
       const refId = document.getElementById(`slot-ref-${i}`)?.value || '';
-      const ref = banco.find(p => p.id === refId);
+      // Search in current banco first, then in per-slot cache (cross-course)
+      const bancoSlot = (slotBancoCache[i] && slotBancoCache[i].cursoKey === cursoSlot)
+        ? slotBancoCache[i].data
+        : banco;
+      const ref = banco.find(p => p.id === refId) || bancoSlot.find(p => p.id === refId);
+      // Also try data-latex from the select option as last resort
+      const refLatex = ref?.latex_enunciado
+        || document.getElementById(`slot-ref-${i}`)?.selectedOptions[0]?.dataset?.latex
+        || '';
       const naptStr = napt ? ` — ${napt} apartados` : '';
-      return `Pregunta ${i+1}: SIMILAR al siguiente problema del banco${naptStr}${tematica ? ` — temática: ${tematica}` : ''}:\n${ref ? ref.latex_enunciado : 'Genera uno típico del nivel'}`;
+      return `Pregunta ${i+1}: SIMILAR al siguiente problema del banco${naptStr}${tematica ? ` — temática: ${tematica}` : ''}:\n${refLatex || 'Genera uno típico del nivel'}`;
     } else if (tipo === 'detallista') {
       const detalle = document.getElementById(`slot-detalle-txt-${i}`)?.value || '';
       const naptStr = napt ? ` — ${napt} apartados` : '';
