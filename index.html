@@ -248,8 +248,9 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
               <option value="si">Solo difíciles ⚡</option>
             </select>
           </div>
-          <select id="ref-problema" onchange="mostrarPreviewRef()"><option value="">Selecciona un problema...</option></select>
-          <div id="preview-ref" class="preview-box mf-hidden"></div>
+          <input type="text" id="ref-buscar" placeholder="🔍 Buscar en el banco..." oninput="filtrarRefBusqueda()" style="font-size:13px; margin-bottom:6px; width:100%;">
+          <select id="ref-problema" onchange="mostrarPreviewRef()" onkeyup="mostrarPreviewRef()" size="5" style="width:100%; font-size:13px; min-height:110px;"><option value="">Selecciona un problema...</option></select>
+          <div id="preview-ref" class="preview-box mf-hidden" style="margin-top:6px;"></div>
         </div>
         <div class="row">
           <div><label>Nº de apartados (opcional)</label>
@@ -2040,6 +2041,10 @@ async function actualizarRefSelect() {
   sel.innerHTML = '<option value="">Cargando...</option>';
   const bancoParaCurso = await cargarBancoCruzado(cursoKey);
 
+  // Clear search box when filters change
+  const buscarEl = document.getElementById('ref-buscar');
+  if (buscarEl) buscarEl.value = '';
+
   let bancoFiltrado = bancoParaCurso;
   if (filtroUnidad) {
     bancoFiltrado = bancoFiltrado.filter(p =>
@@ -2354,7 +2359,8 @@ function renderExamSlots() {
             <option value="si">Solo ⚡</option>
           </select>
         </div>
-        <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" style="font-size:13px; margin-bottom:4px;"></select>
+        <input type="text" id="slot-buscar-${i}" placeholder="🔍 Buscar..." oninput="filtrarSlotBusqueda(${i})" style="font-size:12px; margin-bottom:4px; width:100%;">
+        <select id="slot-ref-${i}" onchange="mostrarPreviewSlot(${i})" onkeyup="mostrarPreviewSlot(${i})" size="4" style="font-size:13px; margin-bottom:4px; width:100%; min-height:88px;"></select>
         <div id="slot-preview-${i}" class="preview-box mf-hidden"></div>
       </div>
       <div id="slot-detalle-${i}" class="mf-hidden" style="margin-top:6px;">
@@ -2381,6 +2387,39 @@ function renderExamSlots() {
       ((this.value === 'similar') ? mostrarEl(document.getElementById(`slot-similar-${i}`)) : ocultarEl(document.getElementById(`slot-similar-${i}`)  ));
       ((this.value === 'detallista') ? mostrarEl(document.getElementById(`slot-detalle-${i}`)) : ocultarEl(document.getElementById(`slot-detalle-${i}`)  ));
     });
+  }
+}
+
+function filtrarRefBusqueda() {
+  const q = (document.getElementById('ref-buscar')?.value || '').trim().toLowerCase();
+  const sel = document.getElementById('ref-problema');
+  if (!sel) return;
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return; // keep placeholder
+    const texto = opt.text.toLowerCase() + ' ' + (opt.dataset.latex || '').toLowerCase().substring(0, 200);
+    opt.style.display = (!q || texto.includes(q) || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
+  });
+  // Auto-select first visible match if there is one
+  const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
+  if (firstMatch && q) {
+    sel.value = firstMatch.value;
+    mostrarPreviewRef();
+  }
+}
+
+function filtrarSlotBusqueda(i) {
+  const q = (document.getElementById('slot-buscar-' + i)?.value || '').trim().toLowerCase();
+  const sel = document.getElementById('slot-ref-' + i);
+  if (!sel) return;
+  Array.from(sel.options).forEach(opt => {
+    if (!opt.value) return;
+    const texto = opt.text.toLowerCase();
+    opt.style.display = (!q || q.split(/\s+/).every(w => texto.includes(w))) ? '' : 'none';
+  });
+  const firstMatch = Array.from(sel.options).find(o => o.value && o.style.display !== 'none');
+  if (firstMatch && q) {
+    sel.value = firstMatch.value;
+    mostrarPreviewSlot(i);
   }
 }
 
@@ -2990,6 +3029,7 @@ normativaSeccionM + '\n' +
 '    ' + procedenciaInstruccion + '\n' +
 '  }\n]\n\n' +
 'INSTRUCCIONES:\n' +
+'- - tipo: ÚNICAMENTE uno de estos tres valores: "contextualizado" (situación real o narrativa), "teorico" (matemáticas puras, sin contexto real), "mixto" (mezcla de ambos). NO uses ningún otro valor.\n' +
 '- unidades_ids: todos los ids de unidades presentes (puede ser más de una si hay apartados de distintas unidades)\n' +
 '- saberes: elige SOLO los saberes que realmente trabaja este ejercicio concreto, como subconjunto de los saberes de su unidad. No todos los ejercicios de una unidad usan todos sus saberes.\n' +
 '- criterios: para cada saber elegido, consulta la normativa y añade sus criterios. Solo los números (ej: "6.1"), sin "CE". NUNCA dejes criterios vacío.\n' +
@@ -3965,6 +4005,7 @@ normativaSeccion + '\n' +
 '  }\n' +
 ']\n\n' +
 'INSTRUCCIONES:\n' +
+'- - tipo: ÚNICAMENTE uno de estos tres valores: "contextualizado" (situación real o narrativa), "teorico" (matemáticas puras, sin contexto real), "mixto" (mezcla de ambos). NO uses ningún otro valor.\n' +
 '- unidad_id: id de la unidad PRINCIPAL (de la lista de arriba, con sus saberes indicados)\n' +
 '- unidades_ids: TODOS los ids de unidades del ejercicio. Si hay apartados de distintas unidades, incluye todas\n' +
 '- Si no reconoces la unidad claramente, elige la más probable de la lista\n' +
