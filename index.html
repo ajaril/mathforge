@@ -178,7 +178,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
 
   <!-- GENERAR -->
   <div id="tab-generar" class="panel active">
-    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles.</div>
+    <div class="info-box">Configura el problema y pulsa <strong>Generar</strong>. El prompt se copiará al portapapeles y se abrirá Claude. Pega el prompt, espera la respuesta y pega el LaTeX abajo.</div>
     <div class="card">
       <div class="field">
         <label>Modo de generación</label>
@@ -449,7 +449,7 @@ textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
         <div class="stat"><div class="stat-num" id="stat-disponibles">0</div><div class="stat-label">Disponibles</div></div>
       </div>
       <div class="filter-bar">
-        <input type="text" id="filtro-texto" placeholder="🔍 Buscar..." oninput="renderBanco()" style="font-size:13px; flex:2; min-width:180px;">
+        <input type="text" id="filtro-texto" placeholder="🔍 Buscar en enunciados..." oninput="renderBanco()" style="font-size:13px; flex:2; min-width:180px;">
         <select id="filtro-unidad" onchange="renderBanco()"><option value="">Todas las unidades</option></select>
         <select id="filtro-tipo" onchange="renderBanco()">
           <option value="">Todos los tipos</option>
@@ -3923,6 +3923,23 @@ function quitarSlotBanco() {
   const c = document.getElementById('exam-banco-slots');
   if (c && c.lastElementChild) c.lastElementChild.remove();
   examBancoSlots--;
+}
+
+function mostrarPreviewExamBanco(i) {
+  const sel = document.getElementById('exam-banco-ref-' + i);
+  const previewEl = document.getElementById('exam-banco-preview-' + i);
+  if (!previewEl) return;
+  if (!sel || !sel.value) { ocultarEl(previewEl); return; }
+  // Try to find in all available data
+  const { data } = examBancoData;
+  const allBanco = [...banco, ...(examBancoCruzado || []), ...(data || [])];
+  const p = allBanco.find(x => x.id === sel.value)
+    || { latex_enunciado: sel.selectedOptions[0]?.dataset?.latex || '' };
+  if (p.latex_enunciado) {
+    renderPreview(previewEl, p.latex_enunciado);
+  } else {
+    ocultarEl(previewEl);
+  }
 }
 
 function actualizarFiltrosExamBanco() {
